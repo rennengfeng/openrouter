@@ -47,6 +47,7 @@ function LandingPage() {
   const user = useAuthStore((s) => s.auth.user)
   const { data: homeContent } = useHomePageContent()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
 
   const source = (status?.data ?? status) as Record<string, unknown> | null | undefined
   const systemName =
@@ -61,7 +62,7 @@ function LandingPage() {
   const faqFromBackend = Array.isArray(source?.faq) ? (source.faq as Array<{ question: string; answer: string }>) : null
 
   const DEFAULT_FAQ = [
-    { question: t('What is Onpleas?'), answer: t('Onpleas is a unified AI model API aggregation platform. One API key to access OpenAI, Claude, Gemini, DeepSeek and 100+ models — no multi-platform setup needed.') },
+    { question: t('What is {{brand}}?', { brand: systemName }), answer: t('{{brand}} is a unified AI model API aggregation platform. One API key to access OpenAI, Claude, Gemini, DeepSeek and 100+ models — no multi-platform setup needed.', { brand: systemName }) },
     { question: t('How do I get started?'), answer: t('Three steps: 1. Register on the site; 2. Top up or get quota; 3. Get your API Key and start calling. Takes under 5 minutes. Compatible with OpenAI standard API format for seamless migration.') },
     { question: t('Which AI models are supported?'), answer: t('50+ mainstream AI models including OpenAI (GPT-4o, GPT-5, o-series), Anthropic Claude, Google, and more. Continuously expanding.') },
     { question: t('How is data security ensured?'), answer: t('We respect your privacy. All data is transmitted via encrypted channels. We strictly comply with applicable laws and regulations. Use with confidence.') },
@@ -90,10 +91,20 @@ function LandingPage() {
     }
   }
 
-  const switchLang = () => {
-    const next = i18n.language === 'zh' ? 'en' : 'zh'
-    i18n.changeLanguage(next)
-    localStorage.setItem('i18nextLng', next)
+  const LANGS: Array<{ code: string; label: string }> = [
+    { code: 'zh', label: '中文' },
+    { code: 'en', label: 'English' },
+    { code: 'ru', label: 'Русский' },
+  ]
+  const currentLang = i18n.language?.startsWith('ru')
+    ? 'ru'
+    : i18n.language?.startsWith('zh')
+      ? 'zh'
+      : 'en'
+  const changeLang = (code: string) => {
+    i18n.changeLanguage(code)
+    localStorage.setItem('i18nextLng', code)
+    setLangMenuOpen(false)
   }
 
   const stats = [
@@ -144,14 +155,34 @@ function LandingPage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={switchLang}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 transition hover:bg-white/10"
-            >
-              <Globe className="h-3.5 w-3.5" />
-              {i18n.language === 'zh' ? 'EN' : '中文'}
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setLangMenuOpen((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 transition hover:bg-white/10"
+              >
+                <Globe className="h-3.5 w-3.5" />
+                {LANGS.find((l) => l.code === currentLang)?.label ?? 'English'}
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {langMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setLangMenuOpen(false)} />
+                  <div className="absolute right-0 z-50 mt-1 min-w-[130px] overflow-hidden rounded-lg border border-white/10 bg-[#15151f] py-1 shadow-xl">
+                    {LANGS.map((l) => (
+                      <button
+                        key={l.code}
+                        type="button"
+                        onClick={() => changeLang(l.code)}
+                        className={`block w-full px-4 py-2 text-left text-xs transition hover:bg-white/10 ${currentLang === l.code ? 'text-indigo-400' : 'text-white/70'}`}
+                      >
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
 
             {user ? (
               <Link

@@ -124,14 +124,32 @@ export function PortalLogs() {
   const { data: modelList } = useQuery({
     queryKey: ['portal-log-filter-options', startDate.unix(), endDate.unix()],
     queryFn: async () => {
-      const res = await api.get('/api/log/self/filter-options', {
-        params: { start_timestamp: startDate.unix(), end_timestamp: endDate.unix() },
-      })
-      const payload = res.data?.data as { tokens?: string[]; models?: string[] } | undefined
-      return {
-        tokens: [...(payload?.tokens ?? [])].sort(),
-        models: [...(payload?.models ?? [])].sort(),
+      // 优先用专用接口（一次拿全量 token/model，不受分页限制）
+      try {
+        const res = await api.get('/api/log/self/filter-options', {
+          params: { start_timestamp: startDate.unix(), end_timestamp: endDate.unix() },
+        })
+        const payload = res.data?.data as { tokens?: string[]; models?: string[] } | undefined
+        if (payload) {
+          return {
+            tokens: [...(payload.tokens ?? [])].sort(),
+            models: [...(payload.models ?? [])].sort(),
+          }
+        }
+      } catch {
+        // 后端未部署该接口（404）时，降级为从日志列表去重
       }
+      const res = await api.get('/api/log/self', {
+        params: { p: 1, size: 100, start_timestamp: startDate.unix(), end_timestamp: endDate.unix() },
+      })
+      const items = res.data?.data?.items as LogItem[] | undefined
+      const modelSet = new Set<string>()
+      const tokenSet = new Set<string>()
+      for (const item of items ?? []) {
+        if (item.model_name) modelSet.add(item.model_name)
+        if (item.token_name) tokenSet.add(item.token_name)
+      }
+      return { models: Array.from(modelSet).sort(), tokens: Array.from(tokenSet).sort() }
     },
     staleTime: 60_000,
   })

@@ -134,10 +134,14 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
     setNoticeDismissed(false)
   }, [noticeData])
 
-  const currentLang = i18n.language?.startsWith('zh') ? 'zh' : 'en'
-  const toggleLang = () => {
-    const next = currentLang === 'zh' ? 'en' : 'zh'
-    i18n.changeLanguage(next)
+  const currentLang = i18n.language?.startsWith('ru')
+    ? 'ru'
+    : i18n.language?.startsWith('zh')
+      ? 'zh'
+      : 'en'
+  const changeLang = (code: string) => {
+    i18n.changeLanguage(code)
+    localStorage.setItem('i18nextLng', code)
   }
 
   const initial = user?.username
@@ -152,7 +156,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-svh flex-col bg-white text-gray-900" style={{ colorScheme: 'light', '--background': '#ffffff', '--foreground': '#1a1a2e', '--card': '#ffffff', '--card-foreground': '#1a1a2e', '--popover': '#ffffff', '--popover-foreground': '#1a1a2e', '--border': '#e5e7eb', '--input': '#f3f4f6', '--primary': '#6366f1', '--primary-foreground': '#ffffff', '--secondary': '#f3f4f6', '--secondary-foreground': '#374151', '--muted': '#f9fafb', '--muted-foreground': '#6b7280', '--accent': '#eef2ff', '--accent-foreground': '#4f46e5', '--destructive': '#ef4444', '--ring': '#6366f1', '--sidebar-active': 'linear-gradient(to right, rgba(99,102,241,0.9), rgba(79,70,229,0.9))' } as React.CSSProperties}>
+    <div className="flex h-svh flex-col bg-white text-gray-900" style={{ colorScheme: 'light', '--background': '#ffffff', '--foreground': '#1a1a2e', '--card': '#ffffff', '--card-foreground': '#1a1a2e', '--popover': '#ffffff', '--popover-foreground': '#1a1a2e', '--border': '#e5e7eb', '--input': '#f3f4f6', '--primary': '#3b82f6', '--primary-foreground': '#ffffff', '--secondary': '#f3f4f6', '--secondary-foreground': '#374151', '--muted': '#f9fafb', '--muted-foreground': '#6b7280', '--accent': '#eff6ff', '--accent-foreground': '#2563eb', '--destructive': '#ef4444', '--ring': '#3b82f6', '--sidebar-active': 'linear-gradient(to right, rgba(59,130,246,0.95), rgba(37,99,235,0.95))' } as React.CSSProperties}>
       {/* Top bar */}
       <header className="z-30 flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-3">
         <div className="flex items-center gap-4">
@@ -199,14 +203,18 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
             )}
           </button>
-          <button
-            type="button"
-            onClick={toggleLang}
-            className="rounded-md px-2.5 py-1.5 text-sm text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
-            title={t('portal.lang.toggle')}
-          >
-            {currentLang === 'zh' ? 'EN' : '简体中文'}
-          </button>
+          <div className="flex items-center gap-0.5 rounded-md border border-gray-200 p-0.5" title={t('portal.lang.toggle')}>
+            {[{ c: 'zh', l: '中' }, { c: 'en', l: 'EN' }, { c: 'ru', l: 'RU' }].map((o) => (
+              <button
+                key={o.c}
+                type="button"
+                onClick={() => changeLang(o.c)}
+                className={`rounded px-2 py-1 text-xs font-medium transition ${currentLang === o.c ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+              >
+                {o.l}
+              </button>
+            ))}
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger
               className="flex items-center gap-2 rounded-full outline-none cursor-pointer"
