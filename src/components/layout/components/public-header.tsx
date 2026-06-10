@@ -70,13 +70,13 @@ export interface PublicHeaderProps {
 export function PublicHeader(props: PublicHeaderProps) {
   const {
     navLinks = defaultTopNavLinks,
-    showThemeSwitch = true,
+    showThemeSwitch = false,
     showLanguageSwitcher = true,
     logo: customLogo,
     siteName: customSiteName,
     homeUrl = '/',
     showAuthButtons = true,
-    showNotifications = true,
+    showNotifications = false,
   } = props
 
   const { t } = useTranslation()

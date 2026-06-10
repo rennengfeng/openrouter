@@ -120,7 +120,7 @@ function LandingPage() {
       title: t('One API for Any Model'),
       desc: t('Access all major models through a single, unified interface. OpenAI SDK works out of the box.'),
       linkText: t('Browse all'),
-      linkUrl: '/models',
+      linkUrl: '/portal/models',
     },
     {
       icon: Shield,
@@ -223,7 +223,7 @@ function LandingPage() {
               {t('Get API Key')}
             </button>
             <Link
-              to="/models"
+              to="/portal/models"
               className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-8 py-3.5 text-base font-medium text-white transition hover:bg-white/10"
             >
               {t('Explore Models')}
@@ -286,7 +286,7 @@ function LandingPage() {
             <p className="text-sm text-white/50">{modelCount || 400}+ {t('active models on')} 60+ {t('providers')}</p>
           </div>
           <Link
-            to="/models"
+            to="/portal/models"
             className="inline-flex items-center gap-1 text-sm font-medium text-indigo-400 transition hover:text-indigo-300"
           >
             {t('View all')}
@@ -487,31 +487,30 @@ function LandingPage() {
             <div>
               <h4 className="mb-4 text-sm font-semibold text-white">{t('Product')}</h4>
               <div className="flex flex-col gap-2">
-                <Link to="/models" className="text-sm text-white/50 hover:text-white/80 transition">{t('Models')}</Link>
-                <Link to="/pricing" className="text-sm text-white/50 hover:text-white/80 transition">{t('Pricing')}</Link>
+                <Link to="/portal/models" className="text-sm text-white/50 hover:text-white/80 transition">{t('Models')}</Link>
+                <Link to="/portal/models" className="text-sm text-white/50 hover:text-white/80 transition">{t('Pricing')}</Link>
                 <a href={docsUrl} className="text-sm text-white/50 hover:text-white/80 transition">{t('Documentation')}</a>
               </div>
             </div>
             <div>
               <h4 className="mb-4 text-sm font-semibold text-white">{t('Company')}</h4>
               <div className="flex flex-col gap-2">
-                <Link to="/about" className="text-sm text-white/50 hover:text-white/80 transition">{t('About')}</Link>
-                <Link to="/privacy-policy" className="text-sm text-white/50 hover:text-white/80 transition">{t('Privacy')}</Link>
-                <Link to="/user-agreement" className="text-sm text-white/50 hover:text-white/80 transition">{t('Terms of Service')}</Link>
+                <Link to="/portal/about" className="text-sm text-white/50 hover:text-white/80 transition">{t("About")}</Link>
+                <Link to="/portal/privacy" className="text-sm text-white/50 hover:text-white/80 transition">{t("Privacy")}</Link>
+                <Link to="/portal/terms" className="text-sm text-white/50 hover:text-white/80 transition">{t("Terms of Service")}</Link>
               </div>
             </div>
             <div>
               <h4 className="mb-4 text-sm font-semibold text-white">{t('Developer')}</h4>
               <div className="flex flex-col gap-2">
                 <a href={docsUrl} className="text-sm text-white/50 hover:text-white/80 transition">{t('Documentation')}</a>
-                <a href={`${docsUrl}/api`} className="text-sm text-white/50 hover:text-white/80 transition">{t('API Reference')}</a>
               </div>
             </div>
             <div>
               <h4 className="mb-4 text-sm font-semibold text-white">{t('Connect')}</h4>
               <div className="flex flex-col gap-2">
-                <a href="https://discord.gg/openrouter" target="_blank" rel="noreferrer" className="text-sm text-white/50 hover:text-white/80 transition">Discord</a>
-                <a href="https://github.com" target="_blank" rel="noreferrer" className="text-sm text-white/50 hover:text-white/80 transition">GitHub</a>
+                <a href="https://t.me/iXendabot" target="_blank" rel="noreferrer" className="text-sm text-white/50 hover:text-white/80 transition">Telegram</a>
+                <a href="mailto:support@xendalink.com" className="text-sm text-white/50 hover:text-white/80 transition">support@xendalink.com</a>
               </div>
             </div>
           </div>

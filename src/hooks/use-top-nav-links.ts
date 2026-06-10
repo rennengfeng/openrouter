@@ -66,16 +66,16 @@ export function useTopNavLinks(): TopNavLink[] {
     links.push({ title: t('Home'), href: '/' })
   }
 
-  // Console -> /dashboard (new console path)
+  // Console -> 二开用户门户
   if (modules?.console !== false) {
-    links.push({ title: t('Console'), href: '/dashboard' })
+    links.push({ title: t('Console'), href: '/portal' })
   }
 
   // Pricing
   const pricing = modules?.pricing
   if (pricing && typeof pricing === 'object' && pricing.enabled) {
     const requiresAuth = pricing.requireAuth && !isAuthed
-    links.push({ title: t('Model Square'), href: '/pricing', requiresAuth })
+    links.push({ title: t('Model Square'), href: '/portal/models', requiresAuth })
   }
 
   // Rankings
@@ -94,9 +94,9 @@ export function useTopNavLinks(): TopNavLink[] {
     }
   }
 
-  // About
+  // About -> 二开关于页
   if (modules?.about !== false) {
-    links.push({ title: t('About'), href: '/about' })
+    links.push({ title: t('About'), href: '/portal/about' })
   }
 
   return links
