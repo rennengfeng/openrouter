@@ -119,7 +119,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
   const { data: noticeData } = useQuery({
     queryKey: ['portal-notice-bell'],
     queryFn: async () => {
-      const res = await api.get('/api/notice')
+      const res = await api.get('/api/notice', { skipErrorHandler: true } as Record<string, unknown>)
       return typeof res.data?.data === 'string' && res.data.data.trim() ? res.data.data : null
     },
     staleTime: 60_000,
@@ -156,7 +156,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-svh flex-col bg-white text-gray-900" style={{ colorScheme: 'light', '--background': '#ffffff', '--foreground': '#1a1a2e', '--card': '#ffffff', '--card-foreground': '#1a1a2e', '--popover': '#ffffff', '--popover-foreground': '#1a1a2e', '--border': '#e5e7eb', '--input': '#f3f4f6', '--primary': '#3b82f6', '--primary-foreground': '#ffffff', '--secondary': '#f3f4f6', '--secondary-foreground': '#374151', '--muted': '#f9fafb', '--muted-foreground': '#6b7280', '--accent': '#eff6ff', '--accent-foreground': '#2563eb', '--destructive': '#ef4444', '--ring': '#3b82f6', '--sidebar-active': 'linear-gradient(to right, rgba(59,130,246,0.95), rgba(37,99,235,0.95))' } as React.CSSProperties}>
+    <div className="flex h-svh flex-col bg-white text-gray-900" style={{ colorScheme: 'light', '--background': '#ffffff', '--foreground': '#1a1a2e', '--card': '#ffffff', '--card-foreground': '#1a1a2e', '--popover': '#ffffff', '--popover-foreground': '#1a1a2e', '--border': '#e5e7eb', '--input': '#f3f4f6', '--primary': '#0ea5e9', '--primary-foreground': '#ffffff', '--secondary': '#f3f4f6', '--secondary-foreground': '#374151', '--muted': '#f9fafb', '--muted-foreground': '#6b7280', '--accent': '#f0f9ff', '--accent-foreground': '#0284c7', '--destructive': '#ef4444', '--ring': '#0ea5e9', '--sidebar-active': 'linear-gradient(to right, rgba(56,189,248,0.95), rgba(14,165,233,0.95))' } as React.CSSProperties}>
       {/* Top bar */}
       <header className="z-30 flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-3">
         <div className="flex items-center gap-4">
@@ -220,7 +220,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               className="flex items-center gap-2 rounded-full outline-none cursor-pointer"
               title={user?.username || 'profile'}
             >
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-semibold text-gray-900 shadow">
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-sky-500 to-sky-600 text-sm font-semibold text-gray-900 shadow">
                 {initial}
               </div>
               <span className="text-sm text-gray-700 hidden sm:inline">{user?.username || user?.display_name || 'User'}</span>
@@ -287,7 +287,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                   ? 'justify-center px-2 py-2.5'
                   : 'px-3 py-2.5',
                 active
-                  ? 'bg-indigo-600 text-gray-900 shadow-sm'
+                  ? 'bg-sky-600 text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )
               if (item.external) {
@@ -336,7 +336,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
           >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <Bell className="h-5 w-5 text-indigo-600" />
+                <Bell className="h-5 w-5 text-sky-600" />
                 {t('portal.notice.title')}
               </h2>
               <button
@@ -408,7 +408,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setNoticeOpen(false)}
-                className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-medium text-gray-900 transition hover:bg-purple-700"
+                className="rounded-lg bg-sky-600 px-4 py-1.5 text-xs font-medium text-gray-900 transition hover:bg-sky-700"
               >
                 {t('portal.notice.close')}
               </button>

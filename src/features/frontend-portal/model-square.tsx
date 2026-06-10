@@ -210,13 +210,13 @@ export function ModelSquare() {
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder={t('portal.page.models.searchPlaceholder')}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:outline-none"
           />
         </div>
         <select
           value={vendorFilter}
           onChange={(e) => setVendorFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
         >
           <option value="all">{t('portal.page.models.allVendors')}</option>
           {vendors.map((v) => (
@@ -226,7 +226,7 @@ export function ModelSquare() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
         >
           <option value="all">{t('portal.page.models.allStatus')}</option>
           <option value="available">{t('portal.page.models.available')}</option>
@@ -235,7 +235,7 @@ export function ModelSquare() {
         <select
           value={tagFilter}
           onChange={(e) => setTagFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
         >
           <option value="all">{t('All Tags')}</option>
           {allTags.map((tag) => (
@@ -260,7 +260,7 @@ export function ModelSquare() {
             const tagColors: Record<string, string> = {
               '对话': 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
               'chat': 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-              'tools': 'bg-indigo-500/10 text-indigo-600 border border-purple-500/20',
+              'tools': 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
               'moe': 'bg-pink-500/10 text-pink-400 border border-pink-500/20',
               'vision': 'bg-green-500/10 text-green-400 border border-green-500/20',
               '视觉': 'bg-green-500/10 text-green-400 border border-green-500/20',
@@ -275,7 +275,7 @@ export function ModelSquare() {
               <div
                 key={`${model.model_name}-${group}`}
                 onClick={() => setSelectedModel(row)}
-                className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-5 transition hover:border-indigo-400/30 hover:shadow-sm"
+                className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-5 transition hover:border-sky-400/30 hover:shadow-sm"
               >
                 {/* Row 1: Icon + Name + Modality badge + Copy */}
                 <div className="mb-2 flex items-center gap-2">
@@ -312,7 +312,7 @@ export function ModelSquare() {
                       )
                     }
                     return (
-                      <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br from-indigo-400 to-violet-500 shadow-sm shadow-indigo-200" title="Text">
+                      <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br from-sky-400 to-sky-500 shadow-sm shadow-sky-200" title="Text">
                         <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M4 7V4h16v3" /><path d="M9 20h6" /><path d="M12 4v16" /></svg>
                       </span>
                     )
@@ -438,7 +438,7 @@ export function ModelSquare() {
                       <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{selectedModel.group}</span>
                     </td>
                     <td className="py-2">
-                      <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs text-indigo-600">{t('Token-based')}</span>
+                      <span className="rounded-md bg-sky-50 px-2 py-0.5 text-xs text-sky-600">{t('Token-based')}</span>
                     </td>
                     <td className="py-2 text-right">
                       <div className="space-y-1">
@@ -473,7 +473,7 @@ export function ModelSquare() {
             <div className="flex gap-3">
               <Link
                 to="/portal/chat"
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-500"
               >
                 <MessageSquare className="h-4 w-4" />
                 {t('Online Experience')}

@@ -140,7 +140,7 @@ function PortalTokensInner() {
   }
 
   const statsCards = [
-    { icon: KeyRound, label: t('Total Tokens'), value: total, color: 'text-indigo-600', bg: 'from-indigo-500/10 to-indigo-600/10' },
+    { icon: KeyRound, label: t('Total Tokens'), value: total, color: 'text-sky-600', bg: 'from-sky-500/10 to-sky-600/10' },
     { icon: CheckCircle, label: t('Enabled'), value: enabled, color: 'text-green-400', bg: 'from-green-500/20 to-green-600/10' },
     { icon: XCircle, label: t('Disabled'), value: disabled, color: 'text-orange-400', bg: 'from-orange-500/20 to-orange-600/10' },
   ]
@@ -156,7 +156,7 @@ function PortalTokensInner() {
         <button
           type="button"
           onClick={handleCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-gray-900 shadow transition hover:bg-indigo-500"
+          className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-medium text-gray-900 shadow transition hover:bg-sky-500"
         >
           <Plus className="h-4 w-4" />
           {t('Create Token')}
@@ -190,7 +190,7 @@ function PortalTokensInner() {
               placeholder={t('Search token name...')}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-              className="w-64 rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none"
+              className="w-64 rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:outline-none"
             />
           </div>
           <span className="text-xs text-gray-400">{t('{{count}} tokens total', { count: total })}</span>
@@ -235,7 +235,7 @@ function PortalTokensInner() {
                       </td>
                       <td className="px-3 py-3 text-center">
                         {token.group ? (
-                          <span className="inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-0.5 text-xs text-indigo-500">
+                          <span className="inline-flex items-center rounded-md bg-sky-500/10 px-2 py-0.5 text-xs text-sky-500">
                             {token.group}
                           </span>
                         ) : (

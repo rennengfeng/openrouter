@@ -228,7 +228,8 @@ async function safeGetSelfStatToday(): Promise<{
         start_timestamp: Math.floor(start.getTime() / 1000),
         end_timestamp: Math.floor(end.getTime() / 1000),
       },
-    })
+      skipErrorHandler: true,
+    } as Record<string, unknown>)
     const item = (res.data?.data ?? {}) as RawSelfStatItem
     return {
       requests: item.rpm ?? item.count ?? 0,
@@ -242,7 +243,7 @@ async function safeGetSelfStatToday(): Promise<{
 
 async function safeGetUserModelCount(): Promise<number> {
   try {
-    const res = await api.get('/api/user/models')
+    const res = await api.get('/api/user/models', { skipErrorHandler: true } as Record<string, unknown>)
     const arr = res.data?.data
     return Array.isArray(arr) ? arr.length : 0
   } catch {
@@ -252,7 +253,7 @@ async function safeGetUserModelCount(): Promise<number> {
 
 async function safeGetNotice(): Promise<string | undefined> {
   try {
-    const res = await api.get('/api/notice')
+    const res = await api.get('/api/notice', { skipErrorHandler: true } as Record<string, unknown>)
     return typeof res.data?.data === 'string' ? res.data.data : undefined
   } catch {
     return undefined
@@ -261,7 +262,7 @@ async function safeGetNotice(): Promise<string | undefined> {
 
 async function safeGetUptimeStatus(): Promise<FrontendStatusGroup[]> {
   try {
-    const res = await api.get('/api/uptime/status')
+    const res = await api.get('/api/uptime/status', { skipErrorHandler: true } as Record<string, unknown>)
     const data = res.data?.data
     return Array.isArray(data) ? (data as FrontendStatusGroup[]) : []
   } catch {

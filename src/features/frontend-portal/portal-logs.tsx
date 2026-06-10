@@ -128,7 +128,8 @@ export function PortalLogs() {
       try {
         const res = await api.get('/api/log/self/filter-options', {
           params: { start_timestamp: startDate.unix(), end_timestamp: endDate.unix() },
-        })
+          skipErrorHandler: true,
+        } as Record<string, unknown>)
         const payload = res.data?.data as { tokens?: string[]; models?: string[] } | undefined
         if (payload) {
           return {
@@ -248,7 +249,7 @@ export function PortalLogs() {
 
   const statsCards = [
     { icon: Activity, label: t('portal.page.logs.todayRequests'), value: formatNum(totalRequests), color: 'text-blue-400', dotColor: 'bg-blue-400' },
-    { icon: Zap, label: t('portal.page.logs.todayTokens'), value: formatNum(totalTokens), color: 'text-indigo-600', dotColor: 'bg-purple-400' },
+    { icon: Zap, label: t('portal.page.logs.todayTokens'), value: formatNum(totalTokens), color: 'text-sky-600', dotColor: 'bg-sky-400' },
     { icon: Clock, label: t('portal.page.logs.avgResponseTime'), value: avgTime > 0 ? `${avgTime}ms` : '—', color: 'text-cyan-400', dotColor: 'bg-cyan-400' },
     { icon: AlertTriangle, label: t('portal.page.logs.errorRate'), value: '—', color: 'text-orange-400', dotColor: 'bg-orange-400' },
   ]
@@ -331,7 +332,7 @@ export function PortalLogs() {
           <div className="flex items-center gap-4">
             <h3 className="text-base font-semibold text-gray-900">{t('portal.page.logs.requestTrend')}</h3>
             <div className="flex items-center gap-3 text-xs text-gray-400">
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-purple-400" />{t('portal.page.logs.requests')}</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sky-400" />{t('portal.page.logs.requests')}</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-gray-300" />{t('portal.page.logs.errors')}</span>
             </div>
           </div>
@@ -343,7 +344,7 @@ export function PortalLogs() {
                   type="button"
                   onClick={() => setGranularity(g)}
                   className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                    granularity === g ? 'bg-indigo-600 text-white shadow' : 'text-gray-500 hover:text-gray-600'
+                    granularity === g ? 'bg-sky-600 text-white shadow' : 'text-gray-500 hover:text-gray-600'
                   }`}
                 >
                   {g === 'hour' ? t('portal.page.logs.hour') : g === 'day' ? t('portal.page.logs.day') : t('portal.page.logs.week')}
@@ -384,7 +385,7 @@ export function PortalLogs() {
           <select
             value={keyFilter}
             onChange={(e) => setKeyFilter(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none"
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
           >
             <option value="">{t('portal.page.logs.allTokens')}</option>
             {allTokenOptions.map((name) => (
@@ -396,7 +397,7 @@ export function PortalLogs() {
           <select
             value={modelFilter}
             onChange={(e) => setModelFilter(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none"
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
           >
             <option value="">{t('portal.page.logs.allModels')}</option>
             {(modelList?.models ?? []).map((name) => (
@@ -408,7 +409,7 @@ export function PortalLogs() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none"
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
           >
             <option value="">{t('portal.page.logs.allStatus')}</option>
             <option value="success">{t('portal.page.logs.success')}</option>
@@ -418,12 +419,12 @@ export function PortalLogs() {
         {/* Usage / RPM / TPM */}
         <div className="flex flex-1 items-center justify-center gap-4">
           <span className="inline-flex items-center gap-2 text-sm">
-            <span className="h-4 w-1 rounded-full bg-indigo-500" />
+            <span className="h-4 w-1 rounded-full bg-sky-500" />
             <span className="text-gray-500">{t('Usage')}</span>
             <span className="font-mono text-base font-bold text-gray-900">{formatQuota(statData?.quota ?? 0)}</span>
           </span>
           <span className="inline-flex items-center gap-2 text-sm">
-            <span className="h-4 w-1 rounded-full bg-purple-500" />
+            <span className="h-4 w-1 rounded-full bg-sky-500" />
             <span className="text-gray-500">RPM</span>
             <span className="font-mono text-base font-bold text-gray-900">{totalRequests}</span>
           </span>
@@ -436,7 +437,7 @@ export function PortalLogs() {
         <button
           type="button"
           onClick={() => { setPage(1); refetch() }}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow hover:bg-indigo-500"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-5 py-2 text-sm font-medium text-white shadow hover:bg-sky-500"
         >
           <Search className="h-3.5 w-3.5" /> {t('portal.page.logs.searchLogs')}
         </button>
@@ -499,7 +500,7 @@ export function PortalLogs() {
                         <td className="px-3 py-3 text-center text-xs text-gray-500">{tokenDisplayName(log.token_name || '—')}</td>
                         <td className="px-3 py-3 text-center">
                           {log.group ? (
-                            <span className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-xs text-indigo-500">{log.group}</span>
+                            <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-xs text-sky-500">{log.group}</span>
                           ) : <span className="text-xs text-gray-400">—</span>}
                         </td>
                         <td className="px-3 py-3 text-center">
@@ -664,7 +665,7 @@ export function PortalLogs() {
                   type="button"
                   onClick={() => setPage(p)}
                   className={`rounded-md px-2.5 py-1 transition ${
-                    page === p ? 'bg-indigo-600 text-gray-900' : 'border border-gray-200 hover:bg-gray-50'
+                    page === p ? 'bg-sky-600 text-gray-900' : 'border border-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   {p}
@@ -676,7 +677,7 @@ export function PortalLogs() {
                   type="button"
                   onClick={() => setPage(totalPages)}
                   className={`rounded-md px-2.5 py-1 transition ${
-                    page === totalPages ? 'bg-indigo-600 text-gray-900' : 'border border-gray-200 hover:bg-gray-50'
+                    page === totalPages ? 'bg-sky-600 text-gray-900' : 'border border-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   {totalPages}

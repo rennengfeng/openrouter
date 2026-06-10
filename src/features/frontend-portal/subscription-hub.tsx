@@ -218,13 +218,13 @@ export function SubscriptionHub() {
             <button
               type="button"
               onClick={() => void fetchUser()}
-              className="text-xs text-indigo-600 hover:text-indigo-500"
+              className="text-xs text-sky-600 hover:text-sky-500"
             >
               {t('portal.page.topup.topupHistory')} &gt;
             </button>
           </div>
           <div className="mb-5 flex items-center gap-2">
-            <p className="text-3xl font-bold text-indigo-600">{userLoading ? '--' : balance}</p>
+            <p className="text-3xl font-bold text-sky-600">{userLoading ? '--' : balance}</p>
             <button type="button" onClick={() => void fetchUser()} className="text-gray-400 hover:text-gray-500">
               <RefreshCw className="h-4 w-4" />
             </button>
@@ -244,7 +244,7 @@ export function SubscriptionHub() {
                   onClick={() => handleSelectPreset(preset)}
                   className={`relative rounded-lg border p-3 text-left transition ${
                     active
-                      ? 'border-purple-500 bg-indigo-500/10'
+                      ? 'border-sky-500 bg-sky-500/10'
                       : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                   }`}
                 >
@@ -253,7 +253,7 @@ export function SubscriptionHub() {
                     <span className="absolute right-2 top-2 text-[10px] font-medium text-orange-400">{discount}</span>
                   )}
                   {active && (
-                    <span className="absolute right-2 bottom-2 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500">
+                    <span className="absolute right-2 bottom-2 flex h-4 w-4 items-center justify-center rounded-full bg-sky-500">
                       <Check className="h-3 w-3 text-gray-900" />
                     </span>
                   )}
@@ -265,7 +265,7 @@ export function SubscriptionHub() {
               onClick={() => { setSelectedPreset(null); setCustomAmount(String(topupAmount || '')) }}
               className={`rounded-lg border p-3 text-left transition ${
                 customAmount
-                  ? 'border-purple-500 bg-indigo-500/10'
+                  ? 'border-sky-500 bg-sky-500/10'
                   : 'border-gray-200 bg-gray-50 hover:border-gray-300'
               }`}
             >
@@ -282,7 +282,7 @@ export function SubscriptionHub() {
                 onChange={(e) => handleCustomAmountChange(e.target.value)}
                 min={minTopup}
                 placeholder={`${t('portal.page.topup.minimum')} $${minTopup}`}
-                className="w-full max-w-xs rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none"
+                className="w-full max-w-xs rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:outline-none"
               />
             </div>
           )}
@@ -298,7 +298,7 @@ export function SubscriptionHub() {
                   onClick={() => setSelectedPaymentMethod(method)}
                   className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm transition ${
                     selectedPaymentMethod?.type === method.type
-                      ? 'border-purple-500 bg-indigo-500/10 text-gray-900'
+                      ? 'border-sky-500 bg-sky-500/10 text-gray-900'
                       : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
                   }`}
                 >
@@ -331,13 +331,13 @@ export function SubscriptionHub() {
                 value={redemptionCode}
                 onChange={(e) => setRedemptionCode(e.target.value)}
                 placeholder={t('portal.page.topup.enterCode')}
-                className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none"
+                className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleRedeem}
                 disabled={!redemptionCode || redeeming}
-                className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="shrink-0 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {redeeming ? t('portal.page.topup.processing') : t('portal.page.topup.redeem')}
               </button>
@@ -398,7 +398,7 @@ export function SubscriptionHub() {
                           <button
                             type="button"
                             onClick={() => { setSelectedPlan(p); setPurchaseOpen(true) }}
-                            className="w-full rounded-lg bg-indigo-600 py-2 text-xs font-medium text-gray-900 transition hover:bg-purple-700"
+                            className="w-full rounded-lg bg-sky-600 py-2 text-xs font-medium text-gray-900 transition hover:bg-sky-700"
                           >
                             {t('portal.page.topup.selectPlan')}
                           </button>
@@ -480,7 +480,7 @@ export function SubscriptionHub() {
                             </div>
                             <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
                               <div
-                                className={`h-full rounded-full transition-all ${usagePercent > 80 ? 'bg-orange-400' : 'bg-indigo-500'}`}
+                                className={`h-full rounded-full transition-all ${usagePercent > 80 ? 'bg-orange-400' : 'bg-sky-500'}`}
                                 style={{ width: `${Math.min(usagePercent, 100)}%` }}
                               />
                             </div>
@@ -572,7 +572,7 @@ export function SubscriptionHub() {
             </table>
           </div>
           {total > 5 && (
-            <p className="mt-3 text-center text-xs text-indigo-600 cursor-pointer hover:text-indigo-500">
+            <p className="mt-3 text-center text-xs text-sky-600 cursor-pointer hover:text-sky-500">
               {t('portal.page.topup.viewMore')} &gt;
             </p>
           )}

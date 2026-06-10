@@ -39,7 +39,7 @@ export function PortalAffiliate() {
   const statsCards = [
     { icon: Users, label: t('portal.page.affiliate.totalInvites'), value: String(inviteCount), color: 'text-blue-400', iconBg: 'bg-blue-500/15' },
     { icon: CheckCircle, label: t('portal.page.affiliate.validInvites'), value: String(inviteCount), color: 'text-emerald-400', iconBg: 'bg-emerald-500/15' },
-    { icon: DollarSign, label: t('portal.page.affiliate.totalRewards'), value: `$${(affQuota / 500000).toFixed(2)}`, color: 'text-indigo-600', iconBg: 'bg-indigo-500/15' },
+    { icon: DollarSign, label: t('portal.page.affiliate.totalRewards'), value: `$${(affQuota / 500000).toFixed(2)}`, color: 'text-sky-600', iconBg: 'bg-sky-500/15' },
     { icon: Gift, label: t('portal.page.affiliate.pendingRewards'), value: `$${(affQuota / 500000).toFixed(2)}`, color: 'text-orange-400', iconBg: 'bg-orange-500/15' },
   ]
 
@@ -95,19 +95,19 @@ export function PortalAffiliate() {
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <h3 className="mb-4 text-base font-semibold text-gray-900">{t('portal.page.affiliate.rewardRules')}</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-purple-500/20 bg-indigo-500/5 p-4">
-            <p className="mb-2 text-sm font-medium text-indigo-600">{t('portal.page.affiliate.youGet')}</p>
+          <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-4">
+            <p className="mb-2 text-sm font-medium text-sky-600">{t('portal.page.affiliate.youGet')}</p>
             <div className="space-y-1.5 text-xs text-gray-500">
               <p className="flex items-center gap-2">
-                <Gift className="h-3.5 w-3.5 text-indigo-600" />
+                <Gift className="h-3.5 w-3.5 text-sky-600" />
                 {t('portal.page.affiliate.rule1')}
               </p>
               <p className="flex items-center gap-2">
-                <Gift className="h-3.5 w-3.5 text-indigo-600" />
+                <Gift className="h-3.5 w-3.5 text-sky-600" />
                 {t('portal.page.affiliate.rule2')}
               </p>
             </div>
-            <p className="mt-3 text-right text-xs text-indigo-600/60">{t('portal.page.affiliate.noLimit')}</p>
+            <p className="mt-3 text-right text-xs text-sky-600/60">{t('portal.page.affiliate.noLimit')}</p>
           </div>
           <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
             <p className="mb-2 text-sm font-medium text-emerald-400">{t('portal.page.affiliate.friendGets')}</p>
@@ -143,7 +143,7 @@ export function PortalAffiliate() {
               onClick={() => setActiveTab(i)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                 activeTab === i
-                  ? 'bg-indigo-500/80 text-gray-900 shadow'
+                  ? 'bg-sky-500/80 text-gray-900 shadow'
                   : 'border border-gray-200 text-gray-500 hover:text-gray-600'
               }`}
             >
