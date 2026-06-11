@@ -45,6 +45,7 @@ export function ProfileDropdown() {
   const user = useAuthStore((state) => state.auth.user)
   const { displayName, roleLabel } = useUserDisplay(user)
   const isSuperAdmin = user?.role === ROLE.SUPER_ADMIN
+  const isAdmin = (user?.role ?? 0) >= ROLE.ADMIN
   const avatarName = user?.username || displayName
   const avatarFallback = getUserAvatarFallback(avatarName)
   const avatarFallbackStyle = useMemo(
@@ -99,12 +100,20 @@ export function ProfileDropdown() {
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem onClick={() => navigate({ to: '/profile' })}>
+          <DropdownMenuItem
+            onClick={() =>
+              navigate({ to: isAdmin ? '/profile' : '/portal/settings' })
+            }
+          >
             <User className='size-4' />
             {t('Profile')}
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => navigate({ to: '/wallet' })}>
+          <DropdownMenuItem
+            onClick={() =>
+              navigate({ to: isAdmin ? '/wallet' : '/portal/topup' })
+            }
+          >
             <Wallet className='size-4' />
             {t('Wallet')}
           </DropdownMenuItem>

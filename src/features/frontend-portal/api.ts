@@ -172,6 +172,8 @@ type RawSelfStatItem = {
   quota?: number
   prompt_tokens?: number
   completion_tokens?: number
+  rpm?: number
+  tpm?: number
 }
 
 /**

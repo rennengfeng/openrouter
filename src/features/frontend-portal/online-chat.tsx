@@ -978,7 +978,7 @@ export function OnlineChat() {
 
               {/* Image size (only in image mode) */}
               {chatMode === 'image' && (
-                <Select value={imageSize} onValueChange={setImageSize}>
+                <Select value={imageSize} onValueChange={(v) => setImageSize(v ?? '')}>
                   <SelectTrigger className="h-7 w-full text-xs">
                     <SelectValue />
                   </SelectTrigger>
@@ -993,7 +993,7 @@ export function OnlineChat() {
               )}
 
               {/* Group selector */}
-              <Select value={selectedGroup} onValueChange={setSelectedGroup} disabled={isGenerating}>
+              <Select value={selectedGroup} onValueChange={(v) => setSelectedGroup(v ?? '')} disabled={isGenerating}>
                 <SelectTrigger className="h-7 w-full text-xs">
                   <SelectValue placeholder={t('Group')} />
                 </SelectTrigger>
@@ -1007,7 +1007,7 @@ export function OnlineChat() {
               </Select>
 
               {/* Model selector */}
-              <Select value={selectedModel} onValueChange={setSelectedModel} disabled={isGenerating}>
+              <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v ?? '')} disabled={isGenerating}>
                 <SelectTrigger className="h-7 w-full text-xs">
                   <SelectValue placeholder={t('Model')} />
                 </SelectTrigger>

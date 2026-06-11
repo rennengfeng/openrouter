@@ -4,7 +4,6 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useStatus } from '@/hooks/use-status'
 import { getSelf } from '@/lib/api'
 import { formatQuota, formatNumber } from '@/lib/format'
-import { getRoleLabel } from '@/lib/roles'
 import { pickLang } from '@/lib/multilang'
 import { BarChart3, Activity, Users, Bell, Globe } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -33,14 +32,7 @@ export function PortalDashboard() {
   const apiInfoItems = (apiInfoEnabled ? source?.api_info : []) as Array<{ url: string; route: string; description: string; color: string }> | undefined
   const items = apiInfoItems ?? []
 
-  const initials = user?.username
-    ? user.username.slice(0, 2).toUpperCase()
-    : user?.display_name
-      ? user.display_name.slice(0, 2).toUpperCase()
-      : 'U'
-
   const displayName = user?.display_name || user?.username || 'User'
-  const roleLabel = getRoleLabel(user?.role ?? 1)
 
   return (
     <div className="flex h-full flex-col overflow-y-auto no-scrollbar">

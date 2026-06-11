@@ -1,27 +1,17 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import {
-  Boxes,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  Code2,
   Copy,
-  ExternalLink,
-  FileText,
   Globe,
-  Headphones,
-  KeyRound,
-  Lock,
   Mail,
-  Moon,
   Play,
   Send,
   Shield,
-  UserPlus,
   Zap,
   DollarSign,
-  Puzzle,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -35,19 +25,6 @@ import { getLobeIcon } from '@/lib/lobe-icon'
 export const Route = createFileRoute('/')({
   component: LandingPage,
 })
-
-function useHomePageContent() {
-  return useQuery({
-    queryKey: ['home-page-content'],
-    queryFn: async () => {
-      const res = await api.get('/api/home_page_content')
-      return (res.data?.data as string) || ''
-    },
-    staleTime: 120_000,
-  })
-}
-
-const NAV_LINKS: Array<{ label: string; to: string; external?: boolean; useDocsUrl?: boolean }> = []
 
 const CODE_SAMPLES = [
   { lang: 'cURL', code: `curl https://api.xendalink.com/v1/chat/completions \\
@@ -149,7 +126,8 @@ function LandingPage() {
   const navigate = useNavigate()
   const { status } = useStatus()
   const user = useAuthStore((s) => s.auth.user)
-  const { data: homeContent } = useHomePageContent()
+  // 模型广场分流：管理员→原版 /pricing；用户/未登录→二开 /portal/models（未登录为公开页）
+  const modelsHref = user && user.role >= ROLE.ADMIN ? '/pricing' : '/portal/models'
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [codeTab, setCodeTab] = useState(0)
@@ -216,16 +194,6 @@ function LandingPage() {
       badge: i === 0 ? t('New') : null,
     }))
 
-  const handleCTA = () => {
-    if (!user) {
-      navigate({ to: '/sign-in' })
-    } else if (user.role >= ROLE.ADMIN) {
-      navigate({ to: '/dashboard' })
-    } else {
-      navigate({ to: '/portal' })
-    }
-  }
-
   const handleGetKey = () => {
     navigate({ to: user ? '/portal/tokens' : '/sign-in' })
   }
@@ -274,37 +242,6 @@ function LandingPage() {
     { value: '8M+', label: t('Global Users') },
     { value: '60+', label: t('Providers') },
     { value: `${modelCount || 400}+`, label: t('Models') },
-  ]
-
-  const features = [
-    {
-      icon: Boxes,
-      title: t('One API for Any Model'),
-      desc: t('Access all major models through a single, unified interface. OpenAI SDK works out of the box.'),
-      linkText: t('Browse all'),
-      linkUrl: '/portal/models',
-    },
-    {
-      icon: Shield,
-      title: t('Higher Availability'),
-      desc: t('Reliable AI models via our distributed infrastructure. Fall back to other providers when one goes down.'),
-      linkText: t('Learn more'),
-      linkUrl: docsUrl || '/docs/availability',
-    },
-    {
-      icon: Zap,
-      title: t('Price and Performance'),
-      desc: t('Keep costs in check without sacrificing speed. OpenRouter runs at the edge for minimal latency between your users and their inference.'),
-      linkText: t('Learn more'),
-      linkUrl: docsUrl || '/docs/performance',
-    },
-    {
-      icon: Lock,
-      title: t('Custom Data Policies'),
-      desc: t('Protect your organization with fine grained data policies. Ensure prompts only go to the models and providers you trust.'),
-      linkText: t('View docs'),
-      linkUrl: docsUrl || '/docs/data-policies',
-    },
   ]
 
   return (
@@ -386,7 +323,7 @@ function LandingPage() {
               {t('Get API Key')}
             </button>
             <Link
-              to="/portal/models"
+              to={modelsHref}
               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-8 py-3.5 text-base font-medium text-gray-900 transition hover:bg-gray-100"
             >
               {t('Explore Models')}
@@ -495,7 +432,7 @@ function LandingPage() {
             </h2>
           </div>
           <Link
-            to="/portal/models"
+            to={modelsHref}
             className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 transition hover:text-indigo-600"
           >
             {t('View all')}
@@ -507,7 +444,7 @@ function LandingPage() {
           {featuredModels.map((model) => (
             <Link
               key={model.name}
-              to="/portal/models"
+              to={modelsHref}
               className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-indigo-500/30 hover:bg-gray-50"
             >
               <div className="flex items-center gap-3">
@@ -644,7 +581,7 @@ function LandingPage() {
             <div>
               <h4 className="mb-4 text-sm font-semibold text-gray-900">{t('Product')}</h4>
               <div className="flex flex-col gap-2">
-                <Link to="/portal/models" className="text-sm text-gray-500 hover:text-gray-700 transition">{t('Models')}</Link>
+                <Link to={modelsHref} className="text-sm text-gray-500 hover:text-gray-700 transition">{t('Models')}</Link>
               </div>
             </div>
             <div>

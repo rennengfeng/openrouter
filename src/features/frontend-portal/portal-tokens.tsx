@@ -1,15 +1,14 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
-import { KeyRound, Search, Plus, CheckCircle, XCircle, Copy, Eye, EyeOff, Loader2, ArrowRightLeft, Power, PowerOff, Pencil, Trash2, MoreVertical, Activity } from 'lucide-react'
+import { KeyRound, Search, Plus, CheckCircle, XCircle, Copy, Eye, EyeOff, Loader2, Power, PowerOff, Pencil, Trash2, MoreVertical, Activity, Terminal } from 'lucide-react'
 import { toast } from 'sonner'
 import { ApiKeysProvider, useApiKeys } from '@/features/keys/components/api-keys-provider'
 import { ApiKeysMutateDrawer } from '@/features/keys/components/api-keys-mutate-drawer'
 import { CCSwitchDialog } from '@/features/keys/components/dialogs/cc-switch-dialog'
 import { deleteApiKey, updateApiKeyStatus } from '@/features/keys/api'
 import { quotaUnitsToDollars } from '@/lib/format'
-import { Link } from '@tanstack/react-router'
 import type { ApiKey } from '@/features/keys/types'
 
 export function PortalTokens() {
@@ -63,6 +62,20 @@ function PortalTokensInner() {
   const [ccSwitchOpen, setCcSwitchOpen] = useState(false)
   const [ccSwitchKey, setCcSwitchKey] = useState('')
 
+  // 导入 CCS：解析出真实 Key 后打开 CC Switch 对话框
+  const handleCcSwitch = async (token: ApiKey) => {
+    let key = resolvedKeys[token.id]
+    if (!key) {
+      key = (await resolveRealKey(token.id)) ?? ''
+    }
+    if (key) {
+      setCcSwitchKey(key)
+      setCcSwitchOpen(true)
+    } else {
+      toast.error(t('Failed to resolve API key'))
+    }
+  }
+
   const handleViewKey = async (token: ApiKey) => {
     if (resolvedKeys[token.id]) {
       setHiddenKeys((prev) => ({ ...prev, [token.id]: !prev[token.id] }))
@@ -90,17 +103,6 @@ function PortalTokensInner() {
       refetch()
     } else {
       toast.error(res.message || t('Delete failed'))
-    }
-  }
-
-  const handleCcSwitch = async (token: ApiKey) => {
-    let key = resolvedKeys[token.id]
-    if (!key) {
-      key = (await resolveRealKey(token.id)) ?? ''
-    }
-    if (key) {
-      setCcSwitchKey(key)
-      setCcSwitchOpen(true)
     }
   }
 
@@ -329,6 +331,17 @@ function PortalTokensInner() {
                                   >
                                     {token.status === 1 ? <PowerOff className="h-3.5 w-3.5" /> : <Power className="h-3.5 w-3.5" />}
                                     {token.status === 1 ? t('Disable') : t('Enable')}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleCcSwitch(token)
+                                      setOpenMenuId(null)
+                                    }}
+                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-600 transition hover:bg-gray-50 hover:text-gray-900"
+                                  >
+                                    <Terminal className="h-3.5 w-3.5" />
+                                    {t('Import CCS')}
                                   </button>
                                   <div className="my-1 h-px bg-gray-50" />
                                   <button

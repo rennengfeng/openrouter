@@ -298,6 +298,21 @@ export function ModelSquare() {
                     </>
                   )}
                 </div>
+
+                {/* Row 4: Tags */}
+                {(() => {
+                  const cardTags = model.tags ? model.tags.split(',').map((tg) => tg.trim()).filter(Boolean) : []
+                  if (cardTags.length === 0) return null
+                  return (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {cardTags.map((tg) => (
+                        <span key={tg} className="rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
+                          {tagLabel(tg)}
+                        </span>
+                      ))}
+                    </div>
+                  )
+                })()}
               </div>
             )
           })}

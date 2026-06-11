@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 export function PortalAffiliate() {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.auth.user)
-  const [copied, setCopied] = useState(false)
+  const [, setCopied] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
 
   const { data: affCode } = useQuery({

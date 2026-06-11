@@ -26,15 +26,18 @@ import type {
 
 const CHART_CONFIG = { mode: 'desktop-browser' as const }
 
-const DARK_THEME_OVERRIDES = {
+// 基础暗色样式（不含 title/legends，避免覆盖各 spec 自带的文本/交互配置）
+const DARK_THEME_BASE = {
   background: 'transparent',
-  title: { textStyle: { fill: 'hsl(var(--foreground))' }, subtextStyle: { fill: 'hsl(var(--muted-foreground))' } },
-  legends: { item: { label: { style: { fill: 'hsl(var(--foreground))' } } } },
   axes: [
     { orient: 'bottom' as const, label: { style: { fill: 'hsl(var(--muted-foreground))' } }, grid: { style: { stroke: 'transparent' } } },
     { orient: 'left' as const, label: { style: { fill: 'hsl(var(--muted-foreground))' } }, grid: { style: { stroke: 'transparent' } } },
   ],
 }
+// 可复用的标题/图例暗色样式片段，按需并入各 spec 的 title/legends
+const DARK_TITLE_STYLE = { textStyle: { fill: 'hsl(var(--foreground))' }, subtextStyle: { fill: 'hsl(var(--muted-foreground))' } }
+const DARK_LEGEND_ITEM = { shape: { style: { symbolType: 'circle' as const } }, label: { style: { fill: 'hsl(var(--foreground))' } } }
+
 
 const MODEL_COLOR_MAP: Record<string, string> = {
   'gpt-3.5-turbo': 'rgb(184,227,167)',
@@ -116,12 +119,6 @@ function buildTrendBuckets(data: QuotaDataItem[], startTs: number, endTs: number
   return { quotaBuckets, tokenBuckets, countBuckets }
 }
 
-const TIME_INTERVALS: Record<string, number> = {
-  hour: 60,
-  day: 1440,
-  week: 10080,
-}
-
 const TIME_INTERVALS_SEC: Record<string, number> = {
   hour: 3600,
   day: 86400,
@@ -171,7 +168,7 @@ function processChartData(data: QuotaDataItem[], granularity: string): ChartData
   const showYear = isDataCrossYear(data.map((item) => Number(item.created_at)))
 
   data.forEach((item) => {
-    uniqueModels.add(item.model_name)
+    uniqueModels.add(item.model_name ?? '')
     totalQuota += Number(item.quota) || 0
     totalTimes += Number(item.count) || 0
   })
@@ -181,7 +178,7 @@ function processChartData(data: QuotaDataItem[], granularity: string): ChartData
     const timeKey = timestamp2label(Number(item.created_at), granularity, showYear)
     const key = `${timeKey}-${item.model_name}`
     if (!aggregatedData.has(key)) {
-      aggregatedData.set(key, { time: timeKey, model: item.model_name, quota: 0, count: 0 })
+      aggregatedData.set(key, { time: timeKey, model: item.model_name ?? '', quota: 0, count: 0 })
     }
     const existing = aggregatedData.get(key)!
     existing.quota += Number(item.quota) || 0
@@ -418,14 +415,14 @@ export function PortalDataBoard() {
     yField: 'Usage',
     seriesField: 'Model',
     stack: true,
-    legends: { visible: true, selectMode: 'single' as const, item: { shape: { style: { symbolType: 'circle' } } } },
-    title: { visible: true, text: t('Model Consumption Distribution'), subtext: `${t('Total')}：${formatQuota(chartData.totalQuota)}` },
+    legends: { visible: true, selectMode: 'single' as const, item: DARK_LEGEND_ITEM },
+    title: { visible: true, text: t('Model Consumption Distribution'), subtext: `${t('Total')}：${formatQuota(chartData.totalQuota)}`, ...DARK_TITLE_STYLE },
     bar: { state: { hover: { stroke: '#000', lineWidth: 1 } } },
     tooltip: {
       mark: { content: [{ key: (datum: any) => datum['Model'], value: (datum: any) => formatQuota(datum['rawQuota'] || 0) }] },
     },
     color: { specified: chartData.modelColors },
-    ...DARK_THEME_OVERRIDES,
+    ...DARK_THEME_BASE,
   }), [chartData, t])
 
   const specLine = useMemo(() => ({
@@ -434,13 +431,13 @@ export function PortalDataBoard() {
     xField: 'Time',
     yField: 'Count',
     seriesField: 'Model',
-    legends: { visible: true, selectMode: 'single' as const, item: { shape: { style: { symbolType: 'circle' } } } },
-    title: { visible: true, text: t('Call Trend'), subtext: `${t('Total')}：${renderCompactNumber(chartData.totalTimes)}` },
+    legends: { visible: true, selectMode: 'single' as const, item: DARK_LEGEND_ITEM },
+    title: { visible: true, text: t('Call Trend'), subtext: `${t('Total')}：${renderCompactNumber(chartData.totalTimes)}`, ...DARK_TITLE_STYLE },
     tooltip: {
       mark: { content: [{ key: (datum: any) => datum['Model'], value: (datum: any) => renderCompactNumber(datum['Count']) }] },
     },
     color: { specified: chartData.modelColors },
-    ...DARK_THEME_OVERRIDES,
+    ...DARK_THEME_BASE,
   }), [chartData, t])
 
   const specRank = useMemo(() => ({
@@ -449,12 +446,12 @@ export function PortalDataBoard() {
     xField: 'Model',
     yField: 'Count',
     seriesField: 'Model',
-    legends: { visible: true, selectMode: 'single' as const, item: { shape: { style: { symbolType: 'circle' } } } },
-    title: { visible: true, text: t('Model Call Ranking'), subtext: `${t('Total')}：${renderCompactNumber(chartData.totalTimes)}` },
+    legends: { visible: true, selectMode: 'single' as const, item: DARK_LEGEND_ITEM },
+    title: { visible: true, text: t('Model Call Ranking'), subtext: `${t('Total')}：${renderCompactNumber(chartData.totalTimes)}`, ...DARK_TITLE_STYLE },
     bar: { state: { hover: { stroke: '#000', lineWidth: 1 } } },
     tooltip: { mark: { content: [{ key: (datum: any) => datum['Model'], value: (datum: any) => renderCompactNumber(datum['Count']) }] } },
     color: { specified: chartData.modelColors },
-    ...DARK_THEME_OVERRIDES,
+    ...DARK_THEME_BASE,
   }), [chartData, t])
 
   return (

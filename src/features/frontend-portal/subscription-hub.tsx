@@ -3,12 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Check, RefreshCw } from 'lucide-react'
 import { formatCurrencyFromUSD } from '@/lib/currency'
-import { api, getSelf } from '@/lib/api'
+import { getSelf } from '@/lib/api'
 import { formatQuota } from '@/lib/format'
-import { useAuthStore } from '@/stores/auth-store'
-import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
-import { toast } from 'sonner'
 import { DEFAULT_DISCOUNT_RATE } from '@/features/wallet/constants'
 import { PaymentConfirmDialog } from '@/features/wallet/components/dialogs/payment-confirm-dialog'
 import { TransferDialog } from '@/features/wallet/components/dialogs/transfer-dialog'
@@ -42,8 +39,6 @@ import type { PlanRecord } from '@/features/subscriptions/types'
 
 export function SubscriptionHub() {
   const { t } = useTranslation()
-  const authUser = useAuthStore((s) => s.auth.user)
-  const { status } = useStatus()
   const { currency } = useSystemConfig()
   const [user, setUser] = useState<UserWalletData | null>(null)
   const [userLoading, setUserLoading] = useState(true)
@@ -56,7 +51,7 @@ export function SubscriptionHub() {
   const [transferDialogOpen, setTransferDialogOpen] = useState(false)
   const [redemptionCode, setRedemptionCode] = useState('')
 
-  const { topupInfo, presetAmounts, loading: topupLoading } = useTopupInfo()
+  const { topupInfo, presetAmounts } = useTopupInfo()
   const {
     amount: paymentAmount,
     calculating,
@@ -196,9 +191,7 @@ export function SubscriptionHub() {
   const {
     records,
     total,
-    keyword,
     loading: billingLoading,
-    handleSearch,
     refresh: refreshBilling,
   } = useBillingHistory({ initialPageSize: 5 })
 
@@ -436,7 +429,6 @@ export function SubscriptionHub() {
                     if (!subscription) return null
                     const totalAmount = Number(subscription.amount_total || 0)
                     const usedAmount = Number(subscription.amount_used || 0)
-                    const remainAmount = totalAmount > 0 ? Math.max(0, totalAmount - usedAmount) : 0
                     const now = Date.now() / 1000
                     const isExpired = (subscription.end_time || 0) < now
                     const isCancelled = subscription.status === 'cancelled'
@@ -555,10 +547,10 @@ export function SubscriptionHub() {
                         <td className="px-3 py-3 text-xs text-gray-500">{getPaymentMethodName(record.payment_method)}</td>
                         <td className="px-3 py-3">
                           <span className={`inline-flex items-center gap-1 text-xs ${
-                            record.status === 1 ? 'text-emerald-400' : 'text-gray-500'
+                            record.status === 'success' ? 'text-emerald-400' : 'text-gray-500'
                           }`}>
                             <span className={`h-1.5 w-1.5 rounded-full ${
-                              record.status === 1 ? 'bg-emerald-400' : 'bg-white/30'
+                              record.status === 'success' ? 'bg-emerald-400' : 'bg-white/30'
                             }`} />
                             {statusCfg.label}
                           </span>

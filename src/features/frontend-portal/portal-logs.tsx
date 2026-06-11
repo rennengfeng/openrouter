@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { api } from '@/lib/api'
 import { formatQuota } from '@/lib/format'
-import { Search, RotateCcw, Activity, Zap, Clock, AlertTriangle, Download, RefreshCw, ChevronRight } from 'lucide-react'
+import { Search, Activity, Zap, Clock, AlertTriangle, Download, RefreshCw, ChevronRight } from 'lucide-react'
 import dayjs from 'dayjs'
 import { CompactDateTimeRangePicker } from '@/features/usage-logs/components/compact-date-time-range-picker'
 
@@ -78,9 +78,6 @@ export function PortalLogs() {
   const [keyFilter, setKeyFilter] = useState('')
   const [modelFilter, setModelFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [ipFilter, setIpFilter] = useState('')
-  const [minTokens, setMinTokens] = useState('')
-  const [maxTokens, setMaxTokens] = useState('')
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -221,16 +218,6 @@ export function PortalLogs() {
   const logs = data?.items ?? []
   const total = data?.total ?? 0
   const totalPages = Math.ceil(total / pageSize)
-
-  const reset = () => {
-    setKeyFilter('')
-    setModelFilter('')
-    setStatusFilter('')
-    setIpFilter('')
-    setMinTokens('')
-    setMaxTokens('')
-    setPage(1)
-  }
 
   const totalRequests = todayStatData?.reduce((s, d) => s + (d.request_count ?? d.count ?? 0), 0) ?? 0
   const totalTokens = todayStatData?.reduce((s, d) => s + (d.token ?? d.token_used ?? 0), 0) ?? 0
