@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import {
   Boxes,
+  CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Copy,
   ExternalLink,
   FileText,
   Globe,
   Headphones,
   Lock,
+  Mail,
   Moon,
   Shield,
   Zap,
@@ -40,6 +43,68 @@ function useHomePageContent() {
 
 const NAV_LINKS: Array<{ label: string; to: string; external?: boolean; useDocsUrl?: boolean }> = []
 
+const CODE_SAMPLES = [
+  { lang: 'cURL', code: `curl https://api.xendalink.com/v1/chat/completions \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "gpt-5.5",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ]
+  }'` },
+  { lang: 'Python', code: `from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.xendalink.com/v1",
+    api_key="YOUR_API_KEY",
+)
+
+resp = client.chat.completions.create(
+    model="gpt-5.5",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+print(resp.choices[0].message.content)` },
+  { lang: 'JavaScript', code: `import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.xendalink.com/v1",
+  apiKey: "YOUR_API_KEY",
+});
+
+const resp = await client.chat.completions.create({
+  model: "gpt-5.5",
+  messages: [{ role: "user", content: "Hello!" }],
+});
+console.log(resp.choices[0].message.content);` },
+  { lang: 'Go', code: `package main
+
+import "github.com/sashabaranov/go-openai"
+
+func main() {
+    cfg := openai.DefaultConfig("YOUR_API_KEY")
+    cfg.BaseURL = "https://api.xendalink.com/v1"
+    client := openai.NewClientWithConfig(cfg)
+    // client.CreateChatCompletion(...)
+    _ = client
+}` },
+]
+
+const PERF_FEATURES = [
+  { icon: Zap, title: 'Smart Routing', desc: 'Automatically routes requests to the fastest and most reliable upstream providers.' },
+  { icon: DollarSign, title: 'Cost Optimization', desc: 'Access top models at the best prices with transparent and unified billing.' },
+  { icon: Shield, title: 'Enterprise Reliability', desc: 'Multi-region deployment with 99.9% uptime, failover, and real-time monitoring.' },
+  { icon: Globe, title: 'Global Coverage', desc: 'Optimized network across Russia, the Middle East, Europe and Asia.' },
+]
+
+const LANDING_STATS = [
+  { value: '2.5B+', label: 'Requests Served' },
+  { value: '120+', label: 'Models Available' },
+  { value: '99.9%', label: 'Uptime SLA' },
+  { value: '50ms', label: 'Average Latency' },
+  { value: '100+', label: 'Countries Covered' },
+]
+
 function LandingPage() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
@@ -48,6 +113,7 @@ function LandingPage() {
   const { data: homeContent } = useHomePageContent()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
+  const [codeTab, setCodeTab] = useState(0)
 
   const source = (status?.data ?? status) as Record<string, unknown> | null | undefined
   const systemName =
@@ -57,6 +123,10 @@ function LandingPage() {
   const docsUrl =
     typeof source?.docs_link === 'string' && (source.docs_link as string).trim()
       ? (source.docs_link as string)
+      : ''
+  const logoUrl =
+    typeof source?.logo === 'string' && (source.logo as string).trim()
+      ? (source.logo as string)
       : ''
   const faqEnabled = source?.faq_enabled !== false
   const faqFromBackend = Array.isArray(source?.faq) ? (source.faq as Array<{ question: string; answer: string }>) : null
@@ -80,6 +150,24 @@ function LandingPage() {
 
   const vendors = pricingData?.vendors ?? []
   const modelCount = pricingData?.models?.length ?? 0
+
+  const providerIcon = (vendor?: string) => {
+    const v = (vendor || '').toLowerCase()
+    if (v.includes('anthropic') || v.includes('claude')) return 'Claude.Color'
+    if (v.includes('openai') || v.includes('gpt') || v.includes('o1') || v.includes('o3')) return 'OpenAI.Color'
+    if (v.includes('google') || v.includes('gemini')) return 'Gemini.Color'
+    if (v.includes('deepseek')) return 'DeepSeek.Color'
+    if (v.includes('qwen') || v.includes('alibaba') || v.includes('tongyi')) return 'Qwen.Color'
+    if (v.includes('grok') || v.includes('xai')) return 'Grok'
+    if (v.includes('mistral')) return 'Mistral.Color'
+    if (v.includes('moonshot') || v.includes('kimi')) return 'Moonshot'
+    return 'OpenAI.Color'
+  }
+  const featuredModels = (pricingData?.models ?? []).slice(0, 3).map((m, i) => ({
+    name: m.model_name,
+    provider: m.vendor_name || '',
+    badge: i === 0 ? t('New') : null,
+  }))
 
   const handleCTA = () => {
     if (!user) {
@@ -261,13 +349,15 @@ function LandingPage() {
                   </div>
                   <h3 className="mb-3 text-xl font-bold text-white">{f.title}</h3>
                   <p className="mb-6 flex-1 text-sm leading-relaxed text-white/60">{f.desc}</p>
-                  <a
-                    href={f.linkUrl}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-indigo-400 transition hover:text-indigo-300"
-                  >
-                    {f.linkText}
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  {f.linkUrl?.startsWith('/portal') && (
+                    <Link
+                      to={f.linkUrl}
+                      className="inline-flex items-center gap-1 text-sm font-medium text-indigo-400 transition hover:text-indigo-300"
+                    >
+                      {f.linkText}
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
                 </div>
               )
             })}
@@ -283,7 +373,6 @@ function LandingPage() {
               {t('Featured Models')}
               <ChevronRight className="h-6 w-6 text-white/40" />
             </h2>
-            <p className="text-sm text-white/50">{modelCount || 400}+ {t('active models on')} 60+ {t('providers')}</p>
           </div>
           <Link
             to="/portal/models"
@@ -295,70 +384,27 @@ function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              name: 'Claude Opus 4.8',
-              provider: 'anthropic',
-              badge: 'New',
-              tokens: '966.7B',
-              trend: '0%',
-              trendColor: 'text-white/50',
-            },
-            {
-              name: 'GPT-5.5',
-              provider: 'openai',
-              badge: null,
-              tokens: '451.2B',
-              trend: '-18%',
-              trendColor: 'text-red-400',
-            },
-            {
-              name: 'Gemini 3.1 Pro Preview',
-              provider: 'google',
-              badge: null,
-              tokens: '240.3B',
-              trend: '-25%',
-              trendColor: 'text-red-400',
-            },
-          ].map((model) => (
-            <div
+          {featuredModels.map((model) => (
+            <Link
               key={model.name}
+              to="/portal/models"
               className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition hover:border-indigo-500/30 hover:bg-white/[0.04]"
             >
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
-                    {getLobeIcon(
-                      model.provider === 'anthropic'
-                        ? 'Claude.Color'
-                        : model.provider === 'openai'
-                          ? 'OpenAI.Color'
-                          : 'Gemini.Color',
-                      28
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="mb-1 text-base font-semibold text-white">{model.name}</h3>
-                    {model.badge && (
-                      <span className="inline-block rounded-full bg-indigo-500/20 px-2 py-0.5 text-xs font-medium text-indigo-300">
-                        {model.badge}
-                      </span>
-                    )}
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
+                  {getLobeIcon(providerIcon(model.provider), 28)}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="mb-1 truncate text-base font-semibold text-white">{model.name}</h3>
+                  {model.badge && (
+                    <span className="inline-block rounded-full bg-indigo-500/20 px-2 py-0.5 text-xs font-medium text-indigo-300">
+                      {model.badge}
+                    </span>
+                  )}
                 </div>
               </div>
-              <div className="text-sm text-white/50">by {model.provider}</div>
-              <div className="mt-6 flex items-end justify-between border-t border-white/5 pt-4">
-                <div>
-                  <div className="mb-1 text-xs text-white/40">{t('Tokens')}</div>
-                  <div className="text-xl font-bold text-white">{model.tokens}</div>
-                </div>
-                <div className="text-right">
-                  <div className="mb-1 text-xs text-white/40">{t('Weekly Trend')}</div>
-                  <div className={`text-lg font-semibold ${model.trendColor}`}>{model.trend}</div>
-                </div>
-              </div>
-            </div>
+              {model.provider && <div className="mt-4 text-sm text-white/50">by {model.provider}</div>}
+            </Link>
           ))}
         </div>
       </section>
@@ -396,13 +442,13 @@ function LandingPage() {
               </p>
               <div className="mt-auto flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
-                  <Globe className="h-5 w-5 text-white/40" />
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
                   {getLobeIcon('GitHub.Color', 20)}
                 </div>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
-                  {getLobeIcon('Google.Color', 20)}
+                  <Mail className="h-5 w-5 text-white/40" />
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
+                  {getLobeIcon('Telegram.Color', 20)}
                 </div>
               </div>
             </div>
@@ -439,10 +485,83 @@ function LandingPage() {
               </p>
               <div className="mt-auto flex w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
                 <FileText className="h-4 w-4 text-white/40" />
-                <span className="text-sm text-white/50">OPENROUTER_API_KEY</span>
+                <span className="text-sm text-white/50">{(systemName || 'API').toUpperCase().replace(/\s+/g, '_')}_API_KEY</span>
               </div>
               <div className="mt-2 font-mono text-sm text-white/30">••••••••••••••••</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Code Example */}
+      <section className="border-t border-white/5 py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d18]">
+              <div className="flex items-center gap-1 border-b border-white/5 px-4 py-2">
+                {CODE_SAMPLES.map((s, i) => (
+                  <button
+                    key={s.lang}
+                    type="button"
+                    onClick={() => setCodeTab(i)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${codeTab === i ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
+                  >
+                    {s.lang}
+                  </button>
+                ))}
+              </div>
+              <pre className="overflow-x-auto p-5 text-xs leading-relaxed text-white/70">
+                <code>{CODE_SAMPLES[codeTab].code}</code>
+              </pre>
+            </div>
+            <div className="flex flex-col gap-3">
+              <div className="inline-flex items-center gap-2 self-start rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t('OpenAI Compatible')}
+              </div>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard?.writeText('api.xendalink.com')}
+                className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/80 transition hover:bg-white/[0.06]"
+              >
+                api.xendalink.com
+                <Copy className="h-4 w-4 text-white/40" />
+              </button>
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400">99.9% Uptime</span>
+                <span className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-white/60">{t('Global Routing')}</span>
+                <span className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-white/60">{t('Unified Billing')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Built for performance and scale */}
+      <section className="border-t border-white/5 py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wider text-indigo-400">{t('Why developers choose us')}</p>
+          <h2 className="mb-12 text-center text-3xl font-bold text-white">{t('Built for performance and scale')}</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {PERF_FEATURES.map((p) => {
+              const PerfIcon = p.icon
+              return (
+                <div key={p.title} className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
+                    <PerfIcon className="h-6 w-6 text-indigo-300" />
+                  </div>
+                  <h3 className="mb-2 text-lg font-bold text-white">{t(p.title)}</h3>
+                  <p className="text-sm leading-relaxed text-white/60">{t(p.desc)}</p>
+                </div>
+              )
+            })}
+          </div>
+          <div className="mt-10 grid grid-cols-2 gap-6 rounded-2xl border border-white/10 bg-white/[0.02] p-8 sm:grid-cols-3 lg:grid-cols-5">
+            {LANDING_STATS.map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="text-2xl font-bold text-indigo-400 sm:text-3xl">{s.value}</div>
+                <div className="mt-1 text-xs text-white/50">{t(s.label)}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -483,7 +602,31 @@ function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-white/5 bg-white/[0.01] py-12">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+            <div>
+              <div className="mb-4 flex items-center gap-2">
+                {logoUrl ? <img src={logoUrl} alt={systemName} className="h-7 w-7 rounded" /> : null}
+                <span className="text-lg font-bold text-orange-400">{systemName}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://t.me/iXendabot"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Telegram"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white/80"
+                >
+                  {getLobeIcon('Telegram.Color', 18)}
+                </a>
+                <a
+                  href="mailto:support@xendalink.com"
+                  title="support@xendalink.com"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white/80"
+                >
+                  <Mail className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
             <div>
               <h4 className="mb-4 text-sm font-semibold text-white">{t('Product')}</h4>
               <div className="flex flex-col gap-2">
@@ -504,13 +647,6 @@ function LandingPage() {
               <h4 className="mb-4 text-sm font-semibold text-white">{t('Developer')}</h4>
               <div className="flex flex-col gap-2">
                 <a href={docsUrl} className="text-sm text-white/50 hover:text-white/80 transition">{t('Documentation')}</a>
-              </div>
-            </div>
-            <div>
-              <h4 className="mb-4 text-sm font-semibold text-white">{t('Connect')}</h4>
-              <div className="flex flex-col gap-2">
-                <a href="https://t.me/iXendabot" target="_blank" rel="noreferrer" className="text-sm text-white/50 hover:text-white/80 transition">Telegram</a>
-                <a href="mailto:support@xendalink.com" className="text-sm text-white/50 hover:text-white/80 transition">support@xendalink.com</a>
               </div>
             </div>
           </div>
