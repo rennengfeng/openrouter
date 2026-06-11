@@ -5,16 +5,20 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Code2,
   Copy,
   ExternalLink,
   FileText,
   Globe,
   Headphones,
+  KeyRound,
   Lock,
   Mail,
   Moon,
+  Play,
   Send,
   Shield,
+  UserPlus,
   Zap,
   DollarSign,
   Puzzle,
@@ -104,6 +108,13 @@ const LANDING_STATS = [
   { value: '99.9%', label: 'Uptime SLA' },
   { value: '50ms', label: 'Average Latency' },
   { value: '100+', label: 'Countries Covered' },
+]
+
+const GETTING_STARTED = [
+  { title: 'Register an account', desc: 'Create an account on the platform and activate access in seconds.' },
+  { title: 'Top up credits', desc: 'Top up on demand or subscribe to a plan — flexible billing.' },
+  { title: 'Create an API Key', desc: 'Generate a key in the console and start calling right away.' },
+  { title: 'Integrate', desc: 'Fully OpenAI-compatible API format — deploy in minutes.' },
 ]
 
 function LandingPage() {
@@ -471,43 +482,30 @@ function LandingPage() {
       )}
 
       {/* Getting Started Steps */}
-      <section className="border-t border-white/5 py-20">
+      <section className="bg-gradient-to-b from-[#f7f9fc] to-[#eaf0f8] py-20">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="flex flex-col items-start">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/20 text-xl font-bold text-indigo-300">
-                1
+          <div className="mb-3 flex justify-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-600">
+              <Play className="h-3.5 w-3.5 fill-blue-600" />
+              {t('Quick Start')}
+            </span>
+          </div>
+          <h2 className="mb-12 text-center text-3xl font-black text-gray-900 sm:text-4xl">
+            {t('Onboard in just a few steps')}
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {GETTING_STARTED.map((s, i) => (
+              <div
+                key={s.title}
+                className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              >
+                <div className="mb-5 flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white shadow-sm">
+                  {i + 1}
+                </div>
+                <h3 className="mb-2 text-lg font-bold text-gray-900">{t(s.title)}</h3>
+                <p className="text-sm leading-relaxed text-gray-500">{t(s.desc)}</p>
               </div>
-              <h3 className="mb-3 text-xl font-bold text-white">{t('Signup')}</h3>
-              <p className="text-sm leading-relaxed text-white/60">
-                {t('Create an account to get started. You can set up an org for your team later.')}
-              </p>
-            </div>
-
-            <div className="flex flex-col items-start">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/20 text-xl font-bold text-indigo-300">
-                2
-              </div>
-              <h3 className="mb-3 text-xl font-bold text-white">{t('Buy credits')}</h3>
-              <p className="text-sm leading-relaxed text-white/60">
-                {t('Credits can be used with any model or provider.')}
-              </p>
-            </div>
-
-            <div className="flex flex-col items-start">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/20 text-xl font-bold text-indigo-300">
-                3
-              </div>
-              <h3 className="mb-3 text-xl font-bold text-white">{t('Get your API key')}</h3>
-              <p className="mb-4 text-sm leading-relaxed text-white/60">
-                {t('Create an API key and start making requests.')} {t('Fully OpenAI compatible.')}
-              </p>
-              <div className="mt-auto flex w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-                <FileText className="h-4 w-4 text-white/40" />
-                <span className="text-sm text-white/50">{(systemName || 'API').toUpperCase().replace(/\s+/g, '_')}_API_KEY</span>
-              </div>
-              <div className="mt-2 font-mono text-sm text-white/30">••••••••••••••••</div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
