@@ -29,6 +29,7 @@ import { useStatus } from '@/hooks/use-status'
 import { useAuthStore } from '@/stores/auth-store'
 import { ROLE } from '@/lib/roles'
 import { api } from '@/lib/api'
+import { getFrontendModels } from '@/features/frontend-portal/api'
 import { getLobeIcon } from '@/lib/lobe-icon'
 
 export const Route = createFileRoute('/')({
@@ -201,11 +202,19 @@ function LandingPage() {
     if (v.includes('moonshot') || v.includes('kimi')) return 'Moonshot'
     return 'OpenAI.Color'
   }
-  const featuredModels = (pricingData?.models ?? []).slice(0, 3).map((m, i) => ({
-    name: m.model_name,
-    provider: m.vendor_name || '',
-    badge: i === 0 ? t('New') : null,
-  }))
+  const { data: frontendModels } = useQuery({
+    queryKey: ['landing-frontend-models'],
+    queryFn: getFrontendModels,
+    staleTime: 120_000,
+  })
+
+  const featuredModels = ((frontendModels?.models ?? []) as Array<{ model_name: string; vendor_name?: string }>)
+    .slice(0, 3)
+    .map((m, i) => ({
+      name: m.model_name,
+      provider: m.vendor_name || '',
+      badge: i === 0 ? t('New') : null,
+    }))
 
   const handleCTA = () => {
     if (!user) {

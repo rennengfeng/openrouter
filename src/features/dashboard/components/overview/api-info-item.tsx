@@ -20,6 +20,7 @@ import { Zap, ExternalLink, Gauge } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { getBgColorClass } from '@/lib/colors'
 import { cn } from '@/lib/utils'
+import { pickLang } from '@/lib/multilang'
 import { Button } from '@/components/ui/button'
 import { CopyButton } from '@/components/copy-button'
 import { StatusBadge } from '@/components/status-badge'
@@ -36,7 +37,7 @@ interface ApiInfoItemProps {
 }
 
 export function ApiInfoItemComponent(props: ApiInfoItemProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const item = props.item
   const status = props.status
 
@@ -56,7 +57,7 @@ export function ApiInfoItemComponent(props: ApiInfoItemProps) {
               {item.route}
             </span>
             <span className='text-muted-foreground/60 hidden truncate text-xs md:inline'>
-              {item.description}
+              {pickLang(item.description, i18n.language)}
             </span>
           </div>
           <span className='text-muted-foreground/40 truncate font-mono text-xs'>

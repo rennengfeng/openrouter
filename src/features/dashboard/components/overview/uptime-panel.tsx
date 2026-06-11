@@ -20,6 +20,7 @@ import { memo, useEffect, useState } from 'react'
 import { Activity, RotateCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { pickLang } from '@/lib/multilang'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { getUptimeStatus } from '@/features/dashboard/api'
@@ -43,7 +44,7 @@ const StatusDot = memo(function StatusDot(props: { status: number }) {
 })
 
 export function UptimePanel() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [groups, setGroups] = useState<UptimeGroupResult[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -127,7 +128,7 @@ export function UptimePanel() {
               <div className='bg-muted/30 border-border/60 border-b px-3 py-2 sm:px-5'>
                 <div className='flex items-center gap-2'>
                   <h4 className='text-muted-foreground text-xs font-semibold tracking-wider uppercase'>
-                    {group.categoryName}
+                    {pickLang(group.categoryName, i18n.language)}
                   </h4>
                   <span className='text-muted-foreground/40 font-mono text-xs tabular-nums'>
                     {group.monitors?.length || 0}

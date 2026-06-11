@@ -4,6 +4,7 @@ import { Activity, RotateCw, Gauge, Zap, CheckCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useStatus } from '@/hooks/use-status'
 import { cn } from '@/lib/utils'
+import { pickLang } from '@/lib/multilang'
 import { api } from '@/lib/api'
 import { getFrontendUptimeStatus } from './api'
 
@@ -30,7 +31,7 @@ type PerfModelSummary = {
 }
 
 export function ModelMonitor() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { status } = useStatus()
   const source = (status?.data ?? status) as Record<string, unknown> | null | undefined
   const uptimeEnabled = Boolean(source?.uptime_kuma_enabled)
@@ -86,7 +87,7 @@ export function ModelMonitor() {
           <div className="space-y-5">
             {groups.map((group) => (
               <div key={group.categoryName}>
-                <p className="mb-3 text-sm font-bold text-gray-700">{group.categoryName}</p>
+                <p className="mb-3 text-sm font-bold text-gray-700">{pickLang(group.categoryName, i18n.language)}</p>
                 <div className="space-y-4">
                   {(group.monitors ?? []).map((monitor) => {
                     const uptimePct = ((monitor.uptime ?? 0) * 100).toFixed(2)

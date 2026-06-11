@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { useStatus } from '@/hooks/use-status'
 import { parseHeaderNavModulesFromStatus } from '@/lib/nav-modules'
+import { ROLE } from '@/lib/roles'
 
 export type TopNavLink = {
   title: string
@@ -66,9 +67,10 @@ export function useTopNavLinks(): TopNavLink[] {
     links.push({ title: t('Home'), href: '/' })
   }
 
-  // Console -> 二开用户门户
+  // Console -> 管理员去后台 /dashboard，普通用户去二开门户 /portal
   if (modules?.console !== false) {
-    links.push({ title: t('Console'), href: '/portal' })
+    const isAdmin = (auth?.user?.role ?? 0) >= ROLE.ADMIN
+    links.push({ title: t('Console'), href: isAdmin ? '/dashboard' : '/portal' })
   }
 
   // Pricing

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { api } from '@/lib/api'
+import { pickLang } from '@/lib/multilang'
 
 function isValidUrl(value: string) {
   try {
@@ -18,7 +19,7 @@ function isLikelyHtml(value: string) {
 }
 
 function PortalContentPage({ endpoint, titleKey }: { endpoint: string; titleKey: string }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { data, isLoading } = useQuery({
     queryKey: ['portal-content', endpoint],
     queryFn: async () => {
@@ -28,7 +29,7 @@ function PortalContentPage({ endpoint, titleKey }: { endpoint: string; titleKey:
     staleTime: 120_000,
   })
 
-  const content = (data ?? '').trim()
+  const content = pickLang(data ?? '', i18n.language).trim()
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-8">

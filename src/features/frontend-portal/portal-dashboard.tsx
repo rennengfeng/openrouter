@@ -5,13 +5,14 @@ import { useStatus } from '@/hooks/use-status'
 import { getSelf } from '@/lib/api'
 import { formatQuota, formatNumber } from '@/lib/format'
 import { getRoleLabel } from '@/lib/roles'
+import { pickLang } from '@/lib/multilang'
 import { BarChart3, Activity, Users, Bell, Globe } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import dayjs from 'dayjs'
 
 export function PortalDashboard() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const user = useAuthStore((s) => s.auth.user)
   const setUser = useAuthStore((s) => s.auth.setUser)
   const { status } = useStatus()
@@ -108,7 +109,7 @@ export function PortalDashboard() {
                         <Globe className="h-4 w-4" style={{ color: item.color }} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{item.description}</p>
+                        <p className="text-sm font-medium">{pickLang(item.description, i18n.language)}</p>
                         <p className="truncate text-xs text-muted-foreground">{item.url}{item.route}</p>
                       </div>
                     </div>
@@ -133,7 +134,7 @@ export function PortalDashboard() {
                     <div key={idx} className="rounded-lg border border-border/40 bg-muted/20 p-4">
                       <div className="prose prose-sm dark:prose-invert max-w-none">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {ann.content}
+                          {pickLang(ann.content, i18n.language)}
                         </ReactMarkdown>
                       </div>
                       <p className="mt-2 text-xs text-muted-foreground">

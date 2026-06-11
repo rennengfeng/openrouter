@@ -3,21 +3,24 @@ Copyright (C) 2023-2026 QuantumNous
 */
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { Bell, Coins, KeyRound, ReceiptText, Send, Wallet } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 import { formatNumber, formatQuota } from '@/lib/format'
 import { computeTimeRange } from '@/lib/time'
+import { pickLang } from '@/lib/multilang'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getUserQuotaDates } from '@/features/dashboard/api'
 import { useAnnouncements } from '@/features/dashboard/hooks/use-status-data'
 import { PortalShell } from './portal-shell'
 
-function getAnnouncementText(content?: string) {
+function getAnnouncementText(content?: string, lang?: string) {
   if (!content) return '暂无公告，您可以稍后再查看公告内容。'
-  return content.replace(/<[^>]+>/g, '').trim()
+  return pickLang(content, lang ?? 'en').replace(/<[^>]+>/g, '').trim()
 }
 
 export function UserHome() {
+  const { i18n } = useTranslation()
   const user = useAuthStore((state) => state.auth.user)
   const dayRange = useMemo(() => computeTimeRange(1), [])
   const { items: announcements } = useAnnouncements()
@@ -132,7 +135,7 @@ export function UserHome() {
               {announcements.length > 0 ? (
                 announcements.slice(0, 5).map((item, index) => (
                   <div key={`${item.id ?? 'notice'}-${index}`} className='rounded-lg border p-3 text-sm'>
-                    {getAnnouncementText(item.content)}
+                    {getAnnouncementText(item.content, i18n.language)}
                   </div>
                 ))
               ) : (

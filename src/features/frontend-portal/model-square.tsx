@@ -62,7 +62,24 @@ function formatPrice(
 }
 
 export function ModelSquare() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const uiLang = i18n.language?.startsWith('ru') ? 'ru' : i18n.language?.startsWith('zh') ? 'zh' : 'en'
+  // 描述支持三语：管理员可填 JSON {"zh":"...","en":"...","ru":"..."}，按当前语言显示；纯文本原样返回
+  const pickDesc = (text?: string) => {
+    if (!text) return ''
+    const s = text.trim()
+    if (s.startsWith('{') && s.endsWith('}')) {
+      try {
+        const o = JSON.parse(s) as Record<string, string>
+        if (o && typeof o === 'object') {
+          return o[uiLang] || o.en || o.zh || Object.values(o)[0] || ''
+        }
+      } catch {
+        /* not JSON, fall through */
+      }
+    }
+    return text
+  }
   const [priceMode, setPriceMode] = useState<PriceMode>('site')
   const [searchValue, setSearchValue] = useState('')
   const [vendorFilter, setVendorFilter] = useState('all')
@@ -133,7 +150,7 @@ export function ModelSquare() {
       const q = searchValue.toLowerCase()
       filtered = filtered.filter((m) =>
         m.model_name.toLowerCase().includes(q) ||
-        (m.description ?? '').toLowerCase().includes(q) ||
+        (pickDesc(m.description) ?? '').toLowerCase().includes(q) ||
         (m.vendor_name ?? '').toLowerCase().includes(q)
       )
     }
@@ -333,7 +350,7 @@ export function ModelSquare() {
 
                 {/* Row 2: Description */}
                 <p className="mb-3 text-xs leading-relaxed text-gray-500 line-clamp-2">
-                  {model.description || t('No description available')}
+                  {pickDesc(model.description) || t('No description available')}
                 </p>
 
                 {/* Row 3: Provider + Pricing (single line, OpenRouter style) */}
@@ -394,7 +411,7 @@ export function ModelSquare() {
                 <h3 className="text-sm font-semibold text-gray-900">{t('Basic Info')}</h3>
               </div>
               <p className="text-sm text-gray-500">
-                {selectedModel.model.description || t('No model description available')}
+                {pickDesc(selectedModel.model.description) || t('No model description available')}
               </p>
             </div>
 

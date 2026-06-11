@@ -53,6 +53,7 @@ import {
 import { useAuthStore } from '@/stores/auth-store'
 import { useStatus } from '@/hooks/use-status'
 import { api } from '@/lib/api'
+import { pickLang } from '@/lib/multilang'
 import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
@@ -369,7 +370,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               noticeData ? (
                 <div className="prose prose-invert prose-sm max-h-[400px] overflow-y-auto text-gray-600">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {noticeData}
+                    {pickLang(noticeData, i18n.language)}
                   </ReactMarkdown>
                 </div>
               ) : (
@@ -385,7 +386,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                       <div className="flex items-start gap-2">
                         <span className={cn('mt-1.5 h-2 w-2 shrink-0 rounded-full', item.type === 'error' ? 'bg-rose-400' : item.type === 'warning' ? 'bg-amber-400' : 'bg-emerald-400')} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm text-gray-700">{item.content}</p>
+                          <p className="text-sm text-gray-700">{pickLang(item.content, i18n.language)}</p>
                           {item.publishDate && (
                             <p className="mt-1 text-xs text-gray-400">{new Date(item.publishDate).toLocaleString()}</p>
                           )}

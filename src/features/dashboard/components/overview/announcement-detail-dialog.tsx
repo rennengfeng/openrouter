@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
 import { formatDateTimeObject } from '@/lib/time'
+import { pickLang } from '@/lib/multilang'
 import {
   Dialog,
   DialogContent,
@@ -45,7 +46,7 @@ export function AnnouncementDetailModal({
   onOpenChange,
   announcement,
 }: AnnouncementDetailModalProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-lg'>
@@ -63,7 +64,7 @@ export function AnnouncementDetailModal({
             {announcement?.content && (
               <div>
                 <h4 className='mb-2 font-medium'>{t('Content')}</h4>
-                <Markdown>{announcement.content}</Markdown>
+                <Markdown>{pickLang(announcement.content, i18n.language)}</Markdown>
               </div>
             )}
             {announcement?.extra && (
@@ -72,7 +73,7 @@ export function AnnouncementDetailModal({
                   {t('Additional Information')}
                 </h4>
                 <Markdown className='text-muted-foreground'>
-                  {announcement.extra}
+                  {pickLang(announcement.extra, i18n.language)}
                 </Markdown>
               </div>
             )}
