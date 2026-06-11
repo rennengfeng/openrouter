@@ -1,21 +1,24 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Search, ExternalLink, MessageSquare, BookOpen, X, Copy, Type, Image } from 'lucide-react'
+import { Search, MessageSquare, X, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrencyFromUSD } from '@/lib/currency'
 import { getLobeIcon } from '@/lib/lobe-icon'
-import { api } from '@/lib/api'
 import { getFrontendModels } from './api'
 import type { FrontendModel } from './types'
 import { Link } from '@tanstack/react-router'
 
 type PriceMode = 'site' | 'official'
 
-type ModelRow = {
-  model: FrontendModel
-  group: string
-  ratio: number
+// 固定 5 个标签的多语言：管理员可写中文或英文，按界面语言显示；其它标签原样显示。
+// key 为小写，查找时对原始标签做 toLowerCase 兜底，兼容大小写。
+const TAG_I18N_KEY: Record<string, string> = {
+  '文本推理': 'portal.tag.text', text: 'portal.tag.text',
+  '图像': 'portal.tag.image', image: 'portal.tag.image',
+  '音频': 'portal.tag.voice', voice: 'portal.tag.voice',
+  '视频': 'portal.tag.video', video: 'portal.tag.video',
+  '视觉': 'portal.tag.visual', visual: 'portal.tag.visual',
 }
 
 function formatPrice(
@@ -80,11 +83,14 @@ export function ModelSquare() {
     }
     return text
   }
-  const [priceMode, setPriceMode] = useState<PriceMode>('site')
+  // 标签显示翻译：命中固定 5 标签则按语言显示，否则原样
+  const tagLabel = (tag: string) => {
+    const key = TAG_I18N_KEY[tag] ?? TAG_I18N_KEY[tag.trim().toLowerCase()]
+    return key ? t(key) : tag
+  }
+  const [priceMode] = useState<PriceMode>('site')
   const [searchValue, setSearchValue] = useState('')
   const [vendorFilter, setVendorFilter] = useState('all')
-  const [groupFilter, setGroupFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
   const [tagFilter, setTagFilter] = useState('all')
   const [selectedModel, setSelectedModel] = useState<{ model: FrontendModel; group: string; ratio: number } | null>(null)
 
@@ -94,22 +100,8 @@ export function ModelSquare() {
     staleTime: 60_000,
   })
 
-  const { data: perfData } = useQuery({
-    queryKey: ['portal-perf-metrics-summary'],
-    queryFn: async () => {
-      const res = await api.get('/api/perf-metrics/summary')
-      return res.data?.data?.models as Array<{
-        model_name: string
-        success_rate: number
-        avg_latency_ms: number
-      }> | undefined
-    },
-    staleTime: 60_000,
-  })
-
   const models = payload?.models ?? []
   const topLevelGroupRatio = payload?.group_ratio ?? {}
-  const usableGroups = payload?.usable_group ?? {}
 
   const vendors = useMemo(() => {
     const all = payload?.vendors ?? []
@@ -125,15 +117,6 @@ export function ModelSquare() {
     return map
   }, [payload?.vendors])
 
-  const perfIndex = useMemo(() => {
-    const map = new Map<string, { success_rate: number; avg_latency_ms: number }>()
-    for (const m of perfData ?? []) {
-      const rate = m.success_rate > 1 ? m.success_rate / 100 : m.success_rate
-      map.set(m.model_name, { success_rate: rate, avg_latency_ms: m.avg_latency_ms })
-    }
-    return map
-  }, [perfData])
-
   const allTags = useMemo(() => {
     const tagSet = new Set<string>()
     for (const m of models) {
@@ -144,6 +127,7 @@ export function ModelSquare() {
     return Array.from(tagSet).sort()
   }, [models])
 
+  // 单组模式：每个模型一张卡片，分组/倍率取第一个可用分组
   const rows = useMemo(() => {
     let filtered = models
     if (searchValue) {
@@ -157,106 +141,70 @@ export function ModelSquare() {
     if (vendorFilter !== 'all') {
       filtered = filtered.filter((m) => m.vendor_name === vendorFilter)
     }
-    if (groupFilter !== 'all') {
-      filtered = filtered.filter((m) => (m.enable_groups ?? []).includes(groupFilter))
-    }
     if (tagFilter !== 'all') {
       filtered = filtered.filter((m) => {
         const tags = m.tags ? m.tags.split(',').map((t) => t.trim()) : []
         return tags.includes(tagFilter)
       })
     }
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((m) => {
-        const perf = perfIndex.get(m.model_name)
-        if (statusFilter === 'available') return !perf || perf.success_rate > 0.95
-        return perf !== undefined && perf.success_rate <= 0.95
-      })
-    }
 
-    const result: ModelRow[] = []
-    for (const model of filtered) {
-      const groups = groupFilter !== 'all'
-        ? [groupFilter]
-        : (model.enable_groups ?? [])
-
-      if (groups.length === 0) {
-        result.push({ model, group: '', ratio: 1 })
-      } else {
-        for (const g of groups) {
-          const ratio = topLevelGroupRatio[g] ?? model.group_ratio?.[g] ?? 1
-          result.push({ model, group: g, ratio })
-        }
-      }
-    }
-    return result
-  }, [models, searchValue, vendorFilter, groupFilter, tagFilter, statusFilter, perfIndex, topLevelGroupRatio])
-
-  const getRowStatus = (row: ModelRow): 'available' | 'degraded' | 'unknown' => {
-    const monitors = row.model.monitors ?? []
-    if (monitors.length === 0) {
-      const perf = perfIndex.get(row.model.model_name)
-      if (!perf) return 'available'
-      return perf.success_rate > 0.95 ? 'available' : 'degraded'
-    }
-    if (row.group) {
-      const match = monitors.find((m) => m.group === row.group)
-      if (!match) return 'unknown'
-      return match.status === 1 ? 'available' : 'degraded'
-    }
-    if (monitors.some((m) => m.status === 0)) return 'degraded'
-    return 'available'
-  }
+    return filtered.map((model) => {
+      const group = (model.enable_groups ?? [])[0] ?? ''
+      const ratio = group
+        ? (topLevelGroupRatio[group] ?? model.group_ratio?.[group] ?? 1)
+        : 1
+      return { model, group, ratio }
+    })
+  }, [models, searchValue, vendorFilter, tagFilter, topLevelGroupRatio])
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('portal.page.models.title')}</h1>
-          <p className="mt-1 text-sm text-gray-400">{t('portal.page.models.subtitle')}</p>
-        </div>
+      {/* Header (centered) */}
+      <div className="pt-2 text-center">
+        <h1 className="text-3xl font-bold text-gray-900">{t('portal.page.models.title')}</h1>
+        <p className="mt-2 text-sm text-gray-400">
+          {t('portal.page.models.publicCount', { count: rows.length })}
+        </p>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      {/* Search (centered) */}
+      <div className="mx-auto w-full max-w-3xl">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder={t('portal.page.models.searchPlaceholder')}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:outline-none"
+            className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
           />
         </div>
+      </div>
+
+      {/* Filters: 标签点选(仅显示存在的标签) + 供应商下拉(仅显示存在的供应商) */}
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {['all', ...allTags].map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => setTagFilter(tag)}
+            className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+              tagFilter === tag
+                ? 'border-sky-500 bg-sky-50 text-sky-600'
+                : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {tag === 'all' ? t('All Tags') : tagLabel(tag)}
+          </button>
+        ))}
         <select
           value={vendorFilter}
           onChange={(e) => setVendorFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-sky-400 focus:outline-none"
         >
           <option value="all">{t('portal.page.models.allVendors')}</option>
           {vendors.map((v) => (
             <option key={v.id} value={v.name}>{v.name}</option>
-          ))}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
-        >
-          <option value="all">{t('portal.page.models.allStatus')}</option>
-          <option value="available">{t('portal.page.models.available')}</option>
-          <option value="unavailable">{t('portal.page.models.unavailable')}</option>
-        </select>
-        <select
-          value={tagFilter}
-          onChange={(e) => setTagFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-sky-400 focus:outline-none"
-        >
-          <option value="all">{t('All Tags')}</option>
-          {allTags.map((tag) => (
-            <option key={tag} value={tag}>{tag}</option>
           ))}
         </select>
       </div>
@@ -270,23 +218,6 @@ export function ModelSquare() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((row) => {
             const { model, group, ratio } = row
-            const status = getRowStatus(row)
-
-            // Parse tags from model.tags string
-            const rawTags = model.tags ? model.tags.split(',').map((t) => t.trim()).filter(Boolean) : []
-            const tagColors: Record<string, string> = {
-              '对话': 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-              'chat': 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-              'tools': 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
-              'moe': 'bg-pink-500/10 text-pink-400 border border-pink-500/20',
-              'vision': 'bg-green-500/10 text-green-400 border border-green-500/20',
-              '视觉': 'bg-green-500/10 text-green-400 border border-green-500/20',
-              'prefix': 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20',
-              'fim': 'bg-orange-500/10 text-orange-400 border border-orange-500/20',
-              '推理': 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
-              '推理模型': 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
-              '生图': 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-            }
 
             return (
               <div

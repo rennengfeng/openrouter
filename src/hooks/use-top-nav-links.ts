@@ -77,7 +77,7 @@ export function useTopNavLinks(): TopNavLink[] {
   const pricing = modules?.pricing
   if (pricing && typeof pricing === 'object' && pricing.enabled) {
     const requiresAuth = pricing.requireAuth && !isAuthed
-    links.push({ title: t('Model Square'), href: '/portal/models', requiresAuth })
+    links.push({ title: t('Model Square'), href: '/pricing', requiresAuth })
   }
 
   // Rankings
@@ -96,9 +96,9 @@ export function useTopNavLinks(): TopNavLink[] {
     }
   }
 
-  // About -> 二开关于页
+  // About -> 原版关于页
   if (modules?.about !== false) {
-    links.push({ title: t('About'), href: '/portal/about' })
+    links.push({ title: t('About'), href: '/about' })
   }
 
   return links

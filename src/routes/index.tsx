@@ -650,9 +650,9 @@ function LandingPage() {
             <div>
               <h4 className="mb-4 text-sm font-semibold text-gray-900">{t('Company')}</h4>
               <div className="flex flex-col gap-2">
-                <Link to="/portal/about" className="text-sm text-gray-500 hover:text-gray-700 transition">{t("About")}</Link>
-                <Link to="/portal/privacy" className="text-sm text-gray-500 hover:text-gray-700 transition">{t("Privacy")}</Link>
-                <Link to="/portal/terms" className="text-sm text-gray-500 hover:text-gray-700 transition">{t("Terms of Service")}</Link>
+                <Link to="/about" className="text-sm text-gray-500 hover:text-gray-700 transition">{t("About")}</Link>
+                <Link to="/privacy-policy" className="text-sm text-gray-500 hover:text-gray-700 transition">{t("Privacy")}</Link>
+                <Link to="/user-agreement" className="text-sm text-gray-500 hover:text-gray-700 transition">{t("Terms of Service")}</Link>
               </div>
             </div>
             <div>

@@ -75,6 +75,7 @@ export function PublicHeader(props: PublicHeaderProps) {
     logo: customLogo,
     siteName: customSiteName,
     homeUrl = '/',
+    showNavigation = true,
     showAuthButtons = true,
     showNotifications = false,
   } = props
@@ -222,7 +223,8 @@ export function PublicHeader(props: PublicHeaderProps) {
 
             {/* Desktop nav */}
             <div className='hidden items-center gap-0.5 sm:flex'>
-              {links.map((link, i) => {
+              {showNavigation &&
+                links.map((link, i) => {
                 const isActive = pathname === link.href
                 if (link.external) {
                   return (
@@ -299,39 +301,54 @@ export function PublicHeader(props: PublicHeaderProps) {
 
             {/* Mobile: compact actions + hamburger */}
             <div className='flex items-center gap-2 sm:hidden'>
+              {!showNavigation && showLanguageSwitcher && <LanguageSwitcher />}
               {showThemeSwitch && <ThemeSwitch />}
               {showAuthButtons && !loading && isAuthenticated && (
                 <ProfileDropdown />
               )}
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className='size-9'
-                onClick={() => setMobileOpen((v) => !v)}
-                aria-label={t('Toggle navigation menu')}
-              >
-                <div className='relative size-4'>
-                  <span
-                    className={cn(
-                      'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
-                      mobileOpen ? 'top-[7px] rotate-45' : 'top-[3px]'
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'absolute inset-x-0 top-[7px] block h-[1.5px] rounded-full bg-current transition-all duration-300',
-                      mobileOpen ? 'scale-x-0 opacity-0' : 'opacity-100'
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
-                      mobileOpen ? 'top-[7px] -rotate-45' : 'top-[11px]'
-                    )}
-                  />
-                </div>
-              </Button>
+              {showAuthButtons &&
+                !loading &&
+                !isAuthenticated &&
+                !showNavigation && (
+                  <Button
+                    size='sm'
+                    className='h-8 rounded-lg px-3.5 text-xs font-medium'
+                    render={<Link to='/sign-in' />}
+                  >
+                    {t('Sign in')}
+                  </Button>
+                )}
+              {showNavigation && (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='size-9'
+                  onClick={() => setMobileOpen((v) => !v)}
+                  aria-label={t('Toggle navigation menu')}
+                >
+                  <div className='relative size-4'>
+                    <span
+                      className={cn(
+                        'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
+                        mobileOpen ? 'top-[7px] rotate-45' : 'top-[3px]'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'absolute inset-x-0 top-[7px] block h-[1.5px] rounded-full bg-current transition-all duration-300',
+                        mobileOpen ? 'scale-x-0 opacity-0' : 'opacity-100'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
+                        mobileOpen ? 'top-[7px] -rotate-45' : 'top-[11px]'
+                      )}
+                    />
+                  </div>
+                </Button>
+              )}
             </div>
           </nav>
         </div>
