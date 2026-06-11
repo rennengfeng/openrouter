@@ -117,6 +117,32 @@ const GETTING_STARTED = [
   { title: 'Integrate', desc: 'Fully OpenAI-compatible API format — deploy in minutes.' },
 ]
 
+// 轻量代码高亮：字符串 / 注释 / 数字 / 关键字着色（适配浅色编辑器主题）
+function highlightCode(code: string) {
+  const re =
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\/\/[^\n]*|#[^\n]*)|(\b\d+(?:\.\d+)?\b)|(\b(?:curl|import|from|const|let|var|func|package|await|async|new|return|print|def|client|true|false|null|main)\b)/g
+  const nodes: any[] = []
+  let last = 0
+  let m: RegExpExecArray | null
+  let key = 0
+  while ((m = re.exec(code))) {
+    if (m.index > last) nodes.push(code.slice(last, m.index))
+    let cls = ''
+    if (m[1]) cls = 'text-emerald-700'
+    else if (m[2]) cls = 'text-gray-400 italic'
+    else if (m[3]) cls = 'text-sky-600'
+    else if (m[4]) cls = 'text-purple-600'
+    nodes.push(
+      <span key={key++} className={cls}>
+        {m[0]}
+      </span>
+    )
+    last = m.index + m[0].length
+  }
+  if (last < code.length) nodes.push(code.slice(last))
+  return nodes
+}
+
 function LandingPage() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
@@ -191,6 +217,33 @@ function LandingPage() {
     }
   }
 
+  const handleGetKey = () => {
+    navigate({ to: user ? '/portal/tokens' : '/sign-in' })
+  }
+
+  const copyText = (text: string) => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text)
+        return
+      }
+      throw new Error('no clipboard')
+    } catch {
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
   const LANGS: Array<{ code: string; label: string }> = [
     { code: 'zh', label: '中文' },
     { code: 'en', label: 'English' },
@@ -250,7 +303,8 @@ function LandingPage() {
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link to="/" className="text-xl font-bold tracking-wide text-orange-400">
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold tracking-wide text-orange-400">
+            {logoUrl ? <img src={logoUrl} alt={systemName} className="h-8 w-8 rounded" /> : null}
             {systemName}
           </Link>
 
@@ -287,14 +341,14 @@ function LandingPage() {
             {user ? (
               <Link
                 to={user.role >= ROLE.ADMIN ? '/dashboard' : '/portal'}
-                className="rounded-lg bg-purple-600 px-5 py-2 text-sm font-semibold text-gray-900 transition hover:bg-purple-500"
+                className="rounded-lg bg-purple-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-purple-500"
               >
                 {t('Console')}
               </Link>
             ) : (
               <Link
                 to="/sign-in"
-                className="rounded-lg bg-purple-600 px-5 py-2 text-sm font-semibold text-gray-900 transition hover:bg-purple-500"
+                className="rounded-lg bg-purple-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-purple-500"
               >
                 {t('Get Started')}
               </Link>
@@ -317,8 +371,8 @@ function LandingPage() {
           <div className="mb-16 flex flex-wrap items-center justify-center gap-4">
             <button
               type="button"
-              onClick={handleCTA}
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-8 py-3.5 text-base font-semibold text-gray-900 shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-500"
+              onClick={handleGetKey}
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-500"
             >
               {t('Get API Key')}
             </button>
@@ -349,35 +403,39 @@ function LandingPage() {
       <section className="border-t border-gray-200 py-20">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d18]">
-              <div className="flex items-center gap-1 border-b border-white/5 px-4 py-2">
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-[#f8fafc] shadow-sm">
+              <div className="flex items-center gap-1 border-b border-gray-200 bg-gray-50 px-4 py-2">
                 {CODE_SAMPLES.map((s, i) => (
                   <button
                     key={s.lang}
                     type="button"
                     onClick={() => setCodeTab(i)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${codeTab === i ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${codeTab === i ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
                   >
                     {s.lang}
                   </button>
                 ))}
               </div>
-              <pre className="overflow-x-auto p-5 text-xs leading-relaxed text-white/70">
-                <code>{CODE_SAMPLES[codeTab].code}</code>
+              <pre className="overflow-x-auto p-5 font-mono text-xs leading-relaxed text-gray-800">
+                <code>{highlightCode(CODE_SAMPLES[codeTab].code)}</code>
               </pre>
             </div>
             <div className="flex flex-col gap-3">
               <div className="inline-flex items-center gap-2 self-start rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-600">
                 <CheckCircle2 className="h-3.5 w-3.5" /> {t('OpenAI Compatible')}
               </div>
-              <button
-                type="button"
-                onClick={() => navigator.clipboard?.writeText('api.xendalink.com')}
-                className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-100"
-              >
-                api.xendalink.com
-                <Copy className="h-4 w-4 text-gray-400" />
-              </button>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                <div className="mb-1 text-xs font-medium text-gray-400">{t('Base URL')}</div>
+                <button
+                  type="button"
+                  onClick={() => copyText('https://api.xendalink.com/v1')}
+                  title={t('Copy')}
+                  className="flex w-full items-center justify-between gap-2 text-left text-sm font-medium text-gray-800 transition hover:text-indigo-600"
+                >
+                  <span className="truncate">https://api.xendalink.com/v1</span>
+                  <Copy className="h-4 w-4 shrink-0 text-gray-400" />
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-600">99.9% Uptime</span>
                 <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-600">{t('Global Routing')}</span>
@@ -578,8 +636,6 @@ function LandingPage() {
               <h4 className="mb-4 text-sm font-semibold text-gray-900">{t('Product')}</h4>
               <div className="flex flex-col gap-2">
                 <Link to="/portal/models" className="text-sm text-gray-500 hover:text-gray-700 transition">{t('Models')}</Link>
-                <Link to="/portal/models" className="text-sm text-gray-500 hover:text-gray-700 transition">{t('Pricing')}</Link>
-                <a href={docsUrl} className="text-sm text-gray-500 hover:text-gray-700 transition">{t('Documentation')}</a>
               </div>
             </div>
             <div>
