@@ -13,6 +13,7 @@ import {
   Lock,
   Mail,
   Moon,
+  Send,
   Shield,
   Zap,
   DollarSign,
@@ -333,34 +334,75 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section className="border-y border-white/5 bg-white/[0.02]">
-        <div className="mx-auto max-w-7xl px-6 py-20">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((f) => {
-              const Icon = f.icon
+      {/* Code Example */}
+      <section className="border-t border-white/5 py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d18]">
+              <div className="flex items-center gap-1 border-b border-white/5 px-4 py-2">
+                {CODE_SAMPLES.map((s, i) => (
+                  <button
+                    key={s.lang}
+                    type="button"
+                    onClick={() => setCodeTab(i)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${codeTab === i ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
+                  >
+                    {s.lang}
+                  </button>
+                ))}
+              </div>
+              <pre className="overflow-x-auto p-5 text-xs leading-relaxed text-white/70">
+                <code>{CODE_SAMPLES[codeTab].code}</code>
+              </pre>
+            </div>
+            <div className="flex flex-col gap-3">
+              <div className="inline-flex items-center gap-2 self-start rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t('OpenAI Compatible')}
+              </div>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard?.writeText('api.xendalink.com')}
+                className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/80 transition hover:bg-white/[0.06]"
+              >
+                api.xendalink.com
+                <Copy className="h-4 w-4 text-white/40" />
+              </button>
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400">99.9% Uptime</span>
+                <span className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-white/60">{t('Global Routing')}</span>
+                <span className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-white/60">{t('Unified Billing')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Built for performance and scale */}
+      <section className="border-t border-white/5 py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wider text-indigo-400">{t('Why developers choose us')}</p>
+          <h2 className="mb-12 text-center text-3xl font-bold text-white">{t('Built for performance and scale')}</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {PERF_FEATURES.map((p) => {
+              const PerfIcon = p.icon
               return (
-                <div
-                  key={f.title}
-                  className="group flex flex-col rounded-2xl border border-white/10 bg-white/[0.02] p-8 transition hover:border-indigo-500/30 hover:bg-white/[0.04]"
-                >
-                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
-                    <Icon className="h-8 w-8 text-indigo-300" />
+                <div key={p.title} className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
+                    <PerfIcon className="h-6 w-6 text-indigo-300" />
                   </div>
-                  <h3 className="mb-3 text-xl font-bold text-white">{f.title}</h3>
-                  <p className="mb-6 flex-1 text-sm leading-relaxed text-white/60">{f.desc}</p>
-                  {f.linkUrl?.startsWith('/portal') && (
-                    <Link
-                      to={f.linkUrl}
-                      className="inline-flex items-center gap-1 text-sm font-medium text-indigo-400 transition hover:text-indigo-300"
-                    >
-                      {f.linkText}
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </Link>
-                  )}
+                  <h3 className="mb-2 text-lg font-bold text-white">{t(p.title)}</h3>
+                  <p className="text-sm leading-relaxed text-white/60">{t(p.desc)}</p>
                 </div>
               )
             })}
+          </div>
+          <div className="mt-10 grid grid-cols-2 gap-6 rounded-2xl border border-white/10 bg-white/[0.02] p-8 sm:grid-cols-3 lg:grid-cols-5">
+            {LANDING_STATS.map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="text-2xl font-bold text-indigo-400 sm:text-3xl">{s.value}</div>
+                <div className="mt-1 text-xs text-white/50">{t(s.label)}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -437,20 +479,9 @@ function LandingPage() {
                 1
               </div>
               <h3 className="mb-3 text-xl font-bold text-white">{t('Signup')}</h3>
-              <p className="mb-4 text-sm leading-relaxed text-white/60">
+              <p className="text-sm leading-relaxed text-white/60">
                 {t('Create an account to get started. You can set up an org for your team later.')}
               </p>
-              <div className="mt-auto flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
-                  {getLobeIcon('GitHub.Color', 20)}
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
-                  <Mail className="h-5 w-5 text-white/40" />
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
-                  {getLobeIcon('Telegram.Color', 20)}
-                </div>
-              </div>
             </div>
 
             <div className="flex flex-col items-start">
@@ -458,21 +489,9 @@ function LandingPage() {
                 2
               </div>
               <h3 className="mb-3 text-xl font-bold text-white">{t('Buy credits')}</h3>
-              <p className="mb-4 text-sm leading-relaxed text-white/60">
+              <p className="text-sm leading-relaxed text-white/60">
                 {t('Credits can be used with any model or provider.')}
               </p>
-              <div className="mt-auto space-y-2">
-                <div className="flex items-center gap-3 text-sm">
-                  <DollarSign className="h-4 w-4 text-indigo-400" />
-                  <span className="text-white/50">Apr 1</span>
-                  <span className="ml-auto font-semibold text-white">$99</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <DollarSign className="h-4 w-4 text-indigo-400" />
-                  <span className="text-white/50">Mar 30</span>
-                  <span className="ml-auto font-semibold text-white">$10</span>
-                </div>
-              </div>
             </div>
 
             <div className="flex flex-col items-start">
@@ -481,7 +500,7 @@ function LandingPage() {
               </div>
               <h3 className="mb-3 text-xl font-bold text-white">{t('Get your API key')}</h3>
               <p className="mb-4 text-sm leading-relaxed text-white/60">
-                {t('Create an API key and start making requests.')} <a href={docsUrl} className="text-indigo-400 hover:text-indigo-300">{t('Fully OpenAI compatible.')}</a>
+                {t('Create an API key and start making requests.')} {t('Fully OpenAI compatible.')}
               </p>
               <div className="mt-auto flex w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
                 <FileText className="h-4 w-4 text-white/40" />
@@ -489,79 +508,6 @@ function LandingPage() {
               </div>
               <div className="mt-2 font-mono text-sm text-white/30">••••••••••••••••</div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Code Example */}
-      <section className="border-t border-white/5 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d18]">
-              <div className="flex items-center gap-1 border-b border-white/5 px-4 py-2">
-                {CODE_SAMPLES.map((s, i) => (
-                  <button
-                    key={s.lang}
-                    type="button"
-                    onClick={() => setCodeTab(i)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${codeTab === i ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}
-                  >
-                    {s.lang}
-                  </button>
-                ))}
-              </div>
-              <pre className="overflow-x-auto p-5 text-xs leading-relaxed text-white/70">
-                <code>{CODE_SAMPLES[codeTab].code}</code>
-              </pre>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="inline-flex items-center gap-2 self-start rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" /> {t('OpenAI Compatible')}
-              </div>
-              <button
-                type="button"
-                onClick={() => navigator.clipboard?.writeText('api.xendalink.com')}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/80 transition hover:bg-white/[0.06]"
-              >
-                api.xendalink.com
-                <Copy className="h-4 w-4 text-white/40" />
-              </button>
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400">99.9% Uptime</span>
-                <span className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-white/60">{t('Global Routing')}</span>
-                <span className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-white/60">{t('Unified Billing')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Built for performance and scale */}
-      <section className="border-t border-white/5 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wider text-indigo-400">{t('Why developers choose us')}</p>
-          <h2 className="mb-12 text-center text-3xl font-bold text-white">{t('Built for performance and scale')}</h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {PERF_FEATURES.map((p) => {
-              const PerfIcon = p.icon
-              return (
-                <div key={p.title} className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
-                    <PerfIcon className="h-6 w-6 text-indigo-300" />
-                  </div>
-                  <h3 className="mb-2 text-lg font-bold text-white">{t(p.title)}</h3>
-                  <p className="text-sm leading-relaxed text-white/60">{t(p.desc)}</p>
-                </div>
-              )
-            })}
-          </div>
-          <div className="mt-10 grid grid-cols-2 gap-6 rounded-2xl border border-white/10 bg-white/[0.02] p-8 sm:grid-cols-3 lg:grid-cols-5">
-            {LANDING_STATS.map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-2xl font-bold text-indigo-400 sm:text-3xl">{s.value}</div>
-                <div className="mt-1 text-xs text-white/50">{t(s.label)}</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -608,6 +554,9 @@ function LandingPage() {
                 {logoUrl ? <img src={logoUrl} alt={systemName} className="h-7 w-7 rounded" /> : null}
                 <span className="text-lg font-bold text-orange-400">{systemName}</span>
               </div>
+              <p className="mb-4 max-w-xs text-sm leading-relaxed text-white/50">
+                {t('The global AI API gateway for developers and enterprises. One API, every AI model.')}
+              </p>
               <div className="flex items-center gap-3">
                 <a
                   href="https://t.me/iXendabot"
@@ -616,7 +565,7 @@ function LandingPage() {
                   title="Telegram"
                   className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white/80"
                 >
-                  {getLobeIcon('Telegram.Color', 18)}
+                  <Send className="h-4 w-4" />
                 </a>
                 <a
                   href="mailto:support@xendalink.com"

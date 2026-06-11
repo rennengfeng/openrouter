@@ -3783,6 +3783,7 @@
     "The exact model identifier as used in API requests.": "Точный идентификатор модели, используемый в запросах API.",
     "The following models have billing type conflicts (fixed price vs ratio billing). Confirm to proceed with the changes.": "Следующие модели имеют конфликты типов тарификации (фиксированная цена против тарификации по соотношению). Подтвердите, чтобы продолжить изменения.",
     "The following models in the model redirect have not been added to the \"Models\" list and may fail during invocation due to missing available models:": "Следующие модели в перенаправлении модели не были добавлены в список \"Модели\" и могут не работать при вызове из-за отсутствия доступных моделей:",
+    "The global AI API gateway for developers and enterprises. One API, every AI model.": "Глобальный AI API-шлюз для разработчиков и компаний. Один API — все AI-модели.",
     "The mapped upstream model(s)": "Сопоставленные upstream модель(и)",
     "The model you're looking for doesn't exist.": "Модель, которую вы ищете, не существует.",
     "The name displayed across the application": "Имя, отображаемое в приложении",

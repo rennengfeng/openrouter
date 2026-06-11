@@ -3797,6 +3797,7 @@
     "The exact model identifier as used in API requests.": "API 请求中使用的确切模型标识符。",
     "The following models have billing type conflicts (fixed price vs ratio billing). Confirm to proceed with the changes.": "以下模型存在计费类型冲突（固定价格 vs 比例计费）。确认以继续更改。",
     "The following models in the model redirect have not been added to the \"Models\" list and may fail during invocation due to missing available models:": "模型重定向里的下列模型尚未添加到\"模型\"列表，调用时会因为缺少可用模型而失败：",
+    "The global AI API gateway for developers and enterprises. One API, every AI model.": "面向开发者与企业的全球 AI API 网关。一个 API，调用所有 AI 模型。",
     "The mapped upstream model(s)": "映射的上游模型",
     "The model you're looking for doesn't exist.": "您查找的模型不存在。",
     "The name displayed across the application": "在整个应用程序中显示的名称",

@@ -3772,6 +3772,7 @@
     "The exact model identifier as used in API requests.": "The exact model identifier as used in API requests.",
     "The following models have billing type conflicts (fixed price vs ratio billing). Confirm to proceed with the changes.": "The following models have billing type conflicts (fixed price vs ratio billing). Confirm to proceed with the changes.",
     "The following models in the model redirect have not been added to the \"Models\" list and may fail during invocation due to missing available models:": "The following models in the model redirect have not been added to the \"Models\" list and may fail during invocation due to missing available models:",
+    "The global AI API gateway for developers and enterprises. One API, every AI model.": "The global AI API gateway for developers and enterprises. One API, every AI model.",
     "The mapped upstream model(s)": "The mapped upstream model(s)",
     "The model you're looking for doesn't exist.": "The model you're looking for doesn't exist.",
     "The name displayed across the application": "The name displayed across the application",
