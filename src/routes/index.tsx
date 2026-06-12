@@ -22,6 +22,7 @@ import { api } from '@/lib/api'
 import { getFrontendModels } from '@/features/frontend-portal/api'
 import { parseModelTags } from '@/features/frontend-portal/model-tags'
 import { ModelBadges } from '@/features/frontend-portal/model-badges'
+import { ModelModalityBadge } from '@/features/frontend-portal/model-modality-badge'
 import type { FrontendModel } from '@/features/frontend-portal/types'
 import { getLobeIcon } from '@/lib/lobe-icon'
 
@@ -180,18 +181,6 @@ function LandingPage() {
   const vendors = pricingData?.vendors ?? []
   const modelCount = pricingData?.models?.length ?? 0
 
-  const providerIcon = (vendor?: string) => {
-    const v = (vendor || '').toLowerCase()
-    if (v.includes('anthropic') || v.includes('claude')) return 'Claude.Color'
-    if (v.includes('openai') || v.includes('gpt') || v.includes('o1') || v.includes('o3')) return 'OpenAI.Color'
-    if (v.includes('google') || v.includes('gemini')) return 'Gemini.Color'
-    if (v.includes('deepseek')) return 'DeepSeek.Color'
-    if (v.includes('qwen') || v.includes('alibaba') || v.includes('tongyi')) return 'Qwen.Color'
-    if (v.includes('grok') || v.includes('xai')) return 'Grok'
-    if (v.includes('mistral')) return 'Mistral.Color'
-    if (v.includes('moonshot') || v.includes('kimi')) return 'Moonshot'
-    return 'OpenAI.Color'
-  }
   const { data: frontendModels } = useQuery({
     queryKey: ['landing-frontend-models'],
     queryFn: getFrontendModels,
@@ -212,6 +201,7 @@ function LandingPage() {
       icon: model.icon,
       description: model.description,
       tags: parsed.visibleTags,
+      modalityTags: model.tags,
       badges: parsed.badges,
     }))
   })()
@@ -492,13 +482,16 @@ function LandingPage() {
               to={modelsHref}
               className="relative flex flex-col rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-indigo-500/30 hover:bg-gray-50"
             >
-              <ModelBadges badges={model.badges} className="absolute right-3 top-3 z-10 flex justify-end gap-1" />
+              <ModelBadges badges={model.badges} cornerClass="rounded-tr-2xl" className="absolute right-0 top-0 z-10 flex justify-end gap-1" />
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
-                  {getLobeIcon(model.icon || providerIcon(model.provider), 28)}
+                  {getLobeIcon(model.icon, 28)}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="mb-1 truncate text-base font-semibold text-gray-900">{model.name}</h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="truncate text-base font-semibold text-gray-900">{model.name}</h3>
+                    <ModelModalityBadge modelName={model.name} tags={model.modalityTags} />
+                  </div>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-gray-500 line-clamp-2">

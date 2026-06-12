@@ -8,6 +8,7 @@ import { getLobeIcon } from '@/lib/lobe-icon'
 import { getFrontendModels } from './api'
 import { parseModelTags } from './model-tags'
 import { ModelBadges } from './model-badges'
+import { ModelModalityBadge } from './model-modality-badge'
 import type { FrontendModel } from './types'
 import { Link } from '@tanstack/react-router'
 
@@ -233,39 +234,7 @@ export function ModelSquare() {
                   </div>
                   <h3 className="text-base font-bold text-gray-900 line-clamp-1">{model.model_name}</h3>
                   {/* Modality badge - small icon with shadow like OpenRouter */}
-                  {(() => {
-                    const name = model.model_name.toLowerCase()
-                    const tags = model.tags?.toLowerCase() ?? ''
-                    const isImage = name.includes('image') || name.includes('dall-e') || name.includes('midjourney') || name.includes('stable-diffusion') || name.includes('flux') || tags.includes('生图') || name.includes('imagen') || name.includes('veo') || name.includes('generate')
-                    const isVision = name.includes('vision') || tags.includes('视觉') || tags.includes('vision')
-                    const isAudio = name.includes('tts') || name.includes('whisper') || name.includes('transcribe') || name.includes('audio') || tags.includes('语音')
-                    if (isImage) {
-                      return (
-                        <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br from-pink-400 to-rose-500 shadow-sm shadow-pink-200" title="Image">
-                          <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></svg>
-                        </span>
-                      )
-                    }
-                    if (isAudio) {
-                      return (
-                        <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm shadow-amber-200" title="Audio">
-                          <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></svg>
-                        </span>
-                      )
-                    }
-                    if (isVision) {
-                      return (
-                        <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br from-emerald-400 to-teal-500 shadow-sm shadow-emerald-200" title="Vision">
-                          <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
-                        </span>
-                      )
-                    }
-                    return (
-                      <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gradient-to-br from-sky-400 to-sky-500 shadow-sm shadow-sky-200" title="Text">
-                        <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M4 7V4h16v3" /><path d="M9 20h6" /><path d="M12 4v16" /></svg>
-                      </span>
-                    )
-                  })()}
+                  <ModelModalityBadge modelName={model.model_name} tags={model.tags} />
                   <button
                     type="button"
                     onClick={(e) => {

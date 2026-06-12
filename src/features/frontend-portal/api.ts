@@ -44,6 +44,7 @@ import type {
 type RawPricingModel = {
   model_name: string
   description?: string
+  icon?: string
   vendor_id?: number
   vendor_name?: string
   vendor_icon?: string
@@ -120,7 +121,7 @@ export async function getFrontendModels(): Promise<FrontendModelsPayload> {
       vendor_id: m.vendor_id,
       vendor_name: resolvedVendorName,
       tags: m.tags,
-      icon: m.vendor_icon || (m.vendor_id ? vendorIconMap.get(m.vendor_id) : undefined),
+      icon: m.icon || m.vendor_icon || (m.vendor_id ? vendorIconMap.get(m.vendor_id) : undefined),
       quota_type: m.quota_type,
       model_ratio: m.model_ratio,
       completion_ratio: m.completion_ratio,

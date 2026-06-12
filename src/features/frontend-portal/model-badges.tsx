@@ -23,19 +23,21 @@ type ModelBadgesProps = {
   badges: ModelBadge[]
   /** 角标容器类名，默认绝对定位在卡片右上角 */
   className?: string
+  /** 最右角标的右上角圆角，需与卡片圆角一致以正好嵌进角里（广场 rounded-tr-xl / 首页 rounded-tr-2xl） */
+  cornerClass?: string
 }
 
 /** 渲染模型右上角的彩色角标组（new / 火 / 极速 / 限时9折 ...），可叠加多个。 */
-export function ModelBadges({ badges, className }: ModelBadgesProps) {
+export function ModelBadges({ badges, className, cornerClass = 'rounded-tr-xl' }: ModelBadgesProps) {
   const { t } = useTranslation()
   if (!badges.length) return null
 
   return (
-    <div className={className ?? 'absolute right-2 top-2 z-10 flex justify-end gap-1'}>
-      {badges.map((b) => (
+    <div className={className ?? 'absolute right-0 top-0 z-10 flex justify-end gap-1'}>
+      {badges.map((b, i) => (
         <span
           key={b.key}
-          className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold shadow-sm ring-1 ring-black/5 ${BADGE_VARIANT_CLASS[b.variant]}`}
+          className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold shadow-sm ring-1 ring-black/5 ${i === badges.length - 1 ? cornerClass : ''} ${BADGE_VARIANT_CLASS[b.variant]}`}
         >
           {b.icon && <span className="leading-none">{b.icon}</span>}
           {b.i18nKey ? t(b.i18nKey) : b.label}

@@ -117,9 +117,8 @@ export function usePricingColumns(
       ),
       cell: ({ row }) => {
         const model = row.original
-        const vendorIcon = model.vendor_icon
-          ? getLobeIcon(model.vendor_icon, 14)
-          : null
+        const iconKey = model.icon || model.vendor_icon
+        const vendorIcon = iconKey ? getLobeIcon(iconKey, 14) : null
 
         return (
           <div className='flex min-w-[200px] items-center gap-2'>
@@ -361,9 +360,8 @@ export function usePricingColumns(
         if (!model.vendor_name) {
           return <span className='text-muted-foreground/50 text-xs'>—</span>
         }
-        const vendorIcon = model.vendor_icon
-          ? getLobeIcon(model.vendor_icon, 12)
-          : null
+        const iconKey = model.icon || model.vendor_icon
+        const vendorIcon = iconKey ? getLobeIcon(iconKey, 12) : null
         return (
           <span className='text-muted-foreground flex items-center gap-1.5 text-xs'>
             {vendorIcon}
