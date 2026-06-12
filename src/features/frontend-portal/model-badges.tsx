@@ -31,7 +31,7 @@ export function ModelBadges({ badges, className }: ModelBadgesProps) {
   if (!badges.length) return null
 
   return (
-    <div className={className ?? 'absolute right-3 top-3 z-10 flex justify-end gap-1'}>
+    <div className={className ?? 'absolute right-5 top-5 z-10 flex justify-end gap-1'}>
       {badges.map((b) => (
         <span
           key={b.key}
