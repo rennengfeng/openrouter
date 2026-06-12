@@ -22,7 +22,9 @@ import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as AboutIndexRouteImport } from './routes/about/index'
 import { Route as PortalTopupRouteImport } from './routes/portal/topup'
 import { Route as PortalTokensRouteImport } from './routes/portal/tokens'
+import { Route as PortalTermsRouteImport } from './routes/portal/terms'
 import { Route as PortalSettingsRouteImport } from './routes/portal/settings'
+import { Route as PortalPrivacyRouteImport } from './routes/portal/privacy'
 import { Route as PortalMonitorRouteImport } from './routes/portal/monitor'
 import { Route as PortalModelsRouteImport } from './routes/portal/models'
 import { Route as PortalLogsRouteImport } from './routes/portal/logs'
@@ -31,6 +33,7 @@ import { Route as PortalDashboardRouteImport } from './routes/portal/dashboard'
 import { Route as PortalContactRouteImport } from './routes/portal/contact'
 import { Route as PortalChatRouteImport } from './routes/portal/chat'
 import { Route as PortalAffiliateRouteImport } from './routes/portal/affiliate'
+import { Route as PortalAboutRouteImport } from './routes/portal/about'
 import { Route as OauthProviderRouteImport } from './routes/oauth/$provider'
 import { Route as ConsoleTopupRouteImport } from './routes/console/topup'
 import { Route as ConsoleLogRouteImport } from './routes/console/log'
@@ -144,9 +147,19 @@ const PortalTokensRoute = PortalTokensRouteImport.update({
   path: '/tokens',
   getParentRoute: () => PortalRouteRoute,
 } as any)
+const PortalTermsRoute = PortalTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
 const PortalSettingsRoute = PortalSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalPrivacyRoute = PortalPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalMonitorRoute = PortalMonitorRouteImport.update({
@@ -187,6 +200,11 @@ const PortalChatRoute = PortalChatRouteImport.update({
 const PortalAffiliateRoute = PortalAffiliateRouteImport.update({
   id: '/affiliate',
   path: '/affiliate',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalAboutRoute = PortalAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const OauthProviderRoute = OauthProviderRouteImport.update({
@@ -485,6 +503,7 @@ export interface FileRoutesByFullPath {
   '/console/log': typeof ConsoleLogRoute
   '/console/topup': typeof ConsoleTopupRoute
   '/oauth/$provider': typeof OauthProviderRoute
+  '/portal/about': typeof PortalAboutRoute
   '/portal/affiliate': typeof PortalAffiliateRoute
   '/portal/chat': typeof PortalChatRoute
   '/portal/contact': typeof PortalContactRoute
@@ -493,7 +512,9 @@ export interface FileRoutesByFullPath {
   '/portal/logs': typeof PortalLogsRoute
   '/portal/models': typeof PortalModelsRoute
   '/portal/monitor': typeof PortalMonitorRoute
+  '/portal/privacy': typeof PortalPrivacyRoute
   '/portal/settings': typeof PortalSettingsRoute
+  '/portal/terms': typeof PortalTermsRoute
   '/portal/tokens': typeof PortalTokensRoute
   '/portal/topup': typeof PortalTopupRoute
   '/about/': typeof AboutIndexRoute
@@ -554,6 +575,7 @@ export interface FileRoutesByTo {
   '/console/log': typeof ConsoleLogRoute
   '/console/topup': typeof ConsoleTopupRoute
   '/oauth/$provider': typeof OauthProviderRoute
+  '/portal/about': typeof PortalAboutRoute
   '/portal/affiliate': typeof PortalAffiliateRoute
   '/portal/chat': typeof PortalChatRoute
   '/portal/contact': typeof PortalContactRoute
@@ -562,7 +584,9 @@ export interface FileRoutesByTo {
   '/portal/logs': typeof PortalLogsRoute
   '/portal/models': typeof PortalModelsRoute
   '/portal/monitor': typeof PortalMonitorRoute
+  '/portal/privacy': typeof PortalPrivacyRoute
   '/portal/settings': typeof PortalSettingsRoute
+  '/portal/terms': typeof PortalTermsRoute
   '/portal/tokens': typeof PortalTokensRoute
   '/portal/topup': typeof PortalTopupRoute
   '/about': typeof AboutIndexRoute
@@ -628,6 +652,7 @@ export interface FileRoutesById {
   '/console/log': typeof ConsoleLogRoute
   '/console/topup': typeof ConsoleTopupRoute
   '/oauth/$provider': typeof OauthProviderRoute
+  '/portal/about': typeof PortalAboutRoute
   '/portal/affiliate': typeof PortalAffiliateRoute
   '/portal/chat': typeof PortalChatRoute
   '/portal/contact': typeof PortalContactRoute
@@ -636,7 +661,9 @@ export interface FileRoutesById {
   '/portal/logs': typeof PortalLogsRoute
   '/portal/models': typeof PortalModelsRoute
   '/portal/monitor': typeof PortalMonitorRoute
+  '/portal/privacy': typeof PortalPrivacyRoute
   '/portal/settings': typeof PortalSettingsRoute
+  '/portal/terms': typeof PortalTermsRoute
   '/portal/tokens': typeof PortalTokensRoute
   '/portal/topup': typeof PortalTopupRoute
   '/about/': typeof AboutIndexRoute
@@ -701,6 +728,7 @@ export interface FileRouteTypes {
     | '/console/log'
     | '/console/topup'
     | '/oauth/$provider'
+    | '/portal/about'
     | '/portal/affiliate'
     | '/portal/chat'
     | '/portal/contact'
@@ -709,7 +737,9 @@ export interface FileRouteTypes {
     | '/portal/logs'
     | '/portal/models'
     | '/portal/monitor'
+    | '/portal/privacy'
     | '/portal/settings'
+    | '/portal/terms'
     | '/portal/tokens'
     | '/portal/topup'
     | '/about/'
@@ -770,6 +800,7 @@ export interface FileRouteTypes {
     | '/console/log'
     | '/console/topup'
     | '/oauth/$provider'
+    | '/portal/about'
     | '/portal/affiliate'
     | '/portal/chat'
     | '/portal/contact'
@@ -778,7 +809,9 @@ export interface FileRouteTypes {
     | '/portal/logs'
     | '/portal/models'
     | '/portal/monitor'
+    | '/portal/privacy'
     | '/portal/settings'
+    | '/portal/terms'
     | '/portal/tokens'
     | '/portal/topup'
     | '/about'
@@ -843,6 +876,7 @@ export interface FileRouteTypes {
     | '/console/log'
     | '/console/topup'
     | '/oauth/$provider'
+    | '/portal/about'
     | '/portal/affiliate'
     | '/portal/chat'
     | '/portal/contact'
@@ -851,7 +885,9 @@ export interface FileRouteTypes {
     | '/portal/logs'
     | '/portal/models'
     | '/portal/monitor'
+    | '/portal/privacy'
     | '/portal/settings'
+    | '/portal/terms'
     | '/portal/tokens'
     | '/portal/topup'
     | '/about/'
@@ -1009,11 +1045,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalTokensRouteImport
       parentRoute: typeof PortalRouteRoute
     }
+    '/portal/terms': {
+      id: '/portal/terms'
+      path: '/terms'
+      fullPath: '/portal/terms'
+      preLoaderRoute: typeof PortalTermsRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
     '/portal/settings': {
       id: '/portal/settings'
       path: '/settings'
       fullPath: '/portal/settings'
       preLoaderRoute: typeof PortalSettingsRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/privacy': {
+      id: '/portal/privacy'
+      path: '/privacy'
+      fullPath: '/portal/privacy'
+      preLoaderRoute: typeof PortalPrivacyRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/portal/monitor': {
@@ -1070,6 +1120,13 @@ declare module '@tanstack/react-router' {
       path: '/affiliate'
       fullPath: '/portal/affiliate'
       preLoaderRoute: typeof PortalAffiliateRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/about': {
+      id: '/portal/about'
+      path: '/about'
+      fullPath: '/portal/about'
+      preLoaderRoute: typeof PortalAboutRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/oauth/$provider': {
@@ -1547,6 +1604,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface PortalRouteRouteChildren {
+  PortalAboutRoute: typeof PortalAboutRoute
   PortalAffiliateRoute: typeof PortalAffiliateRoute
   PortalChatRoute: typeof PortalChatRoute
   PortalContactRoute: typeof PortalContactRoute
@@ -1555,13 +1613,16 @@ interface PortalRouteRouteChildren {
   PortalLogsRoute: typeof PortalLogsRoute
   PortalModelsRoute: typeof PortalModelsRoute
   PortalMonitorRoute: typeof PortalMonitorRoute
+  PortalPrivacyRoute: typeof PortalPrivacyRoute
   PortalSettingsRoute: typeof PortalSettingsRoute
+  PortalTermsRoute: typeof PortalTermsRoute
   PortalTokensRoute: typeof PortalTokensRoute
   PortalTopupRoute: typeof PortalTopupRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
+  PortalAboutRoute: PortalAboutRoute,
   PortalAffiliateRoute: PortalAffiliateRoute,
   PortalChatRoute: PortalChatRoute,
   PortalContactRoute: PortalContactRoute,
@@ -1570,7 +1631,9 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalLogsRoute: PortalLogsRoute,
   PortalModelsRoute: PortalModelsRoute,
   PortalMonitorRoute: PortalMonitorRoute,
+  PortalPrivacyRoute: PortalPrivacyRoute,
   PortalSettingsRoute: PortalSettingsRoute,
+  PortalTermsRoute: PortalTermsRoute,
   PortalTokensRoute: PortalTokensRoute,
   PortalTopupRoute: PortalTopupRoute,
   PortalIndexRoute: PortalIndexRoute,
