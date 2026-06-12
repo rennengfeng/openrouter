@@ -172,7 +172,42 @@ export function PortalLogs() {
     return modelList?.tokens ?? []
   })()
 
-  const tokenDisplayName = (name: string) => /^playground-/i.test(name) ? '在线对话' : name
+  const tokenDisplayName = (name: string) => /^playground-/i.test(name) ? t('portal.page.logs.playground') : name
+
+  // 后端写入日志的固定中文模板（带金额）做整句翻译；其余英文/技术短语做逐词替换，数字与结构保留。
+  const LOG_PHRASES: Array<[RegExp, string]> = [
+    [/insufficient[_ ]?user[_ ]?quota/gi, 'portal.page.logs.phrase.insufficientQuota'],
+    [/额度不足/g, 'portal.page.logs.phrase.insufficientQuota'],
+    [/bad response/gi, 'portal.page.logs.phrase.badResponse'],
+    [/status[_ ]code/gi, 'portal.page.logs.phrase.statusCode'],
+    [/openai_error/gi, 'portal.page.logs.phrase.openaiError'],
+  ]
+  const translateLogContent = (content?: string): string => {
+    if (!content) return content ?? ''
+    const s = content.trim()
+    let m: RegExpMatchArray | null
+    // 管理员额度操作
+    if ((m = s.match(/^管理员增加用户额度\s*(.+?)\s*额度$/))) return t('portal.page.logs.content.adminAddQuota', { amount: m[1] })
+    if ((m = s.match(/^管理员减少用户额度\s*(.+?)\s*额度$/))) return t('portal.page.logs.content.adminSubQuota', { amount: m[1] })
+    if ((m = s.match(/^管理员将用户额度修改为\s*(.+)$/))) return t('portal.page.logs.content.adminSetQuota', { amount: m[1] })
+    // 赠送 / 充值类
+    if ((m = s.match(/^用户签到，获得额度\s*(.+)$/))) return t('portal.page.logs.content.checkinReward', { amount: m[1] })
+    if ((m = s.match(/^新用户注册赠送\s*(.+)$/))) return t('portal.page.logs.content.registerBonus', { amount: m[1] })
+    if ((m = s.match(/^使用邀请码赠送\s*(.+)$/))) return t('portal.page.logs.content.inviteeBonus', { amount: m[1] })
+    if ((m = s.match(/^邀请用户赠送\s*(.+)$/))) return t('portal.page.logs.content.inviterBonus', { amount: m[1] })
+    if ((m = s.match(/^通过兑换码充值\s*(.+?)，兑换码ID\s*(\d+)$/))) return t('portal.page.logs.content.redeemRecharge', { amount: m[1], id: m[2] })
+    if ((m = s.match(/^使用在线充值成功，充值金额[:：]\s*(.+?)，支付金额[:：]\s*(.+)$/))) return t('portal.page.logs.content.onlineTopup', { amount: m[1], paid: m[2] })
+    // 两步验证 / 安全验证（无变量）
+    if (s === '开始设置两步验证') return t('portal.page.logs.content.twoFaSetup')
+    if (s === '成功启用两步验证') return t('portal.page.logs.content.twoFaEnabled')
+    if (s === '禁用两步验证') return t('portal.page.logs.content.twoFaDisabled')
+    if (s === '重新生成两步验证备用码') return t('portal.page.logs.content.twoFaRegen')
+    if ((m = s.match(/^通用安全验证成功\s*\(验证方式:\s*(.+?)\)$/))) return t('portal.page.logs.content.securityVerified', { method: m[1] })
+    // 其余：英文/技术短语逐词替换，数字与结构保留
+    let out = content
+    for (const [re, key] of LOG_PHRASES) out = out.replace(re, t(key))
+    return out
+  }
 
   const { data: chartRawData } = useQuery({
     queryKey: ['portal-log-chart-data', range.start, range.end, granularity],
@@ -530,7 +565,7 @@ export function PortalLogs() {
                             <div className="space-y-2 text-xs text-gray-500">
                               {log.request_id && (
                                 <div className="flex gap-2">
-                                  <span className="text-gray-400 min-w-24 shrink-0">Request ID</span>
+                                  <span className="text-gray-400 min-w-24 shrink-0">{t('portal.page.logs.requestId')}</span>
                                   <span className="font-mono text-gray-500">{log.request_id}</span>
                                 </div>
                               )}
@@ -549,7 +584,7 @@ export function PortalLogs() {
                               {log.content && (
                                 <div className="flex gap-2">
                                   <span className="text-gray-400 min-w-24 shrink-0">{t('portal.page.logs.logDetail')}</span>
-                                  <span className="text-gray-500 break-all">{log.content}</span>
+                                  <span className="text-gray-500 break-all">{translateLogContent(log.content)}</span>
                                 </div>
                               )}
                               {otherData?.model_ratio != null && (
