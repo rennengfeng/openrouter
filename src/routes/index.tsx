@@ -492,7 +492,7 @@ function LandingPage() {
               to={modelsHref}
               className="relative flex flex-col rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-indigo-500/30 hover:bg-gray-50"
             >
-              <ModelBadges badges={model.badges} className="absolute right-6 top-6 z-10 flex justify-end gap-1" />
+              <ModelBadges badges={model.badges} className="absolute right-3 top-3 z-10 flex justify-end gap-1" />
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
                   {getLobeIcon(model.icon || providerIcon(model.provider), 28)}
