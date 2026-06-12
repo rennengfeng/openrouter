@@ -17,27 +17,35 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
-import { BADGE_VARIANT_CLASS, type ModelBadge } from './model-tags'
+import { BADGE_TEXT_CLASS, type ModelBadge } from './model-tags'
 
 type ModelBadgesProps = {
   badges: ModelBadge[]
-  /** 角标容器类名，默认绝对定位在卡片右上角 */
+  /** 角标条定位类名，默认贴卡片右上角 */
   className?: string
-  /** 角标圆角，需与卡片圆角一致（广场 rounded-xl / 首页 rounded-2xl），让最右角标正好嵌进卡片圆角 */
-  radiusClass?: string
+  /** 右上 + 左下圆角，需与卡片圆角一致（广场 rounded-tr-xl rounded-bl-xl / 首页 rounded-tr-2xl rounded-bl-2xl） */
+  cornerClass?: string
 }
 
-/** 渲染模型右上角的彩色角标组（new / 火 / 极速 / 限时9折 ...），可叠加多个。 */
-export function ModelBadges({ badges, className, radiusClass = 'rounded-xl' }: ModelBadgesProps) {
+/**
+ * 模型右上角的角标条：左右直边、右上+左下圆角嵌进卡片角；多个角标合并为一条，浅底彩字。
+ */
+export function ModelBadges({
+  badges,
+  className = 'absolute right-0 top-0 z-10',
+  cornerClass = 'rounded-tr-xl rounded-bl-xl',
+}: ModelBadgesProps) {
   const { t } = useTranslation()
   if (!badges.length) return null
 
   return (
-    <div className={className ?? 'absolute right-0 top-0 z-10 flex justify-end gap-1'}>
+    <div
+      className={`${className} flex items-center gap-1.5 overflow-hidden ${cornerClass} bg-gray-50/95 px-2 py-1 shadow-sm ring-1 ring-black/5`}
+    >
       {badges.map((b) => (
         <span
           key={b.key}
-          className={`inline-flex items-center gap-0.5 ${radiusClass} px-2 py-0.5 text-xs font-semibold shadow-sm ring-1 ring-black/5 ${BADGE_VARIANT_CLASS[b.variant]}`}
+          className={`inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold leading-none ${BADGE_TEXT_CLASS[b.variant]}`}
         >
           {b.icon && <span className="leading-none">{b.icon}</span>}
           {b.i18nKey ? t(b.i18nKey) : b.label}

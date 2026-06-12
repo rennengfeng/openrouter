@@ -96,6 +96,17 @@ export const BADGE_VARIANT_CLASS: Record<ModelBadgeVariant, string> = {
   rose: 'bg-gradient-to-r from-rose-500 to-orange-500 text-white',
 }
 
+/** 合并角标条（浅底）用的文字色。 */
+export const BADGE_TEXT_CLASS: Record<ModelBadgeVariant, string> = {
+  red: 'text-red-600',
+  orange: 'text-orange-600',
+  amber: 'text-amber-600',
+  blue: 'text-blue-600',
+  green: 'text-emerald-600',
+  violet: 'text-violet-600',
+  rose: 'text-rose-600',
+}
+
 export type ParsedModelTags = {
   /** 右上角彩色角标，可有多个 */
   badges: ModelBadge[]
