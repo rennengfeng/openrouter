@@ -6,6 +6,8 @@ import { toast } from 'sonner'
 import { formatCurrencyFromUSD } from '@/lib/currency'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { getFrontendModels } from './api'
+import { parseModelTags } from './model-tags'
+import { ModelBadges } from './model-badges'
 import type { FrontendModel } from './types'
 import { Link } from '@tanstack/react-router'
 
@@ -120,9 +122,7 @@ export function ModelSquare() {
   const allTags = useMemo(() => {
     const tagSet = new Set<string>()
     for (const m of models) {
-      if (m.tags) {
-        m.tags.split(',').map((t) => t.trim()).filter(Boolean).forEach((t) => tagSet.add(t))
-      }
+      for (const t of parseModelTags(m.tags).visibleTags) tagSet.add(t)
     }
     return Array.from(tagSet).sort()
   }, [models])
@@ -142,10 +142,9 @@ export function ModelSquare() {
       filtered = filtered.filter((m) => m.vendor_name === vendorFilter)
     }
     if (tagFilter !== 'all') {
-      filtered = filtered.filter((m) => {
-        const tags = m.tags ? m.tags.split(',').map((t) => t.trim()) : []
-        return tags.includes(tagFilter)
-      })
+      filtered = filtered.filter((m) =>
+        parseModelTags(m.tags).visibleTags.includes(tagFilter)
+      )
     }
 
     return filtered.map((model) => {
@@ -218,13 +217,15 @@ export function ModelSquare() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((row) => {
             const { model, group, ratio } = row
+            const parsed = parseModelTags(model.tags)
 
             return (
               <div
                 key={`${model.model_name}-${group}`}
                 onClick={() => setSelectedModel(row)}
-                className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-5 transition hover:border-sky-400/30 hover:shadow-sm"
+                className="group relative cursor-pointer rounded-xl border border-gray-200 bg-white p-5 transition hover:border-sky-400/30 hover:shadow-sm"
               >
+                <ModelBadges badges={parsed.badges} />
                 {/* Row 1: Icon + Name + Modality badge + Copy */}
                 <div className="mb-2 flex items-center gap-2">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gray-50">
@@ -301,7 +302,7 @@ export function ModelSquare() {
 
                 {/* Row 4: Tags */}
                 {(() => {
-                  const cardTags = model.tags ? model.tags.split(',').map((tg) => tg.trim()).filter(Boolean) : []
+                  const cardTags = parsed.visibleTags
                   if (cardTags.length === 0) return null
                   return (
                     <div className="mt-3 flex flex-wrap gap-1.5">

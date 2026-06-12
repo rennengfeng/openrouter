@@ -20,11 +20,23 @@ import { useAuthStore } from '@/stores/auth-store'
 import { ROLE } from '@/lib/roles'
 import { api } from '@/lib/api'
 import { getFrontendModels } from '@/features/frontend-portal/api'
+import { parseModelTags } from '@/features/frontend-portal/model-tags'
+import { ModelBadges } from '@/features/frontend-portal/model-badges'
+import type { FrontendModel } from '@/features/frontend-portal/types'
 import { getLobeIcon } from '@/lib/lobe-icon'
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
 })
+
+// 与模型广场保持一致的固定 5 标签多语言映射；其它标签原样显示。
+const TAG_I18N_KEY: Record<string, string> = {
+  '文本推理': 'portal.tag.text', text: 'portal.tag.text',
+  '图像': 'portal.tag.image', image: 'portal.tag.image',
+  '音频': 'portal.tag.voice', voice: 'portal.tag.voice',
+  '视频': 'portal.tag.video', video: 'portal.tag.video',
+  '视觉': 'portal.tag.visual', visual: 'portal.tag.visual',
+}
 
 const CODE_SAMPLES = [
   { lang: 'cURL', code: `curl https://api.xendalink.com/v1/chat/completions \\
@@ -186,13 +198,46 @@ function LandingPage() {
     staleTime: 120_000,
   })
 
-  const featuredModels = ((frontendModels?.models ?? []) as Array<{ model_name: string; vendor_name?: string }>)
-    .slice(0, 3)
-    .map((m, i) => ({
-      name: m.model_name,
-      provider: m.vendor_name || '',
-      badge: i === 0 ? t('New') : null,
+  // 首页精选区：取打了 !精选_N 标签的模型，按 N 升序；若没有任何精选标签，回退取前 3 个。
+  const featuredModels = (() => {
+    const all = (frontendModels?.models ?? []) as FrontendModel[]
+    const parsedAll = all.map((m) => ({ model: m, parsed: parseModelTags(m.tags) }))
+    const tagged = parsedAll
+      .filter((x) => x.parsed.isFeatured)
+      .sort((a, b) => a.parsed.featuredOrder - b.parsed.featuredOrder)
+    const chosen = tagged.length > 0 ? tagged : parsedAll.slice(0, 3)
+    return chosen.map(({ model, parsed }) => ({
+      name: model.model_name,
+      provider: model.vendor_name || '',
+      icon: model.icon,
+      description: model.description,
+      tags: parsed.visibleTags,
+      badges: parsed.badges,
     }))
+  })()
+
+  // 描述支持三语 JSON（{"zh":"...","en":"...","ru":"..."}），按当前语言显示；纯文本原样返回
+  const uiLang = i18n.language?.startsWith('ru') ? 'ru' : i18n.language?.startsWith('zh') ? 'zh' : 'en'
+  const pickDesc = (text?: string) => {
+    if (!text) return ''
+    const s = text.trim()
+    if (s.startsWith('{') && s.endsWith('}')) {
+      try {
+        const o = JSON.parse(s) as Record<string, string>
+        if (o && typeof o === 'object') {
+          return o[uiLang] || o.en || o.zh || Object.values(o)[0] || ''
+        }
+      } catch {
+        /* not JSON, fall through */
+      }
+    }
+    return text
+  }
+  // 标签显示翻译：命中固定 5 标签则按语言显示，否则原样
+  const tagLabel = (tag: string) => {
+    const key = TAG_I18N_KEY[tag] ?? TAG_I18N_KEY[tag.trim().toLowerCase()]
+    return key ? t(key) : tag
+  }
 
   const handleGetKey = () => {
     navigate({ to: user ? '/portal/tokens' : '/sign-in' })
@@ -445,22 +490,32 @@ function LandingPage() {
             <Link
               key={model.name}
               to={modelsHref}
-              className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-indigo-500/30 hover:bg-gray-50"
+              className="relative flex flex-col rounded-2xl border border-gray-200 bg-white p-6 transition hover:border-indigo-500/30 hover:bg-gray-50"
             >
+              <ModelBadges badges={model.badges} className="absolute right-3 top-3 z-10 flex justify-end gap-1" />
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
-                  {getLobeIcon(providerIcon(model.provider), 28)}
+                  {getLobeIcon(model.icon || providerIcon(model.provider), 28)}
                 </div>
                 <div className="min-w-0">
                   <h3 className="mb-1 truncate text-base font-semibold text-gray-900">{model.name}</h3>
-                  {model.badge && (
-                    <span className="inline-block rounded-full bg-indigo-500/20 px-2 py-0.5 text-xs font-medium text-indigo-600">
-                      {model.badge}
-                    </span>
-                  )}
                 </div>
               </div>
-              {model.provider && <div className="mt-4 text-sm text-gray-500">by {model.provider}</div>}
+              <p className="mt-4 text-sm leading-relaxed text-gray-500 line-clamp-2">
+                {pickDesc(model.description) || t('No description available')}
+              </p>
+              {model.tags.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {model.tags.map((tg) => (
+                    <span
+                      key={tg}
+                      className="rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-600"
+                    >
+                      {tagLabel(tg)}
+                    </span>
+                  ))}
+                </div>
+              )}
             </Link>
           ))}
         </div>
