@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
-import { BADGE_TEXT_CLASS, type ModelBadge } from './model-tags'
+import { BADGE_VARIANT_CLASS, type ModelBadge } from './model-tags'
 
 type ModelBadgesProps = {
   badges: ModelBadge[]
@@ -28,7 +28,7 @@ type ModelBadgesProps = {
 }
 
 /**
- * 模型右上角的角标条：左右直边、右上+左下圆角嵌进卡片角；多个角标合并为一条，浅底彩字。
+ * 模型右上角的角标条：左右直边、右上+左下圆角嵌进卡片角；多个角标合并为一条连续色块，各自保留实色。
  */
 export function ModelBadges({
   badges,
@@ -40,12 +40,12 @@ export function ModelBadges({
 
   return (
     <div
-      className={`${className} flex items-center gap-1.5 overflow-hidden ${cornerClass} bg-gray-50/95 px-2 py-1 shadow-sm ring-1 ring-black/5`}
+      className={`${className} flex items-stretch overflow-hidden ${cornerClass} shadow-sm ring-1 ring-black/5`}
     >
       {badges.map((b) => (
         <span
           key={b.key}
-          className={`inline-flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold leading-none ${BADGE_TEXT_CLASS[b.variant]}`}
+          className={`inline-flex items-center gap-0.5 whitespace-nowrap px-2 py-0.5 text-xs font-semibold ${BADGE_VARIANT_CLASS[b.variant]}`}
         >
           {b.icon && <span className="leading-none">{b.icon}</span>}
           {b.i18nKey ? t(b.i18nKey) : b.label}
