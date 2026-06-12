@@ -17,35 +17,36 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
-import { BADGE_VARIANT_CLASS, type ModelBadge } from './model-tags'
+import { type ModelBadge } from './model-tags'
 
 type ModelBadgesProps = {
   badges: ModelBadge[]
   /** 角标条定位类名，默认贴卡片右上角 */
   className?: string
-  /** 右上 + 左下圆角，需与卡片圆角一致（广场 rounded-tr-xl rounded-bl-xl / 首页 rounded-tr-2xl rounded-bl-2xl） */
+  /** 右上圆角，需与卡片圆角一致（广场 rounded-tr-xl / 首页 rounded-tr-2xl）；左下不倒角 */
   cornerClass?: string
 }
 
 /**
- * 模型右上角的角标条：左右直边、右上+左下圆角嵌进卡片角；多个角标合并为一条连续色块，各自保留实色。
+ * 模型右上角的角标条：左右直边、仅右上圆角嵌进卡片角（左下不倒角）；
+ * 多个角标合并为一条统一红底、白字白图标、白色细线分隔。
  */
 export function ModelBadges({
   badges,
   className = 'absolute right-0 top-0 z-10',
-  cornerClass = 'rounded-tr-xl rounded-bl-xl',
+  cornerClass = 'rounded-tr-xl',
 }: ModelBadgesProps) {
   const { t } = useTranslation()
   if (!badges.length) return null
 
   return (
     <div
-      className={`${className} flex items-stretch overflow-hidden ${cornerClass} shadow-sm ring-1 ring-black/5`}
+      className={`${className} flex items-stretch overflow-hidden ${cornerClass} bg-red-500 text-white shadow-sm ring-1 ring-black/5`}
     >
-      {badges.map((b) => (
+      {badges.map((b, i) => (
         <span
           key={b.key}
-          className={`inline-flex items-center gap-0.5 whitespace-nowrap px-2 py-0.5 text-xs font-semibold ${BADGE_VARIANT_CLASS[b.variant]}`}
+          className={`inline-flex items-center gap-0.5 whitespace-nowrap px-2 py-1 text-xs font-semibold ${i > 0 ? 'border-l border-white/25' : ''}`}
         >
           {b.icon && <span className="leading-none">{b.icon}</span>}
           {b.i18nKey ? t(b.i18nKey) : b.label}
