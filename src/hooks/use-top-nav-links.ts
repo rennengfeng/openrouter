@@ -59,6 +59,7 @@ export function useTopNavLinks(): TopNavLink[] {
   const docsLink: string | undefined = status?.docs_link as string | undefined
 
   const isAuthed = !!auth?.user
+  const isAdmin = (auth?.user?.role ?? 0) >= ROLE.ADMIN
 
   const links: TopNavLink[] = []
 
@@ -69,7 +70,6 @@ export function useTopNavLinks(): TopNavLink[] {
 
   // Console -> 管理员去后台 /dashboard，普通用户去二开门户 /portal
   if (modules?.console !== false) {
-    const isAdmin = (auth?.user?.role ?? 0) >= ROLE.ADMIN
     links.push({ title: t('Console'), href: isAdmin ? '/dashboard' : '/portal' })
   }
 
@@ -77,14 +77,15 @@ export function useTopNavLinks(): TopNavLink[] {
   const pricing = modules?.pricing
   if (pricing && typeof pricing === 'object' && pricing.enabled) {
     const requiresAuth = pricing.requireAuth && !isAuthed
-    links.push({ title: t('Model Square'), href: '/pricing', requiresAuth })
+    // 管理员→原生 /pricing；普通用户→二开 /portal/models
+    links.push({ title: t('Model Square'), href: isAdmin ? '/pricing' : '/portal/models', requiresAuth })
   }
 
   // Rankings
   const rankings = modules?.rankings
-  if (rankings && typeof rankings === 'object' && rankings.enabled) {
-    const requiresAuth = rankings.requireAuth && !isAuthed
-    links.push({ title: t('Rankings'), href: '/rankings', requiresAuth })
+  // 排行榜是原生页(无二开版)，仅管理员显示
+  if (isAdmin && rankings && typeof rankings === 'object' && rankings.enabled) {
+    links.push({ title: t('Rankings'), href: '/rankings' })
   }
 
   // Docs (supports external links)
