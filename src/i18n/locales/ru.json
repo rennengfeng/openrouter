@@ -4800,6 +4800,8 @@
     "portal.tag.voice": "Голос",
     "portal.tag.video": "Видео",
     "portal.tag.visual": "Визуальный",
+    "portal.tag.tools": "Инструменты",
+    "portal.tag.files": "Файлы",
     "portal.page.models.type": "Тип",
     "portal.page.models.unavailable": "Недоступна",
     "portal.page.models.vendor": "Вендор",

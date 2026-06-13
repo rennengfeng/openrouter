@@ -23,6 +23,7 @@ import { getFrontendModels } from '@/features/frontend-portal/api'
 import { parseModelTags } from '@/features/frontend-portal/model-tags'
 import { ModelBadges } from '@/features/frontend-portal/model-badges'
 import { ModelModalityBadge } from '@/features/frontend-portal/model-modality-badge'
+import { ModelModalities } from '@/features/frontend-portal/model-modalities'
 import type { FrontendModel } from '@/features/frontend-portal/types'
 import { getLobeIcon } from '@/lib/lobe-icon'
 
@@ -37,6 +38,10 @@ const TAG_I18N_KEY: Record<string, string> = {
   '音频': 'portal.tag.voice', voice: 'portal.tag.voice',
   '视频': 'portal.tag.video', video: 'portal.tag.video',
   '视觉': 'portal.tag.visual', visual: 'portal.tag.visual',
+  reasoning: 'portal.tag.text', '推理': 'portal.tag.text',
+  tools: 'portal.tag.tools', '工具': 'portal.tag.tools',
+  files: 'portal.tag.files', file: 'portal.tag.files', '文件': 'portal.tag.files',
+  vision: 'portal.tag.visual',
 }
 
 const CODE_SAMPLES = [
@@ -202,6 +207,8 @@ function LandingPage() {
       description: model.description,
       tags: parsed.visibleTags,
       modalityTags: model.tags,
+      inputModalities: parsed.inputModalities,
+      outputModalities: parsed.outputModalities,
       badges: parsed.badges,
     }))
   })()
@@ -490,7 +497,11 @@ function LandingPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <h3 className="truncate text-base font-semibold text-gray-900">{model.name}</h3>
-                    <ModelModalityBadge modelName={model.name} tags={model.modalityTags} />
+                    {model.inputModalities.length || model.outputModalities.length ? (
+                      <ModelModalities input={model.inputModalities} output={model.outputModalities} />
+                    ) : (
+                      <ModelModalityBadge modelName={model.name} tags={model.modalityTags} />
+                    )}
                   </div>
                 </div>
               </div>

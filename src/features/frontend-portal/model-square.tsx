@@ -9,6 +9,7 @@ import { getFrontendModels } from './api'
 import { parseModelTags } from './model-tags'
 import { ModelBadges } from './model-badges'
 import { ModelModalityBadge } from './model-modality-badge'
+import { ModelModalities } from './model-modalities'
 import type { FrontendModel } from './types'
 import { Link } from '@tanstack/react-router'
 
@@ -22,6 +23,10 @@ const TAG_I18N_KEY: Record<string, string> = {
   '音频': 'portal.tag.voice', voice: 'portal.tag.voice',
   '视频': 'portal.tag.video', video: 'portal.tag.video',
   '视觉': 'portal.tag.visual', visual: 'portal.tag.visual',
+  reasoning: 'portal.tag.text', '推理': 'portal.tag.text',
+  tools: 'portal.tag.tools', '工具': 'portal.tag.tools',
+  files: 'portal.tag.files', file: 'portal.tag.files', '文件': 'portal.tag.files',
+  vision: 'portal.tag.visual',
 }
 
 function formatPrice(
@@ -234,7 +239,11 @@ export function ModelSquare() {
                   </div>
                   <h3 className="text-base font-bold text-gray-900 line-clamp-1">{model.model_name}</h3>
                   {/* Modality badge - small icon with shadow like OpenRouter */}
-                  <ModelModalityBadge modelName={model.model_name} tags={model.tags} />
+                  {parsed.inputModalities.length || parsed.outputModalities.length ? (
+                    <ModelModalities input={parsed.inputModalities} output={parsed.outputModalities} />
+                  ) : (
+                    <ModelModalityBadge modelName={model.model_name} tags={model.tags} />
+                  )}
                   <button
                     type="button"
                     onClick={(e) => {

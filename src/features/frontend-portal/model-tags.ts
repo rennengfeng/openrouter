@@ -104,6 +104,10 @@ export type ParsedModelTags = {
   featuredOrder: number
   /** 已剔除控制标签后的普通标签 */
   visibleTags: string[]
+  /** 输入模态（in:text/image/audio/video/file） */
+  inputModalities: string[]
+  /** 输出模态（out:...） */
+  outputModalities: string[]
 }
 
 export function parseModelTags(tags?: string): ParsedModelTags {
@@ -112,6 +116,8 @@ export function parseModelTags(tags?: string): ParsedModelTags {
     isFeatured: false,
     featuredOrder: DEFAULT_FEATURED_ORDER,
     visibleTags: [],
+    inputModalities: [],
+    outputModalities: [],
   }
   if (!tags) return result
 
@@ -156,6 +162,15 @@ export function parseModelTags(tags?: string): ParsedModelTags {
       } else {
         pushBadge({ key: `custom:${body}`, label: body, variant: 'rose' })
       }
+      continue
+    }
+
+    // 模态：in:text / out:image 等（大小写不敏感）→ 渲染成"输入→输出"，不进普通标签
+    const mod = body.match(/^(in|out)[:：](text|image|audio|video|file)$/i)
+    if (mod) {
+      const kind = mod[2].toLowerCase()
+      const arr = mod[1].toLowerCase() === 'in' ? result.inputModalities : result.outputModalities
+      if (!arr.includes(kind)) arr.push(kind)
       continue
     }
 

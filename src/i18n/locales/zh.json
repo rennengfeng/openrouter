@@ -4815,6 +4815,8 @@
     "portal.tag.voice": "音频",
     "portal.tag.video": "视频",
     "portal.tag.visual": "视觉",
+    "portal.tag.tools": "工具",
+    "portal.tag.files": "文件",
     "portal.page.models.type": "类型",
     "portal.page.models.unavailable": "不可用",
     "portal.page.models.vendor": "供应商",
