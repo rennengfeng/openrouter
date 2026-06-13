@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Search, MessageSquare, X, Copy } from 'lucide-react'
+import { Search, MessageSquare, X, Copy, Type, Image as ImageIcon, AudioLines, Video, Eye, Wrench, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrencyFromUSD } from '@/lib/currency'
 import { getLobeIcon } from '@/lib/lobe-icon'
@@ -28,6 +28,19 @@ const TAG_I18N_KEY: Record<string, string> = {
   files: 'portal.tag.files', file: 'portal.tag.files', '文件': 'portal.tag.files',
   vision: 'portal.tag.visual',
 }
+
+// 筛选「类型」白名单：只这几类出现在筛选条（卡片标签不受影响）。aliases 小写匹配。
+const FILTER_CATEGORIES = [
+  { key: 'text', i18n: 'portal.tag.text', aliases: ['text', 'reasoning', '文本推理', '推理'] },
+  { key: 'image', i18n: 'portal.tag.image', aliases: ['image', '图像', '图片'] },
+  { key: 'voice', i18n: 'portal.tag.voice', aliases: ['voice', 'audio', '音频', '语音'] },
+  { key: 'video', i18n: 'portal.tag.video', aliases: ['video', '视频'] },
+  { key: 'visual', i18n: 'portal.tag.visual', aliases: ['visual', 'vision', '视觉'] },
+  { key: 'tools', i18n: 'portal.tag.tools', aliases: ['tools', '工具', '工具调用'] },
+  { key: 'file', i18n: 'portal.tag.files', aliases: ['file', 'files', '文件', '文档'] },
+] as const
+
+const CAT_ICON = { text: Type, image: ImageIcon, voice: AudioLines, video: Video, visual: Eye, tools: Wrench, file: FileText } as const
 
 function formatPrice(
   model: FrontendModel,
@@ -125,12 +138,16 @@ export function ModelSquare() {
     return map
   }, [payload?.vendors])
 
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>()
+  // 只展示存在于当前模型集合中的类型
+  const availableCategories = useMemo(() => {
+    const present = new Set<string>()
     for (const m of models) {
-      for (const t of parseModelTags(m.tags).visibleTags) tagSet.add(t)
+      const tags = parseModelTags(m.tags).visibleTags.map((x) => x.toLowerCase())
+      for (const c of FILTER_CATEGORIES) {
+        if (c.aliases.some((a) => tags.includes(a))) present.add(c.key)
+      }
     }
-    return Array.from(tagSet).sort()
+    return FILTER_CATEGORIES.filter((c) => present.has(c.key))
   }, [models])
 
   // 单组模式：每个模型一张卡片，分组/倍率取第一个可用分组
@@ -148,9 +165,13 @@ export function ModelSquare() {
       filtered = filtered.filter((m) => m.vendor_name === vendorFilter)
     }
     if (tagFilter !== 'all') {
-      filtered = filtered.filter((m) =>
-        parseModelTags(m.tags).visibleTags.includes(tagFilter)
-      )
+      const cat = FILTER_CATEGORIES.find((c) => c.key === tagFilter)
+      if (cat) {
+        filtered = filtered.filter((m) => {
+          const tags = parseModelTags(m.tags).visibleTags.map((x) => x.toLowerCase())
+          return cat.aliases.some((a) => tags.includes(a))
+        })
+      }
     }
 
     return filtered.map((model) => {
@@ -188,20 +209,24 @@ export function ModelSquare() {
 
       {/* Filters: 标签点选(仅显示存在的标签) + 供应商下拉(仅显示存在的供应商) */}
       <div className="flex flex-wrap items-center justify-center gap-2">
-        {['all', ...allTags].map((tag) => (
-          <button
-            key={tag}
-            type="button"
-            onClick={() => setTagFilter(tag)}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
-              tagFilter === tag
-                ? 'border-sky-500 bg-sky-50 text-sky-600'
-                : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {tag === 'all' ? t('All Tags') : tagLabel(tag)}
-          </button>
-        ))}
+        {[{ key: 'all', i18n: '' }, ...availableCategories].map((cat) => {
+          const Icon = cat.key === 'all' ? null : CAT_ICON[cat.key as keyof typeof CAT_ICON]
+          return (
+            <button
+              key={cat.key}
+              type="button"
+              onClick={() => setTagFilter(cat.key)}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+                tagFilter === cat.key
+                  ? 'border-sky-500 bg-sky-50 text-sky-600'
+                  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {Icon && <Icon className="h-3.5 w-3.5" />}
+              {cat.key === 'all' ? t('All Tags') : t(cat.i18n)}
+            </button>
+          )
+        })}
         <select
           value={vendorFilter}
           onChange={(e) => setVendorFilter(e.target.value)}

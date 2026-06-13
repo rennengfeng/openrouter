@@ -166,9 +166,9 @@ export function parseModelTags(tags?: string): ParsedModelTags {
     }
 
     // 模态：in:text / out:image 等（大小写不敏感）→ 渲染成"输入→输出"，不进普通标签
-    const mod = body.match(/^(in|out)[:：](text|image|audio|video|file)$/i)
+    const mod = body.match(/^(in|out)[:：](text|image|audio|video|files?)$/i)
     if (mod) {
-      const kind = mod[2].toLowerCase()
+      const kind = mod[2].toLowerCase() === 'files' ? 'file' : mod[2].toLowerCase()
       const arr = mod[1].toLowerCase() === 'in' ? result.inputModalities : result.outputModalities
       if (!arr.includes(kind)) arr.push(kind)
       continue
