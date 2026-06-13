@@ -39,11 +39,14 @@ export function ModelBadges({
   const { t } = useTranslation()
   if (!badges.length) return null
 
+  // 文字角标(无 emoji)固定排到最右上角；图标角标排在其左侧
+  const ordered = [...badges].sort((a, b) => (a.icon ? 0 : 1) - (b.icon ? 0 : 1))
+
   return (
     <div
       className={`${className} flex items-stretch overflow-hidden ${cornerClass} bg-red-500 text-white shadow-sm ring-1 ring-black/5`}
     >
-      {badges.map((b, i) => (
+      {ordered.map((b, i) => (
         <span
           key={b.key}
           className={`inline-flex items-center gap-0.5 whitespace-nowrap px-2 py-1 text-xs font-semibold ${i > 0 ? 'border-l border-white/25' : ''}`}

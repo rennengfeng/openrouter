@@ -174,7 +174,14 @@ export function ModelSquare() {
       }
     }
 
-    return filtered.map((model) => {
+    // 模型广场顺序：#N 升序，无 #N（默认9999）排后；同序按名称稳定排序，避免每次刷新乱跳
+    const sorted = [...filtered].sort((a, b) => {
+      const oa = parseModelTags(a.tags).squareOrder
+      const ob = parseModelTags(b.tags).squareOrder
+      return oa - ob || a.model_name.localeCompare(b.model_name)
+    })
+
+    return sorted.map((model) => {
       const group = (model.enable_groups ?? [])[0] ?? ''
       const ratio = group
         ? (topLevelGroupRatio[group] ?? model.group_ratio?.[group] ?? 1)

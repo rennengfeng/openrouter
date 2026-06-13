@@ -108,6 +108,8 @@ export type ParsedModelTags = {
   inputModalities: string[]
   /** 输出模态（out:...） */
   outputModalities: string[]
+  /** 模型广场显示顺序（#N，越小越前；默认 9999），与首页 !精选 无关 */
+  squareOrder: number
 }
 
 export function parseModelTags(tags?: string): ParsedModelTags {
@@ -118,6 +120,7 @@ export function parseModelTags(tags?: string): ParsedModelTags {
     visibleTags: [],
     inputModalities: [],
     outputModalities: [],
+    squareOrder: 9999,
   }
   if (!tags) return result
 
@@ -171,6 +174,14 @@ export function parseModelTags(tags?: string): ParsedModelTags {
       const kind = mod[2].toLowerCase() === 'files' ? 'file' : mod[2].toLowerCase()
       const arr = mod[1].toLowerCase() === 'in' ? result.inputModalities : result.outputModalities
       if (!arr.includes(kind)) arr.push(kind)
+      continue
+    }
+
+    // 模型广场显示顺序：#1 #2 ...（越小越前），不进普通标签；不影响首页 !精选
+    const sq = body.match(/^#(\d+)$/)
+    if (sq) {
+      const n = Number.parseInt(sq[1], 10)
+      if (Number.isFinite(n)) result.squareOrder = n
       continue
     }
 
