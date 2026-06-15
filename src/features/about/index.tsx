@@ -137,7 +137,7 @@ export function About() {
 
   if (isLoading) {
     return (
-            <PublicLayout headerProps={{ showNavigation: false }}>
+            <PublicLayout headerProps={{ showNavigation: false, lockHeader: true }}>
         <div className='mx-auto flex max-w-4xl flex-col gap-4 py-12'>
           <Skeleton className='h-8 w-[45%]' />
           <Skeleton className='h-4 w-full' />
@@ -150,7 +150,7 @@ export function About() {
 
   if (!hasContent) {
     return (
-            <PublicLayout headerProps={{ showNavigation: false }}>
+            <PublicLayout headerProps={{ showNavigation: false, lockHeader: true }}>
         <EmptyAboutState />
       </PublicLayout>
     )
@@ -158,7 +158,7 @@ export function About() {
 
   if (isUrl) {
     return (
-      <PublicLayout showMainContainer={false} headerProps={{ showNavigation: false }}>
+      <PublicLayout showMainContainer={false} headerProps={{ showNavigation: false, lockHeader: true }}>
         <iframe
           src={rawContent}
           className='h-[calc(100vh-3.5rem)] w-full border-0'
@@ -169,7 +169,7 @@ export function About() {
   }
 
   return (
-          <PublicLayout headerProps={{ showNavigation: false }}>
+          <PublicLayout headerProps={{ showNavigation: false, lockHeader: true }}>
       <div className='mx-auto max-w-6xl px-4 py-8'>
         {isHtml ? (
           <div

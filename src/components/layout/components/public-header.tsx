@@ -64,6 +64,11 @@ export interface PublicHeaderProps {
   showNavigation?: boolean
   showAuthButtons?: boolean
   showNotifications?: boolean
+  /**
+   * 锁定标题栏:禁用滚动收缩动画,保持固定的全宽标题栏,
+   * 不随内容滚动而改变位置/尺寸。用于关于、隐私、服务条款等文档页。
+   */
+  lockHeader?: boolean
   className?: string
 }
 
@@ -78,6 +83,7 @@ export function PublicHeader(props: PublicHeaderProps) {
     showNavigation = true,
     showAuthButtons = true,
     showNotifications = false,
+    lockHeader = false,
   } = props
 
   const { t } = useTranslation()
@@ -106,11 +112,15 @@ export function PublicHeader(props: PublicHeaderProps) {
   const links = dynamicLinks.length > 0 ? dynamicLinks : navLinks
 
   useEffect(() => {
+    if (lockHeader) {
+      setScrolled(false)
+      return
+    }
     const onScroll = () => setScrolled(window.scrollY > 20)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [lockHeader])
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : ''
@@ -186,15 +196,21 @@ export function PublicHeader(props: PublicHeaderProps) {
         <div
           className={cn(
             'pointer-events-auto mx-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-            scrolled ? 'max-w-[52rem] px-3 pt-3' : 'max-w-7xl px-4 pt-0 md:px-6'
+            lockHeader
+              ? 'max-w-7xl px-4 pt-0 md:px-6'
+              : scrolled
+                ? 'max-w-[52rem] px-3 pt-3'
+                : 'max-w-7xl px-4 pt-0 md:px-6'
           )}
         >
           <nav
             className={cn(
               'flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-              scrolled
-                ? 'bg-background/60 ring-border/50 h-12 rounded-2xl pr-1.5 pl-4 shadow-[0_2px_16px_-6px_rgba(0,0,0,0.08),0_0_0_0.5px_rgba(0,0,0,0.02)] ring-[0.5px] backdrop-blur-2xl dark:shadow-[0_2px_16px_-6px_rgba(0,0,0,0.4)]'
-                : 'h-16 px-2'
+              lockHeader
+                ? 'bg-background/80 border-border/50 h-16 border-b px-2 backdrop-blur-2xl'
+                : scrolled
+                  ? 'bg-background/60 ring-border/50 h-12 rounded-2xl pr-1.5 pl-4 shadow-[0_2px_16px_-6px_rgba(0,0,0,0.08),0_0_0_0.5px_rgba(0,0,0,0.02)] ring-[0.5px] backdrop-blur-2xl dark:shadow-[0_2px_16px_-6px_rgba(0,0,0,0.4)]'
+                  : 'h-16 px-2'
             )}
           >
             {/* Logo */}
