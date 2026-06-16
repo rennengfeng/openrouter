@@ -2415,6 +2415,7 @@
     "No API keys available. Create your first API key to get started.": "Нет доступных ключей API. Создайте свой первый ключ API, чтобы начать.",
     "No API routes configured": "Нет настроенных маршрутов API",
     "No About Content Set": "Содержимое раздела \"О нас\" не установлено",
+    "No image was returned. Please try another model or try again.": "Изображение не получено. Попробуйте другую модель или повторите попытку.",
     "No Active": "Нет активных",
     "No Change": "Без изменений",
     "No Channels Found": "Каналы не найдены",

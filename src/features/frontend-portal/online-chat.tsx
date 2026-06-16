@@ -524,15 +524,28 @@ export function OnlineChat() {
           group: selectedGroup,
           size: imageSize,
         })
+        const body = res as {
+          data?: Array<{ url?: string; b64_json?: string; revised_prompt?: string }>
+          error?: { message?: string }
+        }
+        const images = Array.isArray(body.data) ? body.data : []
         setMessages((prev) => {
           const updated = [...prev]
           const last = updated[updated.length - 1]
           if (last?.from === 'assistant') {
-            updated[updated.length - 1] = {
-              ...last,
-              content: res.data?.[0]?.revised_prompt || prompt,
-              images: res.data,
-              status: 'complete',
+            if (images.length > 0) {
+              updated[updated.length - 1] = {
+                ...last,
+                content: images[0]?.revised_prompt || '',
+                images,
+                status: 'complete',
+              }
+            } else {
+              // 后端返回 200 但没有图片:暴露真实错误,不要回显用户的 prompt
+              const errMsg =
+                cleanErrorMessage(body.error?.message || '') ||
+                t('No image was returned. Please try another model or try again.')
+              updated[updated.length - 1] = { ...last, content: errMsg, status: 'error' }
             }
           }
           return updated
