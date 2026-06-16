@@ -50,7 +50,7 @@ import {
 } from '@/components/ai-elements/reasoning'
 import { Response } from '@/components/ai-elements/response'
 import { Shimmer } from '@/components/ai-elements/shimmer'
-import { getChatUserModels, getApiKeySummaries, sendImageGeneration } from './api'
+import { getChatUserModels, sendImageGeneration } from './api'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -81,7 +81,6 @@ type ChatSession = {
 }
 
 type ModelOption = { label: string; value: string; groups?: string[]; endpoints?: string[] }
-type GroupOption = { label: string; value: string; ratio?: number; desc?: string }
 
 const IMAGE_SIZES = ['1024x1024', '1024x1792', '1792x1024', 'auto'] as const
 
@@ -207,9 +206,8 @@ export function OnlineChat() {
   // Mode & selectors
   const [chatMode, setChatMode] = useState<ChatMode>('chat')
   const [models, setModels] = useState<ModelOption[]>([])
-  const [groups, setGroups] = useState<GroupOption[]>([])
   const [selectedModel, setSelectedModel] = useState('')
-  const [selectedGroup, setSelectedGroup] = useState('default')
+  const [selectedGroup] = useState('')
   const [imageSize, setImageSize] = useState<string>('1024x1024')
 
   // Sessions (chat history) — initialized from localStorage
@@ -278,19 +276,8 @@ export function OnlineChat() {
     return () => { if (persistTimer.current) clearTimeout(persistTimer.current) }
   }, [sessions, messages, activeSessionId])
 
-  // Load models & tokens on mount
+  // Load models on mount
   useEffect(() => {
-    getApiKeySummaries().then((tokens) => {
-      const active = tokens.filter((t) => t.status === 1 && t.group)
-      const opts: GroupOption[] = active.map((t) => ({
-        label: t.name,
-        value: t.group!,
-      }))
-      setGroups(opts)
-      if (opts.length > 0 && !opts.find((x) => x.value === 'default')) {
-        setSelectedGroup(opts[0].value)
-      }
-    })
     getChatUserModels().then((m) => {
       setModels(m)
       if (m.length > 0) setSelectedModel(m[0].value)
@@ -991,20 +978,6 @@ export function OnlineChat() {
                   </SelectContent>
                 </Select>
               )}
-
-              {/* Group selector */}
-              <Select value={selectedGroup} onValueChange={(v) => setSelectedGroup(v ?? '')} disabled={isGenerating}>
-                <SelectTrigger className="h-7 w-full text-xs">
-                  <SelectValue placeholder={t('Group')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {groups.map((g) => (
-                    <SelectItem key={g.value} value={g.value} className="text-xs">
-                      {g.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
 
               {/* Model selector */}
               <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v ?? '')} disabled={isGenerating}>

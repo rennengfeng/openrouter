@@ -54,7 +54,7 @@ export function ApiInfoItemComponent(props: ApiInfoItemProps) {
         <div className='flex min-w-0 flex-1 flex-col gap-0.5'>
           <div className='flex items-baseline gap-2'>
             <span className='font-mono text-sm font-semibold'>
-              {item.route}
+              {pickLang(item.route, i18n.language)}
             </span>
             <span className='text-muted-foreground/60 hidden truncate text-xs md:inline'>
               {pickLang(item.description, i18n.language)}

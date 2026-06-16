@@ -5,6 +5,7 @@ import { useStatus } from '@/hooks/use-status'
 import { getSelf } from '@/lib/api'
 import { formatQuota, formatNumber } from '@/lib/format'
 import { pickLang } from '@/lib/multilang'
+import { CopyButton } from '@/components/copy-button'
 import { BarChart3, Activity, Users, Bell, Globe } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -102,8 +103,16 @@ export function PortalDashboard() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium">{pickLang(item.description, i18n.language)}</p>
-                        <p className="truncate text-xs text-muted-foreground">{item.url}{item.route}</p>
+                        <p className="truncate text-xs text-muted-foreground">{item.url}{pickLang(item.route, i18n.language)}</p>
                       </div>
+                      <CopyButton
+                        value={item.url}
+                        variant="ghost"
+                        size="sm"
+                        className="size-7 shrink-0 p-0"
+                        iconClassName="size-3.5"
+                        tooltip={t('Copy URL')}
+                      />
                     </div>
                   ))}
                 </div>

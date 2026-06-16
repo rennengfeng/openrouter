@@ -491,7 +491,6 @@ export function PortalLogs() {
                   <th className="w-6 px-2 py-2.5"></th>
                   <th className="px-3 py-2.5 text-center font-medium">{t('portal.page.logs.time')}</th>
                   <th className="px-3 py-2.5 text-center font-medium">{t('portal.page.logs.tokenName')}</th>
-                  <th className="px-3 py-2.5 text-center font-medium">{t('portal.page.logs.group')}</th>
                   <th className="px-3 py-2.5 text-center font-medium">{t('portal.page.logs.type')}</th>
                   <th className="px-3 py-2.5 text-center font-medium">{t('portal.page.logs.model')}</th>
                   <th className="px-3 py-2.5 text-center font-medium">{t('portal.page.logs.timingHeader')}</th>
@@ -520,11 +519,6 @@ export function PortalLogs() {
                         </td>
                         <td className="px-3 py-3 text-center text-xs text-gray-500">{dayjs.unix(log.created_at).format('YYYY-MM-DD HH:mm:ss')}</td>
                         <td className="px-3 py-3 text-center text-xs text-gray-500">{tokenDisplayName(log.token_name || '—')}</td>
-                        <td className="px-3 py-3 text-center">
-                          {log.group ? (
-                            <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-xs text-sky-500">{log.group}</span>
-                          ) : <span className="text-xs text-gray-400">—</span>}
-                        </td>
                         <td className="px-3 py-3 text-center">
                           <span className={`rounded px-1.5 py-0.5 text-xs ${isError ? 'bg-red-500/15 text-red-400' : 'bg-blue-500/10 text-blue-300'}`}>
                             {isError ? t('portal.page.logs.error') : t('portal.page.logs.consume')}
@@ -561,7 +555,7 @@ export function PortalLogs() {
                       </tr>
                       {isExpanded && (
                         <tr className="border-b border-gray-100 bg-gray-50">
-                          <td colSpan={10} className="px-6 py-4">
+                          <td colSpan={9} className="px-6 py-4">
                             <div className="space-y-2 text-xs text-gray-500">
                               {log.request_id && (
                                 <div className="flex gap-2">

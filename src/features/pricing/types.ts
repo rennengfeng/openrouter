@@ -34,6 +34,8 @@ export type PricingModel = {
   vendor_id?: number
   vendor_name?: string
   vendor_icon?: string
+  /** Per-model icon key, takes precedence over {@link vendor_icon} when present */
+  icon?: string
   vendor_description?: string
   quota_type: number
   model_ratio: number

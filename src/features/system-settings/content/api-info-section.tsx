@@ -108,10 +108,12 @@ const colorOptions = [
   { value: 'amber', label: 'Amber', bgClass: 'bg-amber-500' },
   { value: 'yellow', label: 'Yellow', bgClass: 'bg-yellow-500' },
   { value: 'lime', label: 'Lime', bgClass: 'bg-lime-500' },
+  { value: 'light-green', label: 'Light Green', bgClass: 'bg-green-400' },
   { value: 'teal', label: 'Teal', bgClass: 'bg-teal-500' },
+  { value: 'light-blue', label: 'Light Blue', bgClass: 'bg-sky-400' },
   { value: 'indigo', label: 'Indigo', bgClass: 'bg-indigo-500' },
   { value: 'violet', label: 'Violet', bgClass: 'bg-violet-500' },
-  { value: 'slate', label: 'Slate', bgClass: 'bg-slate-500' },
+  { value: 'grey', label: 'Grey', bgClass: 'bg-gray-500' },
 ]
 
 export function ApiInfoSection({ enabled, data }: ApiInfoSectionProps) {
