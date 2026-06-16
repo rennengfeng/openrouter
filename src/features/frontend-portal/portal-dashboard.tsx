@@ -6,7 +6,7 @@ import { getSelf } from '@/lib/api'
 import { formatQuota, formatNumber } from '@/lib/format'
 import { pickLang } from '@/lib/multilang'
 import { CopyButton } from '@/components/copy-button'
-import { BarChart3, Activity, Users, Bell, Globe } from 'lucide-react'
+import { BarChart3, Activity, Bell, Globe } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import dayjs from 'dayjs'
@@ -67,11 +67,6 @@ export function PortalDashboard() {
                   <span className="text-sm text-muted-foreground">{t('Request Count')}</span>
                   <span className="font-mono text-sm font-semibold tabular-nums">{formatNumber(user?.request_count ?? 0)}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">{t('User Group')}</span>
-                  <span className="text-sm font-semibold">{user?.group || 'default'}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -103,7 +98,12 @@ export function PortalDashboard() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium">{pickLang(item.description, i18n.language)}</p>
-                        <p className="truncate text-xs text-muted-foreground">{item.url}{pickLang(item.route, i18n.language)}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {item.url}
+                          {item.route && (
+                            <span className="ml-2">{pickLang(item.route, i18n.language)}</span>
+                          )}
+                        </p>
                       </div>
                       <CopyButton
                         value={item.url}

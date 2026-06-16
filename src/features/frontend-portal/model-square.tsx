@@ -396,21 +396,16 @@ export function ModelSquare() {
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-50 text-orange-600">💰</span>
                 <h3 className="text-sm font-semibold text-gray-900">{t('Pricing')}</h3>
               </div>
-              <p className="mb-3 text-xs text-gray-400">{t('Price per group')}</p>
 
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-xs text-gray-400">
-                    <th className="pb-2 text-left font-medium">{t('Group')}</th>
                     <th className="pb-2 text-left font-medium">{t('Billing Type')}</th>
                     <th className="pb-2 text-right font-medium">{t('Price')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b border-gray-50">
-                    <td className="py-2">
-                      <span className="rounded-md bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{selectedModel.group}</span>
-                    </td>
                     <td className="py-2">
                       <span className="rounded-md bg-sky-50 px-2 py-0.5 text-xs text-sky-600">{t('Token-based')}</span>
                     </td>

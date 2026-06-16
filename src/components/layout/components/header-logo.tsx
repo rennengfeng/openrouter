@@ -37,13 +37,15 @@ export function HeaderLogo({
   logoLoaded,
   className,
 }: HeaderLogoProps) {
+  const hasSrc = !!(src && src.trim())
   return (
     <img
-      src={src}
+      src={hasSrc ? src : '/logo.png'}
       alt={alt}
       className={cn(
         'h-6 w-6 rounded-full transition-opacity duration-200',
-        !loading && logoLoaded ? 'opacity-100' : 'opacity-0',
+        // Bundled fallback logo shows immediately; configured logo waits for load
+        !hasSrc || (!loading && logoLoaded) ? 'opacity-100' : 'opacity-0',
         className
       )}
     />

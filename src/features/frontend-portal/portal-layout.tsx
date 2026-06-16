@@ -97,7 +97,7 @@ function useBrand() {
   const logo =
     typeof source?.logo === 'string' && source.logo.trim()
       ? (source.logo as string)
-      : ''
+      : '/logo.png'
   const docsUrl =
     typeof source?.docs_link === 'string' && (source.docs_link as string).trim()
       ? (source.docs_link as string)
