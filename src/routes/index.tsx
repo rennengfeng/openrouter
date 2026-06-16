@@ -147,7 +147,6 @@ function LandingPage() {
   // 模型广场分流：管理员→原版 /pricing；用户/未登录→二开 /portal/models（未登录为公开页）
   const modelsHref = user && user.role >= ROLE.ADMIN ? '/pricing' : '/portal/models'
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-  const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [codeTab, setCodeTab] = useState(0)
 
   const source = (status?.data ?? status) as Record<string, unknown> | null | undefined
@@ -162,7 +161,7 @@ function LandingPage() {
   const logoUrl =
     typeof source?.logo === 'string' && (source.logo as string).trim()
       ? (source.logo as string)
-      : ''
+      : '/logo.png'
   const faqEnabled = source?.faq_enabled !== false
   const faqFromBackend = Array.isArray(source?.faq) ? (source.faq as Array<{ question: string; answer: string }>) : null
 
@@ -263,11 +262,6 @@ function LandingPage() {
     }
   }
 
-  const LANGS: Array<{ code: string; label: string }> = [
-    { code: 'zh', label: '中文' },
-    { code: 'en', label: 'English' },
-    { code: 'ru', label: 'Русский' },
-  ]
   const currentLang = i18n.language?.startsWith('ru')
     ? 'ru'
     : i18n.language?.startsWith('zh')
@@ -276,7 +270,6 @@ function LandingPage() {
   const changeLang = (code: string) => {
     i18n.changeLanguage(code)
     localStorage.setItem('i18nextLng', code)
-    setLangMenuOpen(false)
   }
 
   const stats = [
@@ -290,40 +283,28 @@ function LandingPage() {
     <div className="relative flex min-h-svh flex-col bg-white text-gray-900">
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+        <div className="flex items-center justify-between px-6 py-3">
           <Link to="/" className="flex items-center gap-2 text-xl font-bold tracking-wide text-orange-400">
-            {logoUrl ? <img src={logoUrl} alt={systemName} className="h-8 w-8 rounded" /> : null}
+            {logoUrl ? <img src={logoUrl} alt={systemName} className="h-7 w-7 rounded" /> : null}
             {systemName}
           </Link>
 
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setLangMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100"
-              >
-                <Globe className="h-3.5 w-3.5" />
-                {LANGS.find((l) => l.code === currentLang)?.label ?? 'English'}
-                <ChevronDown className="h-3 w-3" />
-              </button>
-              {langMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setLangMenuOpen(false)} />
-                  <div className="absolute right-0 z-50 mt-1 min-w-[130px] overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-xl">
-                    {LANGS.map((l) => (
-                      <button
-                        key={l.code}
-                        type="button"
-                        onClick={() => changeLang(l.code)}
-                        className={`block w-full px-4 py-2 text-left text-xs transition hover:bg-gray-100 ${currentLang === l.code ? 'text-indigo-600' : 'text-gray-600'}`}
-                      >
-                        {l.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+            <div className="flex items-center gap-0.5 rounded-md border border-gray-200 p-0.5">
+              {[
+                { c: 'zh', l: '中' },
+                { c: 'en', l: 'EN' },
+                { c: 'ru', l: 'RU' },
+              ].map((o) => (
+                <button
+                  key={o.c}
+                  type="button"
+                  onClick={() => changeLang(o.c)}
+                  className={`rounded px-2 py-1 text-xs font-medium transition ${currentLang === o.c ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  {o.l}
+                </button>
+              ))}
             </div>
 
             {user ? (
