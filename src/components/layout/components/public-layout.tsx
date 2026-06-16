@@ -30,9 +30,27 @@ type PublicLayoutProps = {
   showNotifications?: boolean
   logo?: React.ReactNode
   siteName?: string
+  /**
+   * 自定义顶栏:传入后用它替换默认 PublicHeader(in-flow，不固定)，主内容也不再
+   * 预留固定头部的 pt-20。用于让公开文档页(关于/隐私/条款)复用门户风格顶栏。
+   */
+  header?: React.ReactNode
 }
 
 export function PublicLayout(props: PublicLayoutProps) {
+  if (props.header) {
+    return (
+      <div className='bg-background text-foreground relative flex min-h-svh flex-col overflow-x-clip'>
+        {props.header}
+        {props.showMainContainer !== false ? (
+          <main className='container px-4 py-6 md:px-4'>{props.children}</main>
+        ) : (
+          props.children
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className='bg-background text-foreground relative min-h-svh overflow-x-clip'>
       <PublicHeader

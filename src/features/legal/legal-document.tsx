@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Markdown } from '@/components/ui/markdown'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PublicLayout } from '@/components/layout'
+import { PortalTopBar } from '@/features/frontend-portal/portal-top-bar'
 import { pickLang } from '@/lib/multilang'
 import type { LegalDocumentResponse } from './types'
 
@@ -68,7 +69,7 @@ export function LegalDocument({
 
   if (isLoading) {
     return (
-          <PublicLayout headerProps={{ showNavigation: false, lockHeader: true }}>
+          <PublicLayout header={<PortalTopBar />} headerProps={{ showNavigation: false, lockHeader: true }}>
         <div className='mx-auto flex max-w-4xl flex-col gap-4 py-12'>
           <Skeleton className='h-8 w-[45%]' />
           <Skeleton className='h-4 w-full' />
@@ -81,7 +82,7 @@ export function LegalDocument({
 
   if (!success || !hasContent) {
     return (
-          <PublicLayout headerProps={{ showNavigation: false, lockHeader: true }}>
+          <PublicLayout header={<PortalTopBar />} headerProps={{ showNavigation: false, lockHeader: true }}>
         <div className='mx-auto max-w-2xl py-12'>
           <Card className='border-dashed'>
             <CardHeader className='flex flex-row items-center gap-4'>
@@ -103,7 +104,7 @@ export function LegalDocument({
 
   if (isUrl) {
     return (
-          <PublicLayout headerProps={{ showNavigation: false, lockHeader: true }}>
+          <PublicLayout header={<PortalTopBar />} headerProps={{ showNavigation: false, lockHeader: true }}>
         <div className='mx-auto max-w-2xl py-12'>
           <Card>
             <CardHeader>
@@ -134,7 +135,7 @@ export function LegalDocument({
   }
 
   return (
-        <PublicLayout headerProps={{ showNavigation: false, lockHeader: true }}>
+        <PublicLayout header={<PortalTopBar />} headerProps={{ showNavigation: false, lockHeader: true }}>
       <div className='mx-auto max-w-4xl space-y-6 py-12'>
         <div className='space-y-2'>
           <h1 className='text-3xl font-semibold tracking-tight'>{title}</h1>
