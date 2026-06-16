@@ -209,7 +209,6 @@ function PortalTokensInner() {
                   <th className="px-3 py-2.5 text-center">{t('Name')}</th>
                   <th className="px-3 py-2.5 text-center">{t('Status')}</th>
                   <th className="px-3 py-2.5 text-center">{t('Quota')}</th>
-                  <th className="px-3 py-2.5 text-center">{t('Group')}</th>
                   <th className="px-3 py-2.5 text-center">{t('Key')}</th>
                   <th className="px-3 py-2.5 text-center">{t('Models')}</th>
                   <th className="px-3 py-2.5 text-center">{t('Actions')}</th>
@@ -234,15 +233,6 @@ function PortalTokensInner() {
                       </td>
                       <td className="px-3 py-3 text-center text-xs text-gray-500">
                         {formatQuota(token)}
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        {token.group ? (
-                          <span className="inline-flex items-center rounded-md bg-sky-500/10 px-2 py-0.5 text-xs text-sky-500">
-                            {token.group}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
                       </td>
                       <td className="px-3 py-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
