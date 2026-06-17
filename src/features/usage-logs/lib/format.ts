@@ -80,44 +80,6 @@ export function parseAuditLine(
 }
 
 /**
- * Localize an image-generation log content string.
- *
- * The backend writes these details with hardcoded Chinese labels in a fixed
- * comma-separated form, e.g. `大小 1024x1024, 品质 standard, 生成数量 1`.
- * This replaces the leading label of each segment with a translated label
- * while preserving the value (size/quality string, quantity number).
- */
-const IMAGE_DETAIL_LABEL_MAP: Array<{ zh: string; key: string }> = [
-  { zh: '大小', key: 'Size' },
-  { zh: '品质', key: 'Quality' },
-  { zh: '生成数量', key: 'Quantity' },
-]
-
-export function localizeImageDetailContent(
-  content: string,
-  t: (key: string) => string
-): string {
-  if (!content) return content
-  return content
-    .split(',')
-    .map((segment) => {
-      const trimmedLeading = segment.replace(/^\s+/, '')
-      const leadingSpace = segment.slice(
-        0,
-        segment.length - trimmedLeading.length
-      )
-      for (const { zh, key } of IMAGE_DETAIL_LABEL_MAP) {
-        if (trimmedLeading.startsWith(zh)) {
-          const rest = trimmedLeading.slice(zh.length)
-          return `${leadingSpace}${t(key)}${rest}`
-        }
-      }
-      return segment
-    })
-    .join(',')
-}
-
-/**
  * Check if the log is a violation fee log
  */
 export function isViolationFeeLog(other: LogOtherData | null): boolean {

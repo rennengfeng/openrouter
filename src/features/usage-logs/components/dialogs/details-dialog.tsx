@@ -58,7 +58,6 @@ import {
   isViolationFeeLog,
   getFirstResponseTimeColor,
   getResponseTimeColor,
-  localizeImageDetailContent,
 } from '../../lib/format'
 import {
   getLogTypeConfig,
@@ -402,7 +401,7 @@ interface DetailsDialogProps {
 export function DetailsDialog(props: DetailsDialogProps) {
   const { t } = useTranslation()
   const { copiedText, copyToClipboard } = useCopyToClipboard({ notify: false })
-  const details = localizeImageDetailContent(props.log.content ?? '', t)
+  const details = props.log.content ?? ''
   const other = parseLogOther(props.log.other)
   const typeConfig = getLogTypeConfig(props.log.type)
 
