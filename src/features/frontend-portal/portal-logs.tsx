@@ -181,6 +181,10 @@ export function PortalLogs() {
     [/bad response/gi, 'portal.page.logs.phrase.badResponse'],
     [/status[_ ]code/gi, 'portal.page.logs.phrase.statusCode'],
     [/openai_error/gi, 'portal.page.logs.phrase.openaiError'],
+    // 生图日志详情标签（大小 1024x1024, 品质 standard, 生成数量 1）。生成数量须先于单独的数量匹配。
+    [/生成数量/g, 'portal.page.logs.phrase.imageQuantity'],
+    [/大小/g, 'portal.page.logs.phrase.imageSize'],
+    [/品质/g, 'portal.page.logs.phrase.imageQuality'],
   ]
   const translateLogContent = (content?: string): string => {
     if (!content) return content ?? ''
