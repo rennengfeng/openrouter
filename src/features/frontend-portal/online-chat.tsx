@@ -110,19 +110,15 @@ function cleanErrorMessage(raw: string): string {
     .replace(/channel\s*#?\d+/gi, '')
     .replace(/渠道\s*#?\d+/gi, '')
     .replace(/上游分组[：:\s]*\S+/gi, '')
-  if (/Invalid URL|missing authentication/i.test(msg)) {
-    msg = '请求失败：请确认您已登录，并选择了正确的分组和密钥。如果您是订阅用户，请选择订阅分组对应的密钥使用。'
-  }
-  if (/额度不足|insufficient.*quota/i.test(msg)) {
-    msg += '\n如果您是订阅客户，请切换至订阅分组对应的密钥使用。'
-  }
+  // 注意：不要把真实错误强行替换成"选择分组"之类的固定文案，否则会掩盖真正原因
+  // （例如"模型价格未配置"被误显示为"请选择分组"）。这里只做脱敏，其余原样透传后端真实错误。
   if (/订阅余额仅可用于/i.test(msg)) {
     msg = '订阅余额仅可用于对应的订阅分组。请选择订阅分组对应的密钥使用。'
   }
   if (/all]?\s*channels?\s*(unavailable|failed|exhausted)/i.test(msg) || /所有渠道/.test(msg)) {
     msg = '当前模型暂时不可用，请稍后重试或切换其他模型。'
   }
-  return msg
+  return msg.trim()
 }
 
 // ---------------------------------------------------------------------------
