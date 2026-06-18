@@ -99,6 +99,14 @@ export async function wechatLoginByCode(code: string): Promise<ApiResponse> {
   return res.data
 }
 
+// Telegram login by widget auth payload
+export async function telegramLogin(
+  params: Record<string, string>
+): Promise<ApiResponse> {
+  const res = await api.get('/api/oauth/telegram/login', { params })
+  return res.data
+}
+
 // ----------------------------------------------------------------------------
 // Registration
 // ----------------------------------------------------------------------------

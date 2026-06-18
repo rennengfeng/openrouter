@@ -27,6 +27,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useOAuthLogin } from '../hooks/use-oauth-login'
+import { TelegramLoginButton } from './telegram-login-button'
 import type { SystemStatus } from '../types'
 
 type OAuthProvidersProps = {
@@ -113,13 +114,8 @@ export function OAuthProviders({
     })
   }
 
-  if (status?.telegram_oauth) {
-    providerButtons.push({
-      key: 'telegram',
-      label: t('Continue with Telegram'),
-      onClick: handleTelegramLogin,
-    })
-  }
+  // Telegram requires its own official widget button (rendered separately
+  // below the generic provider list), so it is intentionally not pushed here.
 
   // Custom OAuth providers
   const customProviders = status?.custom_oauth_providers
@@ -133,7 +129,11 @@ export function OAuthProviders({
     }
   }
 
-  if (providerButtons.length === 0) return null
+  const showTelegram = Boolean(
+    status?.telegram_oauth && status?.telegram_bot_name
+  )
+
+  if (providerButtons.length === 0 && !showTelegram) return null
 
   return (
     <div className={cn('space-y-3', className)}>
@@ -163,6 +163,15 @@ export function OAuthProviders({
               {label}
             </Button>
           )
+        )}
+
+        {showTelegram && (
+          <div className='flex justify-center'>
+            <TelegramLoginButton
+              botName={status!.telegram_bot_name!}
+              onAuth={handleTelegramLogin}
+            />
+          </div>
         )}
       </div>
     </div>

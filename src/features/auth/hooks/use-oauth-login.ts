@@ -22,13 +22,15 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { api } from '@/lib/api'
-import { getOAuthState } from '../api'
+import { getOAuthState, telegramLogin } from '../api'
+import { useAuthRedirect } from './use-auth-redirect'
 import {
   buildGitHubOAuthUrl,
   buildDiscordOAuthUrl,
   buildOIDCOAuthUrl,
   buildLinuxDOOAuthUrl,
 } from '../lib/oauth'
+import type { TelegramAuthData } from '../components/telegram-login-button'
 import type { SystemStatus, CustomOAuthProviderInfo } from '../types'
 
 type LogoutRequestConfig = AxiosRequestConfig & {
@@ -45,6 +47,7 @@ export function useOAuthLogin(status: SystemStatus | null) {
   const [githubButtonDisabled, setGithubButtonDisabled] = useState(false)
   const githubTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const { auth } = useAuthStore()
+  const { handleLoginSuccess } = useAuthRedirect()
 
   useEffect(() => {
     setGithubButtonText(t('Continue with GitHub'))
@@ -185,8 +188,41 @@ export function useOAuthLogin(status: SystemStatus | null) {
     }
   }
 
-  const handleTelegramLogin = () => {
-    toast.info(t('Telegram login requires widget integration; coming soon'))
+  const handleTelegramLogin = async (authData: TelegramAuthData) => {
+    setIsLoading(true)
+    try {
+      // Forward the Telegram-signed fields to the backend for HMAC validation.
+      const fields = [
+        'id',
+        'first_name',
+        'last_name',
+        'username',
+        'photo_url',
+        'auth_date',
+        'hash',
+        'lang',
+      ]
+      const params: Record<string, string> = {}
+      for (const field of fields) {
+        const value = (authData as Record<string, unknown>)[field]
+        if (value !== undefined && value !== null) {
+          params[field] = String(value)
+        }
+      }
+
+      const res = await telegramLogin(params)
+      if (!res.success) {
+        toast.error(res.message || t('Telegram login failed'))
+        return
+      }
+
+      toast.success(t('Signed in'))
+      await handleLoginSuccess(res.data as { id?: number } | null)
+    } catch (_error) {
+      toast.error(t('Telegram login failed'))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleCustomOAuthLogin = async (provider: CustomOAuthProviderInfo) => {
