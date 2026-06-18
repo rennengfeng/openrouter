@@ -405,7 +405,7 @@ export function ModelSquare() {
                       <span className="text-gray-700">
                         {ep.type}
                         {ep.path && (
-                          <span className="ml-1 font-mono text-gray-500">{ep.path}</span>
+                          <span className="ml-2 font-mono text-gray-500">{ep.path}</span>
                         )}
                       </span>
                     </div>

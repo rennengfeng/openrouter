@@ -244,7 +244,7 @@ export function ApiKeysMutateDrawer({
       <SheetContent
         side={side}
         style={LIGHT_THEME_STYLE}
-        className='bg-background flex !h-dvh !w-screen max-w-none gap-0 overflow-hidden p-0 sm:!w-full sm:!max-w-[620px]'
+        className='bg-background text-foreground flex !h-dvh !w-screen max-w-none gap-0 overflow-hidden p-0 sm:!w-full sm:!max-w-[620px]'
       >
         <SheetHeader className='bg-background border-b px-4 py-3 text-start sm:px-5 sm:py-4'>
           <SheetTitle className='text-base sm:text-lg'>
