@@ -38,7 +38,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       {/* Header: brand (top-left) — links to home, consistent with other pages */}
       <Link
         to='/'
-        className='absolute top-6 left-6 z-10 flex items-center gap-2.5 transition-opacity hover:opacity-80 sm:top-8 sm:left-8'
+        className='absolute top-6 left-6 z-20 flex items-center gap-2.5 transition-opacity hover:opacity-80 sm:top-8 sm:left-8'
       >
         <div className='relative h-8 w-8'>
           {loading ? (
@@ -61,13 +61,15 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       </Link>
 
       {/* Header: language switcher (top-right) */}
-      <div className='absolute top-6 right-6 z-10 sm:top-8 sm:right-8'>
+      <div className='absolute top-6 right-6 z-20 sm:top-8 sm:right-8'>
         <LanguageSwitcher />
       </div>
 
-      {/* Content */}
-      <div className='container relative z-10 flex items-center justify-center pt-16 sm:pt-0'>
-        <div className='mx-auto flex w-full flex-col justify-center space-y-6 px-6 py-8 sm:w-[440px]'>
+      {/* Content. The full-bleed container must NOT swallow clicks meant for the
+          absolutely-positioned brand/language-switcher underneath it, so it is
+          click-through except for the card itself. */}
+      <div className='container pointer-events-none relative z-10 flex items-center justify-center pt-16 sm:pt-0'>
+        <div className='pointer-events-auto mx-auto flex w-full flex-col justify-center space-y-6 px-6 py-8 sm:w-[440px]'>
           <div className='rounded-2xl border border-white/10 bg-[#0f0f1a]/80 p-8 shadow-2xl backdrop-blur-sm'>
             {children}
           </div>
