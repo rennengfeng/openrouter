@@ -96,14 +96,34 @@ export function TelegramLoginButton({
 
     container.appendChild(script)
 
-    // Once Telegram injects its iframe, scale it up so the (invisible) clickable
-    // area covers the whole button beneath it.
+    // Once Telegram injects its iframe, scale it so its (invisible) clickable
+    // area exactly covers the button beneath it. We measure both boxes and use
+    // the larger ratio so there are no dead zones, while keeping the scale as
+    // small as possible — large scale factors break click-coordinate mapping
+    // on cross-origin iframes.
+    const fitIframe = (iframe: HTMLIFrameElement) => {
+      const iw = iframe.offsetWidth || 1
+      const ih = iframe.offsetHeight || 1
+      const cw = container.clientWidth || iw
+      const ch = container.clientHeight || ih
+      const scale = Math.max(cw / iw, ch / ih) * 1.15
+      iframe.style.transformOrigin = 'center'
+      iframe.style.transform = `scale(${scale})`
+    }
+
     const observer = new MutationObserver(() => {
       const iframe = container.querySelector<HTMLIFrameElement>('iframe')
       if (iframe) {
-        iframe.style.transform = 'scale(6)'
-        iframe.style.transformOrigin = 'center'
-        observer.disconnect()
+        // The iframe may report 0 size until Telegram finishes rendering; retry.
+        if (iframe.offsetWidth > 0) {
+          fitIframe(iframe)
+          observer.disconnect()
+        } else {
+          iframe.addEventListener('load', () => fitIframe(iframe), {
+            once: true,
+          })
+          observer.disconnect()
+        }
       }
     })
     observer.observe(container, { childList: true, subtree: true })
