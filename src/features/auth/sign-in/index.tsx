@@ -32,15 +32,15 @@ export function SignIn() {
     <AuthLayout>
       <div className='w-full space-y-6'>
         <div className='space-y-2 text-center'>
-          <h2 className='text-2xl font-bold tracking-tight text-white'>
+          <h2 className='text-foreground text-2xl font-bold tracking-tight'>
             {t('Sign in')}
           </h2>
           {!status?.self_use_mode_enabled && (
-            <p className='text-sm text-white/60'>
+            <p className='text-muted-foreground text-sm'>
               {t("Don't have an account?")}{' '}
               <Link
                 to='/sign-up'
-                className='font-medium text-indigo-400 hover:text-indigo-300 transition'
+                className='text-primary hover:text-primary/80 font-medium transition'
               >
                 {t('Sign up')}
               </Link>

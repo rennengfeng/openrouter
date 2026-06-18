@@ -37,6 +37,9 @@ type OAuthProvidersProps = {
   className?: string
   onWeChatLogin?: () => void
   isWeChatLoading?: boolean
+  /** Hide the Telegram button (e.g. on sign-up — Telegram only logs in
+      existing, already-linked accounts; it can't register a new account). */
+  hideTelegram?: boolean
 }
 
 type ProviderButton = {
@@ -53,6 +56,7 @@ export function OAuthProviders({
   className,
   onWeChatLogin,
   isWeChatLoading = false,
+  hideTelegram = false,
 }: OAuthProvidersProps) {
   const { t, i18n } = useTranslation()
   const {
@@ -131,7 +135,7 @@ export function OAuthProviders({
   }
 
   const showTelegram = Boolean(
-    status?.telegram_oauth && status?.telegram_bot_id
+    !hideTelegram && status?.telegram_oauth && status?.telegram_bot_id
   )
 
   if (providerButtons.length === 0 && !showTelegram) return null

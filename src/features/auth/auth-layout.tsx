@@ -31,9 +31,9 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   const { systemName, logo, loading } = useSystemConfig()
 
   return (
-    <div className='dark relative grid h-svh max-w-none bg-gradient-to-br from-[#0a0a14] via-[#0f0f1a] to-[#0a0a14] text-white/90' style={{ colorScheme: 'dark' }}>
+    <div className='relative grid h-svh max-w-none bg-background text-foreground'>
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(99,102,241,0.08),transparent_50%),radial-gradient(circle_at_70%_60%,rgba(139,92,246,0.06),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(99,102,241,0.06),transparent_50%),radial-gradient(circle_at_70%_60%,rgba(139,92,246,0.05),transparent_50%)]" />
 
       {/* Header: brand (top-left) — links to home, consistent with other pages */}
       <Link
@@ -54,7 +54,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         {loading ? (
           <Skeleton className='h-6 w-28' />
         ) : (
-          <h1 className='text-xl font-bold tracking-tight text-white'>
+          <h1 className='text-foreground text-xl font-bold tracking-tight'>
             {systemName}
           </h1>
         )}
@@ -70,7 +70,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           click-through except for the card itself. */}
       <div className='container pointer-events-none relative z-10 flex items-center justify-center pt-16 sm:pt-0'>
         <div className='pointer-events-auto mx-auto flex w-full flex-col justify-center space-y-6 px-6 py-8 sm:w-[440px]'>
-          <div className='rounded-2xl border border-white/10 bg-[#0f0f1a]/80 p-8 shadow-2xl backdrop-blur-sm'>
+          <div className='bg-card rounded-2xl border p-8 shadow-xl'>
             {children}
           </div>
         </div>
