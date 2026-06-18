@@ -16,6 +16,10 @@ import type { CSSProperties } from 'react'
 
 export const LIGHT_THEME_STYLE: CSSProperties = {
   colorScheme: 'light',
+  // Hardcode the text color too: dialogs/drawers render in a portal under
+  // html.dark, so inherited `color` is light. Pinning it here makes any text
+  // without an explicit color class dark/readable, regardless of class order.
+  color: 'oklch(0.145 0 0)',
   '--background': 'oklch(1 0 0)',
   '--foreground': 'oklch(0.145 0 0)',
   '--card': 'oklch(1 0 0)',
