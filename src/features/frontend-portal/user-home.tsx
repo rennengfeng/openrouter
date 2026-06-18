@@ -14,13 +14,13 @@ import { getUserQuotaDates } from '@/features/dashboard/api'
 import { useAnnouncements } from '@/features/dashboard/hooks/use-status-data'
 import { PortalShell } from './portal-shell'
 
-function getAnnouncementText(content?: string, lang?: string) {
-  if (!content) return '暂无公告，您可以稍后再查看公告内容。'
+function getAnnouncementText(content: string | undefined, lang: string, emptyText: string) {
+  if (!content) return emptyText
   return pickLang(content, lang ?? 'en').replace(/<[^>]+>/g, '').trim()
 }
 
 export function UserHome() {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const user = useAuthStore((state) => state.auth.user)
   const dayRange = useMemo(() => computeTimeRange(1), [])
   const { items: announcements } = useAnnouncements()
@@ -35,6 +35,29 @@ export function UserHome() {
       }),
     staleTime: 60_000,
   })
+
+  // Recent-30-days tokens (one query, within the backend's 30-day range cap).
+  // The user object has no total-tokens field and used_quota is a quota-unit
+  // value (≠ token count), so we sum real token_used over the last 30 days.
+  const recent30Query = useQuery({
+    queryKey: ['portal-home-30d', dayRange.end_timestamp],
+    queryFn: async () =>
+      getUserQuotaDates({
+        start_timestamp: dayRange.end_timestamp - 29 * 24 * 3600,
+        end_timestamp: dayRange.end_timestamp,
+        default_time: 'day',
+      }),
+    staleTime: 5 * 60_000,
+  })
+
+  const recentTokens = useMemo(
+    () =>
+      (recent30Query.data?.data ?? []).reduce(
+        (sum, item) => sum + (Number(item.token_used) || 0),
+        0
+      ),
+    [recent30Query.data?.data]
+  )
 
   const todayStats = useMemo(() => {
     const rows = dayStatsQuery.data?.data ?? []
@@ -51,39 +74,39 @@ export function UserHome() {
 
   const cards = [
     {
-      title: '今日请求',
+      title: t('portal.page.home.card.todayRequests'),
       value: formatNumber(todayStats.requests),
-      desc: '当日内发起的请求总量',
+      desc: t('portal.page.home.card.todayRequestsDesc'),
       icon: Send,
     },
     {
-      title: '总请求',
+      title: t('portal.page.home.card.totalRequests'),
       value: formatNumber(Number(user?.request_count ?? 0)),
-      desc: '账户历史累计请求量',
+      desc: t('portal.page.home.card.totalRequestsDesc'),
       icon: ReceiptText,
     },
     {
-      title: '今日 Token',
+      title: t('portal.page.home.card.todayTokens'),
       value: formatNumber(todayStats.tokens),
-      desc: '当日内使用的 Token 消耗',
+      desc: t('portal.page.home.card.todayTokensDesc'),
       icon: KeyRound,
     },
     {
-      title: '总 Token',
-      value: formatNumber(Number(user?.used_quota ?? 0)),
-      desc: '历史累计 Token 消耗',
+      title: t('portal.page.home.card.recentTokens'),
+      value: formatNumber(recentTokens),
+      desc: t('portal.page.home.card.recentTokensDesc'),
       icon: Coins,
     },
     {
-      title: '今日花费',
-      value: `$${formatQuota(todayStats.quota)}`,
-      desc: '当日额度消耗折算',
+      title: t('portal.page.home.card.todaySpend'),
+      value: formatQuota(todayStats.quota),
+      desc: t('portal.page.home.card.todaySpendDesc'),
       icon: Wallet,
     },
     {
-      title: '总花费',
-      value: `$${formatQuota(Number(user?.used_quota ?? 0))}`,
-      desc: '累计额度消耗折算',
+      title: t('portal.page.home.card.totalSpend'),
+      value: formatQuota(Number(user?.used_quota ?? 0)),
+      desc: t('portal.page.home.card.totalSpendDesc'),
       icon: Wallet,
     },
   ]
@@ -92,9 +115,11 @@ export function UserHome() {
     <PortalShell>
       <section className='space-y-4 pt-3'>
         <div>
-          <h1 className='text-3xl leading-tight font-bold'>欢迎回来，{user?.username || '用户'}</h1>
+          <h1 className='text-3xl leading-tight font-bold'>
+            {t('portal.page.home.welcomeName', { name: user?.username || t('User') })}
+          </h1>
           <p className='text-muted-foreground mt-2 text-sm'>
-            NewAPI 用户所需：余额、今日用量、公告、邀请、密钥和模型入口集中展示，后台核心逻辑保持沿用。
+            {t('portal.page.home.lead')}
           </p>
         </div>
 
@@ -126,21 +151,27 @@ export function UserHome() {
               <div className='flex items-center justify-between'>
                 <CardTitle className='flex items-center gap-2 text-sm'>
                   <Bell className='size-4' />
-                  公告
+                  {t('portal.page.home.announcements')}
                 </CardTitle>
-                <span className='text-muted-foreground text-xs'>暂无动态</span>
+                <span className='text-muted-foreground text-xs'>
+                  {t('portal.page.home.noUpdates')}
+                </span>
               </div>
             </CardHeader>
             <CardContent className='space-y-3'>
               {announcements.length > 0 ? (
                 announcements.slice(0, 5).map((item, index) => (
                   <div key={`${item.id ?? 'notice'}-${index}`} className='rounded-lg border p-3 text-sm'>
-                    {getAnnouncementText(item.content, i18n.language)}
+                    {getAnnouncementText(
+                      item.content,
+                      i18n.language,
+                      t('portal.page.home.noNotice')
+                    )}
                   </div>
                 ))
               ) : (
                 <div className='text-muted-foreground rounded-lg border p-3 text-sm'>
-                  当前暂无新的公告，后续通知会展示在这里。
+                  {t('portal.page.home.noNoticeHint')}
                 </div>
               )}
             </CardContent>

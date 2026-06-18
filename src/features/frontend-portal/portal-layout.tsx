@@ -197,7 +197,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={() => { setNoticeOpen(true); setNoticeDismissed(true) }}
             className="relative rounded-md p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
-            title="Announcements"
+            title={t('Announcements')}
           >
             <Bell className="h-4.5 w-4.5" />
             {hasNotice && (
@@ -266,7 +266,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={() => setCollapsed((v) => !v)}
             className="mb-4 flex h-9 w-full items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition"
-            title={collapsed ? '展开' : '折叠'}
+            title={collapsed ? t('Expand') : t('Collapse')}
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4" />

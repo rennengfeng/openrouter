@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { formatCurrencyFromUSD } from '@/lib/currency'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { getFrontendModels } from './api'
+import { usePortalSettings } from './portal-settings'
 import { parseModelTags } from './model-tags'
 import { ModelBadges } from './model-badges'
 import { ModelModalityBadge } from './model-modality-badge'
@@ -46,7 +47,8 @@ function formatPrice(
   model: FrontendModel,
   type: 'input' | 'output' | 'cache_create' | 'cache_read',
   mode: PriceMode,
-  ratio: number
+  ratio: number,
+  t: (key: string) => string
 ): string {
   if (model.quota_type === 1) {
     if (type === 'input') {
@@ -54,7 +56,7 @@ function formatPrice(
         ? Number(model.official_model_price ?? model.model_price ?? 0)
         : Number(model.model_price ?? 0)
       const r = mode === 'site' ? ratio : 1
-      return `${formatCurrencyFromUSD(modelPrice * r, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })} / 次`
+      return `${formatCurrencyFromUSD(modelPrice * r, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })} / ${t('portal.page.models.perCall')}`
     }
     return '-'
   }
@@ -109,7 +111,10 @@ export function ModelSquare() {
     const key = TAG_I18N_KEY[tag] ?? TAG_I18N_KEY[tag.trim().toLowerCase()]
     return key ? t(key) : tag
   }
-  const [priceMode] = useState<PriceMode>('site')
+  // Price calibration is driven by the portal setting (site vs official) so the
+  // card list and the detail panel always show the same price basis.
+  const { portal } = usePortalSettings()
+  const priceMode: PriceMode = portal.model_square?.default_price_mode ?? 'site'
   const [searchValue, setSearchValue] = useState('')
   const [vendorFilter, setVendorFilter] = useState('all')
   const [tagFilter, setTagFilter] = useState('all')
@@ -188,7 +193,7 @@ export function ModelSquare() {
         : 1
       return { model, group, ratio }
     })
-  }, [models, searchValue, vendorFilter, tagFilter, topLevelGroupRatio])
+  }, [models, searchValue, vendorFilter, tagFilter, topLevelGroupRatio, uiLang])
 
   return (
     <div className="space-y-5">
@@ -299,13 +304,13 @@ export function ModelSquare() {
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
                   <span>by <span className="text-gray-600">{model.vendor_name || 'Unknown'}</span></span>
                   <span className="text-gray-200">|</span>
-                  <span>{formatPrice(model, 'input', 'official', ratio)} {t('input')}</span>
+                  <span>{formatPrice(model, 'input', priceMode, ratio, t)} {t('input')}</span>
                   <span className="text-gray-200">|</span>
-                  <span>{formatPrice(model, 'output', 'official', ratio)} {t('output')}</span>
-                  {formatPrice(model, 'cache_read', 'official', ratio) !== '-' && (
+                  <span>{formatPrice(model, 'output', priceMode, ratio, t)} {t('output')}</span>
+                  {formatPrice(model, 'cache_read', priceMode, ratio, t) !== '-' && (
                     <>
                       <span className="text-gray-200">|</span>
-                      <span>{formatPrice(model, 'cache_read', 'official', ratio)} {t('cache read')}</span>
+                      <span>{formatPrice(model, 'cache_read', priceMode, ratio, t)} {t('cache read')}</span>
                     </>
                   )}
                 </div>
@@ -412,22 +417,22 @@ export function ModelSquare() {
                     <td className="py-2 text-right">
                       <div className="space-y-1">
                         <div className="text-xs">
-                          <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', priceMode, selectedModel.ratio)}</span>
+                          <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', priceMode, selectedModel.ratio, t)}</span>
                           <span className="text-gray-400"> / 1M Tokens</span>
                         </div>
                         <div className="text-xs">
-                          <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', priceMode, selectedModel.ratio)}</span>
+                          <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', priceMode, selectedModel.ratio, t)}</span>
                           <span className="text-gray-400"> / 1M Tokens</span>
                         </div>
-                        {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio) !== '-' && (
+                        {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio, t) !== '-' && (
                           <div className="text-xs">
-                            <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio)}</span>
+                            <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio, t)}</span>
                             <span className="text-gray-400"> / 1M Tokens</span>
                           </div>
                         )}
-                        {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio) !== '-' && (
+                        {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio, t) !== '-' && (
                           <div className="text-xs">
-                            <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio)}</span>
+                            <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio, t)}</span>
                             <span className="text-gray-400"> / 1M Tokens</span>
                           </div>
                         )}

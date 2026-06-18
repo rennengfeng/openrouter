@@ -94,14 +94,14 @@ function getDisplayText(content: string | ContentPart[]): string {
   return textPart && 'text' in textPart ? textPart.text : ''
 }
 
-function getSessionTitle(messages: ChatMessage[]): string {
+function getSessionTitle(messages: ChatMessage[], newChatLabel: string): string {
   const first = messages.find((m) => m.from === 'user')
-  if (!first) return '新对话'
+  if (!first) return newChatLabel
   const text = getDisplayText(first.content)
-  return text.slice(0, 20) || '新对话'
+  return text.slice(0, 20) || newChatLabel
 }
 
-function cleanErrorMessage(raw: string): string {
+function cleanErrorMessage(raw: string, t: (key: string) => string): string {
   let msg = raw
     .replace(/\s*\(request id:[^)]*\)/gi, '')
     .replace(/\$\s*(\d+)\.(\d{2})\d+/g, (_, a, b) => `$${a}.${b}`)
@@ -113,10 +113,10 @@ function cleanErrorMessage(raw: string): string {
   // 注意：不要把真实错误强行替换成"选择分组"之类的固定文案，否则会掩盖真正原因
   // （例如"模型价格未配置"被误显示为"请选择分组"）。这里只做脱敏，其余原样透传后端真实错误。
   if (/订阅余额仅可用于/i.test(msg)) {
-    msg = '订阅余额仅可用于对应的订阅分组。请选择订阅分组对应的密钥使用。'
+    msg = t('portal.page.chat.err.subscriptionGroupOnly')
   }
   if (/all]?\s*channels?\s*(unavailable|failed|exhausted)/i.test(msg) || /所有渠道/.test(msg)) {
-    msg = '当前模型暂时不可用，请稍后重试或切换其他模型。'
+    msg = t('portal.page.chat.err.modelUnavailable')
   }
   return msg.trim()
 }
@@ -264,7 +264,7 @@ export function OnlineChat() {
     persistTimer.current = setTimeout(() => {
       const toSave = sessions.map((s) =>
         s.id === activeSessionId
-          ? { ...s, messages, title: getSessionTitle(messages) }
+          ? { ...s, messages, title: getSessionTitle(messages, t('portal.page.chat.newChat')) }
           : s
       )
       saveSessions(toSave)
@@ -280,66 +280,7 @@ export function OnlineChat() {
     })
   }, [])
 
-  // Create new session
-  const createNewSession = useCallback(() => {
-    // Save current session if it has messages
-    if (activeSessionId && messages.length > 0) {
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId
-            ? { ...s, messages, title: getSessionTitle(messages) }
-            : s
-        )
-      )
-    }
-    const newSession: ChatSession = {
-      id: nanoid(),
-      title: '新对话',
-      messages: [],
-      mode: chatMode,
-      createdAt: Date.now(),
-    }
-    setSessions((prev) => [newSession, ...prev])
-    setActiveSessionId(newSession.id)
-    setMessages([])
-  }, [activeSessionId, messages, chatMode])
-
-  // Switch session
-  const switchSession = useCallback(
-    (sessionId: string) => {
-      // Save current
-      if (activeSessionId && messages.length > 0) {
-        setSessions((prev) =>
-          prev.map((s) =>
-            s.id === activeSessionId
-              ? { ...s, messages, title: getSessionTitle(messages) }
-              : s
-          )
-        )
-      }
-      const target = sessions.find((s) => s.id === sessionId)
-      if (target) {
-        setActiveSessionId(sessionId)
-        setMessages(target.messages)
-        setChatMode(target.mode)
-      }
-    },
-    [activeSessionId, messages, sessions]
-  )
-
-  // Delete session
-  const deleteSession = useCallback(
-    (sessionId: string) => {
-      setSessions((prev) => prev.filter((s) => s.id !== sessionId))
-      if (activeSessionId === sessionId) {
-        setActiveSessionId('')
-        setMessages([])
-      }
-    },
-    [activeSessionId]
-  )
-
-  // Stop generation
+  // Stop the in-flight SSE stream and finalize the last assistant message.
   const stopGeneration = useCallback(() => {
     if (sseRef.current) {
       sseRef.current.close()
@@ -357,6 +298,74 @@ export function OnlineChat() {
     })
   }, [])
 
+  // Create new session
+  const createNewSession = useCallback(() => {
+    // Stop any in-flight stream so it can't leak into the new session.
+    stopGeneration()
+    // Save current session if it has messages
+    if (activeSessionId && messages.length > 0) {
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSessionId
+            ? { ...s, messages, title: getSessionTitle(messages, t('portal.page.chat.newChat')) }
+            : s
+        )
+      )
+    }
+    const newSession: ChatSession = {
+      id: nanoid(),
+      title: t('portal.page.chat.newChat'),
+      messages: [],
+      mode: chatMode,
+      createdAt: Date.now(),
+    }
+    setSessions((prev) => [newSession, ...prev])
+    setActiveSessionId(newSession.id)
+    setMessages([])
+  }, [activeSessionId, messages, chatMode, t, stopGeneration])
+
+  // Switch session
+  const switchSession = useCallback(
+    (sessionId: string) => {
+      // Stop any in-flight stream so it can't leak into the switched-to session.
+      stopGeneration()
+      // Save current
+      if (activeSessionId && messages.length > 0) {
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === activeSessionId
+              ? { ...s, messages, title: getSessionTitle(messages, t('portal.page.chat.newChat')) }
+              : s
+          )
+        )
+      }
+      const target = sessions.find((s) => s.id === sessionId)
+      if (target) {
+        setActiveSessionId(sessionId)
+        setMessages(target.messages)
+        setChatMode(target.mode)
+      }
+    },
+    [activeSessionId, messages, sessions, t, stopGeneration]
+  )
+
+  // Delete session
+  const deleteSession = useCallback(
+    (sessionId: string) => {
+      // Stop any in-flight stream if we are deleting the active session.
+      if (activeSessionId === sessionId) {
+        stopGeneration()
+      }
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId))
+      if (activeSessionId === sessionId) {
+        setActiveSessionId('')
+        setMessages([])
+      }
+    },
+    [activeSessionId]
+  )
+
+  // Stop generation
   // Send chat message (streaming)
   const sendChat = useCallback(
     (allMessages: ChatMessage[]) => {
@@ -450,7 +459,7 @@ export function OnlineChat() {
         sseRef.current = null
         setIsGenerating(false)
 
-        let errorMessage = '请求失败'
+        let errorMessage = t('Request failed')
         const rawData = (e as { data?: string }).data
         if (rawData) {
           try {
@@ -460,7 +469,7 @@ export function OnlineChat() {
             errorMessage = rawData
           }
         }
-        errorMessage = cleanErrorMessage(errorMessage)
+        errorMessage = cleanErrorMessage(errorMessage, t)
 
         setMessages((prev) => {
           const last = prev[prev.length - 1]
@@ -539,7 +548,7 @@ export function OnlineChat() {
             } else {
               // 后端返回 200 但没有图片:暴露真实错误,不要回显用户的 prompt
               const errMsg =
-                cleanErrorMessage(body.error?.message || '') ||
+                cleanErrorMessage(body.error?.message || '', t) ||
                 t('No image was returned. Please try another model or try again.')
               updated[updated.length - 1] = { ...last, content: errMsg, status: 'error' }
             }
@@ -547,8 +556,8 @@ export function OnlineChat() {
           return updated
         })
       } catch (err: unknown) {
-        const rawMsg = err instanceof Error ? err.message : '图像生成失败'
-        const msg = cleanErrorMessage(rawMsg)
+        const rawMsg = err instanceof Error ? err.message : t('portal.page.chat.imageGenFailed')
+        const msg = cleanErrorMessage(rawMsg, t)
         setMessages((prev) => {
           const updated = [...prev]
           const last = updated[updated.length - 1]
@@ -573,7 +582,7 @@ export function OnlineChat() {
     if (!activeSessionId) {
       const newSession: ChatSession = {
         id: nanoid(),
-        title: text.slice(0, 20) || '图片对话',
+        title: text.slice(0, 20) || t('portal.page.chat.imageChat'),
         messages: [],
         mode: chatMode,
         createdAt: Date.now(),
@@ -594,7 +603,7 @@ export function OnlineChat() {
     let content: string | ContentPart[]
     if (pendingImages.length > 0) {
       content = [
-        { type: 'text' as const, text: text || '请描述这张图片' },
+        { type: 'text' as const, text: text || t('portal.page.chat.describeImage') },
         ...pendingImages.map((url) => ({
           type: 'image_url' as const,
           image_url: { url },

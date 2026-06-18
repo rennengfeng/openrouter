@@ -45,6 +45,7 @@ export function SubscriptionHub() {
   const [topupAmount, setTopupAmount] = useState(0)
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null)
   const [customAmount, setCustomAmount] = useState('')
+  const [customMode, setCustomMode] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>()
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
@@ -113,6 +114,7 @@ export function SubscriptionHub() {
   const handleSelectPreset = (preset: PresetAmount) => {
     setTopupAmount(preset.value)
     setSelectedPreset(preset.value)
+    setCustomMode(false)
     setCustomAmount('')
     void calculatePaymentAmount(preset.value, getCurrentPaymentType())
   }
@@ -124,6 +126,9 @@ export function SubscriptionHub() {
     if (Number.isFinite(num) && num > 0) {
       setTopupAmount(num)
       void calculatePaymentAmount(num, getCurrentPaymentType())
+    } else {
+      // Invalid/empty input: reset amount so a stale preset value can't be charged.
+      setTopupAmount(0)
     }
   }
 
@@ -179,7 +184,7 @@ export function SubscriptionHub() {
   }
 
   const getDiscountRate = useCallback(() => {
-    return topupInfo?.discount?.[topupAmount] || DEFAULT_DISCOUNT_RATE
+    return topupInfo?.discount?.[topupAmount] ?? DEFAULT_DISCOUNT_RATE
   }, [topupInfo, topupAmount])
 
   const balance = formatQuota(user?.quota ?? 0)
@@ -226,7 +231,7 @@ export function SubscriptionHub() {
           <p className="mb-3 text-xs text-gray-400">{t('portal.page.topup.selectAmount')}</p>
           <div className="mb-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
             {presetAmounts.map((preset) => {
-              const active = selectedPreset === preset.value && !customAmount
+              const active = selectedPreset === preset.value && !customMode
               const discount = preset.discount && preset.discount !== 1
                 ? `+${((preset.discount - 1) * 100).toFixed(0)}%`
                 : null
@@ -255,9 +260,15 @@ export function SubscriptionHub() {
             })}
             <button
               type="button"
-              onClick={() => { setSelectedPreset(null); setCustomAmount(String(topupAmount || '')) }}
+              onClick={() => {
+                setSelectedPreset(null)
+                setCustomMode(true)
+                const init = topupAmount > 0 ? topupAmount : minTopup
+                setCustomAmount(String(init))
+                setTopupAmount(init)
+              }}
               className={`rounded-lg border p-3 text-left transition ${
-                customAmount
+                customMode
                   ? 'border-sky-500 bg-sky-500/10'
                   : 'border-gray-200 bg-gray-50 hover:border-gray-300'
               }`}
@@ -267,7 +278,7 @@ export function SubscriptionHub() {
             </button>
           </div>
 
-          {customAmount !== '' && (
+          {customMode && (
             <div className="mb-5">
               <input
                 type="number"

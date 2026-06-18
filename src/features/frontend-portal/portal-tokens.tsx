@@ -41,10 +41,33 @@ function PortalTokensInner() {
     staleTime: 15_000,
   })
 
+  // Full-account stats: page through ALL tokens (backend caps size at 100) so
+  // the Enabled/Disabled cards reflect every token, not just the current page.
+  const { data: allTokens, refetch: refetchStats } = useQuery({
+    queryKey: ['portal-tokens-stats'],
+    queryFn: async () => {
+      const all: ApiKey[] = []
+      const size = 100
+      let p = 1
+      // hard cap pages to avoid any pathological loop
+      for (let guard = 0; guard < 100; guard++) {
+        const res = await api.get('/api/token/', { params: { p, size } })
+        const d = res.data?.data as { items?: ApiKey[]; total?: number } | undefined
+        const batch = d?.items ?? []
+        all.push(...batch)
+        const totalCount = d?.total ?? all.length
+        if (batch.length === 0 || all.length >= totalCount) break
+        p++
+      }
+      return all
+    },
+    staleTime: 15_000,
+  })
+
   const items = data?.items ?? []
   const total = data?.total ?? 0
-  const enabled = items.filter((tk) => tk.status === 1).length
-  const disabled = items.filter((tk) => tk.status !== 1).length
+  const enabled = (allTokens ?? []).filter((tk) => tk.status === 1).length
+  const disabled = (allTokens ?? []).filter((tk) => tk.status !== 1).length
 
   const handleCopyKey = async (token: ApiKey) => {
     let key = resolvedKeys[token.id]
@@ -89,7 +112,7 @@ function PortalTokensInner() {
     const res = await updateApiKeyStatus(token.id, newStatus)
     if (res.success) {
       toast.success(newStatus === 1 ? t('Enabled') : t('Disabled'))
-      refetch()
+      refetch(); refetchStats()
     } else {
       toast.error(res.message || t('Operation failed'))
     }
@@ -100,7 +123,7 @@ function PortalTokensInner() {
     const res = await deleteApiKey(token.id)
     if (res.success) {
       toast.success(t('Deleted'))
-      refetch()
+      refetch(); refetchStats()
     } else {
       toast.error(res.message || t('Delete failed'))
     }
@@ -400,7 +423,7 @@ function PortalTokensInner() {
           setDrawerOpen(open)
           if (!open) {
             setEditingKey(null)
-            refetch()
+            refetch(); refetchStats()
           }
         }}
         currentRow={editingKey ?? undefined}

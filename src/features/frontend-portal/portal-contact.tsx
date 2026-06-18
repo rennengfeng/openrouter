@@ -12,25 +12,25 @@ type ContactEntry = {
 const DEFAULT_CONTACTS: ContactEntry[] = [
   {
     type: 'docs',
-    title: '详细文档',
-    description: '查阅文档能解决99%的问题',
-    action: '联系我们',
+    title: 'portal.page.contact.docs.title',
+    description: 'portal.page.contact.docs.desc',
+    action: 'portal.page.contact.action',
   },
   {
     type: 'qq_group',
-    title: 'QQ群',
-    description: '寻求帮助? 交流讨论? 欢迎进群!',
+    title: 'portal.page.contact.qqGroup.title',
+    description: 'portal.page.contact.qqGroup.desc',
   },
   {
     type: 'qq_service',
-    title: '小客服QQ',
-    description: '在线客服随时为您解答',
+    title: 'portal.page.contact.qqService.title',
+    description: 'portal.page.contact.qqService.desc',
   },
   {
     type: 'telegram',
-    title: 'TG群',
-    description: '欢迎进群交流',
-    action: '联系我们',
+    title: 'portal.page.contact.tgGroup.title',
+    description: 'portal.page.contact.tgGroup.desc',
+    action: 'portal.page.contact.action',
   },
 ]
 
@@ -54,9 +54,11 @@ export function PortalContact() {
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 backdrop-blur">
-        <p className="text-sm text-gray-500">需要帮助？</p>
         <p className="text-sm text-gray-500">
-          我们的客服团队随时为您提供专业的帮助与服务。
+          {t('portal.page.contact.needHelp')}
+        </p>
+        <p className="text-sm text-gray-500">
+          {t('portal.page.contact.helpDesc')}
         </p>
       </div>
 
@@ -69,8 +71,8 @@ export function PortalContact() {
               className="flex items-center justify-between rounded-xl border border-gray-100 bg-white/3 px-5 py-4"
             >
               <div>
-                <p className="text-sm font-medium text-gray-900">{c.title}</p>
-                <p className="text-xs text-gray-500">{c.description}</p>
+                <p className="text-sm font-medium text-gray-900">{t(c.title)}</p>
+                <p className="text-xs text-gray-500">{t(c.description)}</p>
               </div>
               {c.action ? (
                 c.link ? (
@@ -80,14 +82,14 @@ export function PortalContact() {
                     rel="noreferrer noopener"
                     className="rounded-lg bg-orange-500/90 px-3 py-1.5 text-xs font-medium text-gray-900 transition hover:bg-orange-500"
                   >
-                    {c.action}
+                    {t(c.action)}
                   </a>
                 ) : (
                   <button
                     type="button"
                     className="rounded-lg bg-orange-500/90 px-3 py-1.5 text-xs font-medium text-gray-900 transition hover:bg-orange-500"
                   >
-                    {c.action}
+                    {t(c.action)}
                   </button>
                 )
               ) : null}

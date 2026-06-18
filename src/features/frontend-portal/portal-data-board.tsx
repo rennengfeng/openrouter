@@ -160,7 +160,7 @@ interface ChartData {
   totalTimes: number
 }
 
-function processChartData(data: QuotaDataItem[], granularity: string): ChartData {
+function processChartData(data: QuotaDataItem[], granularity: string, otherLabel: string): ChartData {
   const uniqueModels = new Set<string>()
   let totalQuota = 0
   let totalTimes = 0
@@ -240,7 +240,7 @@ function processChartData(data: QuotaDataItem[], granularity: string): ChartData
   if (allRank.length > MAX_RANK) {
     const top = allRank.slice(0, MAX_RANK)
     const otherCount = allRank.slice(MAX_RANK).reduce((s, i) => s + i.Count, 0)
-    rankData = [...top, { Model: '其他', Count: otherCount }]
+    rankData = [...top, { Model: otherLabel, Count: otherCount }]
   } else {
     rankData = allRank
   }
@@ -333,7 +333,7 @@ export function PortalDataBoard() {
 
   const granularity = modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
 
-  const chartData = useMemo(() => processChartData(modelData, granularity), [modelData, granularity])
+  const chartData = useMemo(() => processChartData(modelData, granularity, t('Other')), [modelData, granularity, t])
 
   const safeDivide = (a: number, b: number) => (b === 0 ? 0 : a / b)
   const avgRPM = safeDivide(stats?.totalCount ?? 0, timeRangeMinutes).toFixed(3)

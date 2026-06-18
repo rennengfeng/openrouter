@@ -168,15 +168,6 @@ export async function getFrontendModels(): Promise<FrontendModelsPayload> {
 // Dashboard → FrontendDashboardPayload
 // ----------------------------------------------------------------------------
 
-type RawSelfStatItem = {
-  count?: number
-  quota?: number
-  prompt_tokens?: number
-  completion_tokens?: number
-  rpm?: number
-  tpm?: number
-}
-
 /**
  * Aggregate /api/user/self + /api/log/self/stat (today) + /api/notice +
  * /api/user/models + /api/uptime/status into the portal-shaped dashboard.
@@ -225,20 +216,31 @@ async function safeGetSelfStatToday(): Promise<{
     start.setHours(0, 0, 0, 0)
     const end = new Date()
     end.setHours(23, 59, 59, 999)
-    const res = await api.get('/api/log/self/stat', {
+    // Use /api/data/self (per-bucket rows) and sum — this gives real today
+    // totals. /api/log/self/stat only returns trailing-60s rpm/tpm rates plus
+    // quota, NOT period totals, so it must not be used for "today" counts.
+    const res = await api.get('/api/data/self', {
       params: {
-        type: 0,
         start_timestamp: Math.floor(start.getTime() / 1000),
         end_timestamp: Math.floor(end.getTime() / 1000),
+        default_time: 'hour',
       },
       skipErrorHandler: true,
     } as Record<string, unknown>)
-    const item = (res.data?.data ?? {}) as RawSelfStatItem
-    return {
-      requests: item.rpm ?? item.count ?? 0,
-      tokens: item.tpm ?? ((item.prompt_tokens ?? 0) + (item.completion_tokens ?? 0)),
-      quota: item.quota ?? 0,
-    }
+    const rows = (res.data?.data ?? []) as Array<{
+      count?: number
+      token_used?: number
+      quota?: number
+    }>
+    return rows.reduce<{ requests: number; tokens: number; quota: number }>(
+      (acc, item) => {
+        acc.requests += Number(item.count) || 0
+        acc.tokens += Number(item.token_used) || 0
+        acc.quota += Number(item.quota) || 0
+        return acc
+      },
+      { requests: 0, tokens: 0, quota: 0 }
+    )
   } catch {
     return { requests: 0, tokens: 0, quota: 0 }
   }

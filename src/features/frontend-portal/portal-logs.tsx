@@ -181,10 +181,6 @@ export function PortalLogs() {
     [/bad response/gi, 'portal.page.logs.phrase.badResponse'],
     [/status[_ ]code/gi, 'portal.page.logs.phrase.statusCode'],
     [/openai_error/gi, 'portal.page.logs.phrase.openaiError'],
-    // 生图日志详情标签（大小 1024x1024, 品质 standard, 生成数量 1）。生成数量须先于单独的数量匹配。
-    [/生成数量/g, 'portal.page.logs.phrase.imageQuantity'],
-    [/大小/g, 'portal.page.logs.phrase.imageSize'],
-    [/品质/g, 'portal.page.logs.phrase.imageQuality'],
   ]
   const translateLogContent = (content?: string): string => {
     if (!content) return content ?? ''
@@ -291,17 +287,30 @@ export function PortalLogs() {
       } else {
         const days = granularity === 'week' ? 4 : 7
         for (let i = days - 1; i >= 0; i--) {
-          result.push({ date: now.subtract(i, granularity === 'week' ? 'week' : 'day').format('MM-DD'), requests: 0, errors: 0 })
+          const d =
+            granularity === 'week'
+              ? now.subtract(i, 'week').startOf('week')
+              : now.subtract(i, 'day')
+          result.push({ date: d.format('MM-DD'), requests: 0, errors: 0 })
         }
       }
       return result
     }
     const grouped: Record<string, { requests: number; errors: number }> = {}
     for (const item of chartRawData) {
+      const ts = item.created_at
+        ? dayjs.unix(item.created_at)
+        : item.date
+          ? dayjs(item.date)
+          : null
       const date = item.date ?? (item.created_at ? dayjs.unix(item.created_at).format('YYYY-MM-DD HH:mm') : '')
       let key: string
       if (granularity === 'hour') {
         key = date.length >= 13 ? date.slice(11, 16) : date.length > 5 ? date.slice(5) : date
+      } else if (granularity === 'week') {
+        // Backend ignores default_time and returns daily rows, so bucket into
+        // week-start days here to make the "week" view actually weekly.
+        key = ts && ts.isValid() ? ts.startOf('week').format('MM-DD') : date.length > 5 ? date.slice(5, 10) : date
       } else {
         key = date.length > 5 ? date.slice(5, 10) : date
       }
