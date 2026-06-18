@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import {
   IconDiscord,
   IconGithub,
@@ -171,6 +172,13 @@ export function OAuthProviders({
             onAuth={handleTelegramLogin}
             disabled={disabled || isLoading}
             label={t('Continue with Telegram')}
+            onDisabledClick={() =>
+              toast.info(
+                t(
+                  'Please read and agree to the User Agreement and Privacy Policy first'
+                )
+              )
+            }
           />
         )}
       </div>

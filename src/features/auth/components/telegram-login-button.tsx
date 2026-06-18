@@ -34,8 +34,10 @@ export type TelegramAuthData = {
 type TelegramLoginButtonProps = {
   botName: string
   onAuth: (data: TelegramAuthData) => void
-  /** Disable the button (e.g. legal consent not yet given) */
+  /** When true, block clicks (e.g. legal consent not yet given) */
   disabled?: boolean
+  /** Called when the user clicks while disabled (e.g. to show a hint) */
+  onDisabledClick?: () => void
   label: string
   /** 'write' to request the ability to send messages, omit otherwise */
   requestAccess?: 'write'
@@ -46,16 +48,23 @@ type TelegramLoginButtonProps = {
 let telegramCallbackSeq = 0
 
 /**
- * A Telegram login button that visually matches the other OAuth buttons
- * (outline style), while still using Telegram's official auth widget.
+ * A Telegram login button that looks exactly like the other OAuth buttons
+ * (outline style, icon + label) but is driven by Telegram's OFFICIAL widget.
  *
- * Technique: a styled outline button is always rendered as the visible layer.
- * The real Telegram widget iframe is injected once into a transparent overlay
- * stacked on top of the button (so toggling consent never re-loads it — no
- * flicker). The transparent iframe is scaled up to cover the whole button so
- * a click anywhere triggers Telegram's auth popup. When `disabled`, the overlay
- * is click-through (pointer-events: none) and the button shows its disabled
- * state, exactly like the other OAuth providers.
+ * How it stays clickable AND custom-styled:
+ *  - The visible layer is our own outline <Button>.
+ *  - Telegram's official widget is injected once and overlaid on top at
+ *    opacity 0. Opacity-0 elements still receive pointer events, so clicking
+ *    the (invisible) Telegram button triggers its auth popup.
+ *  - Crucially we do NOT apply any CSS transform to the iframe. Scaling a
+ *    cross-origin iframe breaks click-coordinate mapping (that was the cause of
+ *    the earlier "can't click" bug). At natural size the click lands correctly.
+ *  - The widget is rendered with the largest size and centered so its clickable
+ *    area covers the button's center (where the icon + label sit).
+ *
+ * Legal-consent gating: while `disabled`, the overlay is click-through
+ * (pointer-events: none), the visible button shows its disabled state, and a
+ * separate transparent blocker calls `onDisabledClick` (e.g. a toast).
  *
  * Note: the bot must have its domain configured via BotFather (/setdomain),
  * and the page must be served over HTTPS on that exact domain — otherwise the
@@ -65,6 +74,7 @@ export function TelegramLoginButton({
   botName,
   onAuth,
   disabled = false,
+  onDisabledClick,
   label,
   requestAccess,
 }: TelegramLoginButtonProps) {
@@ -96,42 +106,9 @@ export function TelegramLoginButton({
 
     container.appendChild(script)
 
-    // Once Telegram injects its iframe, scale it so its (invisible) clickable
-    // area exactly covers the button beneath it. We measure both boxes and use
-    // the larger ratio so there are no dead zones, while keeping the scale as
-    // small as possible — large scale factors break click-coordinate mapping
-    // on cross-origin iframes.
-    const fitIframe = (iframe: HTMLIFrameElement) => {
-      const iw = iframe.offsetWidth || 1
-      const ih = iframe.offsetHeight || 1
-      const cw = container.clientWidth || iw
-      const ch = container.clientHeight || ih
-      const scale = Math.max(cw / iw, ch / ih) * 1.15
-      iframe.style.transformOrigin = 'center'
-      iframe.style.transform = `scale(${scale})`
-    }
-
-    const observer = new MutationObserver(() => {
-      const iframe = container.querySelector<HTMLIFrameElement>('iframe')
-      if (iframe) {
-        // The iframe may report 0 size until Telegram finishes rendering; retry.
-        if (iframe.offsetWidth > 0) {
-          fitIframe(iframe)
-          observer.disconnect()
-        } else {
-          iframe.addEventListener('load', () => fitIframe(iframe), {
-            once: true,
-          })
-          observer.disconnect()
-        }
-      }
-    })
-    observer.observe(container, { childList: true, subtree: true })
-
     return () => {
       container.innerHTML = ''
       delete (window as unknown as Record<string, unknown>)[callbackName]
-      observer.disconnect()
     }
   }, [botName, requestAccess])
 
@@ -148,7 +125,8 @@ export function TelegramLoginButton({
         {label}
       </Button>
 
-      {/* Transparent Telegram widget overlay (click target). Loaded once. */}
+      {/* Official Telegram widget overlay — transparent, natural size, centered.
+          No transform, so clicks map correctly. Loaded once (no flicker). */}
       <div
         ref={overlayRef}
         aria-hidden='true'
@@ -158,6 +136,16 @@ export function TelegramLoginButton({
           pointerEvents: disabled ? 'none' : 'auto',
         }}
       />
+
+      {/* Consent gate: transparent click-blocker shown only while disabled */}
+      {disabled && (
+        <button
+          type='button'
+          aria-label='Telegram login disabled'
+          onClick={onDisabledClick}
+          className='absolute inset-0 z-20 cursor-not-allowed bg-transparent'
+        />
+      )}
     </div>
   )
 }
