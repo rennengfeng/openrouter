@@ -212,7 +212,17 @@ export function useOAuthLogin(status: SystemStatus | null) {
 
       const res = await telegramLogin(params)
       if (!res.success) {
-        toast.error(res.message || t('Telegram login failed'))
+        // Provide a helpful error message for unbound accounts
+        const errorMsg = res.message || ''
+        if (errorMsg.includes('未绑定') || errorMsg.includes('not bound')) {
+          toast.error(
+            t(
+              'This Telegram account is not linked. Please sign up first and link your Telegram in Account Settings.'
+            )
+          )
+        } else {
+          toast.error(errorMsg || t('Telegram login failed'))
+        }
         return
       }
 

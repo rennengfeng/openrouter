@@ -20,6 +20,7 @@ import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { Skeleton } from '@/components/ui/skeleton'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 type AuthLayoutProps = {
   children: React.ReactNode
@@ -34,7 +35,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(99,102,241,0.08),transparent_50%),radial-gradient(circle_at_70%_60%,rgba(139,92,246,0.06),transparent_50%)]" />
 
-      {/* Header */}
+      {/* Header: brand (top-left) — links to home, consistent with other pages */}
       <Link
         to='/'
         className='absolute top-6 left-6 z-10 flex items-center gap-2.5 transition-opacity hover:opacity-80 sm:top-8 sm:left-8'
@@ -53,9 +54,16 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         {loading ? (
           <Skeleton className='h-6 w-28' />
         ) : (
-          <h1 className='text-xl font-bold tracking-tight text-white'>{systemName}</h1>
+          <h1 className='text-xl font-bold tracking-tight text-white'>
+            {systemName}
+          </h1>
         )}
       </Link>
+
+      {/* Header: language switcher (top-right) */}
+      <div className='absolute top-6 right-6 z-10 sm:top-8 sm:right-8'>
+        <LanguageSwitcher />
+      </div>
 
       {/* Content */}
       <div className='container relative z-10 flex items-center justify-center pt-16 sm:pt-0'>

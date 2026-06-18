@@ -32,6 +32,8 @@ export type TelegramAuthData = {
 type TelegramLoginButtonProps = {
   botName: string
   onAuth: (data: TelegramAuthData) => void
+  /** Callback fired before the Telegram popup opens — return false to cancel */
+  onBeforeAuth?: () => boolean
   /** 'write' to request the ability to send messages, omit otherwise */
   requestAccess?: 'write'
   /** Telegram widget button size */
@@ -53,6 +55,8 @@ let telegramCallbackSeq = 0
  * widget calls our global callback with the signed auth payload, which we hand
  * back to the parent via `onAuth`.
  *
+ * `onBeforeAuth` is called before opening the popup — return false to cancel.
+ *
  * Note: the bot must have its domain configured via BotFather (/setdomain),
  * and the page must be served over HTTPS on that exact domain — otherwise the
  * widget silently refuses to render.
@@ -60,16 +64,18 @@ let telegramCallbackSeq = 0
 export function TelegramLoginButton({
   botName,
   onAuth,
+  onBeforeAuth,
   requestAccess,
   buttonSize = 'large',
   cornerRadius,
-  showUserPhoto = true,
+  showUserPhoto = false,
   className,
 }: TelegramLoginButtonProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  // Keep the latest onAuth without re-injecting the script on every render.
   const onAuthRef = useRef(onAuth)
+  const onBeforeAuthRef = useRef(onBeforeAuth)
   onAuthRef.current = onAuth
+  onBeforeAuthRef.current = onBeforeAuth
 
   useEffect(() => {
     if (!botName || !containerRef.current) return
@@ -80,6 +86,10 @@ export function TelegramLoginButton({
     ;(window as unknown as Record<string, unknown>)[callbackName] = (
       user: TelegramAuthData
     ) => {
+      // Intercept: check onBeforeAuth first
+      if (onBeforeAuthRef.current && !onBeforeAuthRef.current()) {
+        return
+      }
       onAuthRef.current(user)
     }
 
