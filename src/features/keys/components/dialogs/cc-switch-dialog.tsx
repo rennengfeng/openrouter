@@ -154,11 +154,11 @@ export function CCSwitchDialog(props: Props) {
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
-        className='sm:max-w-md text-foreground'
+        className='sm:max-w-md bg-white text-gray-900'
         style={{ ...LIGHT_THEME_STYLE, '--primary': '#8b5cf6', '--primary-foreground': '#ffffff', '--accent': 'rgba(139,92,246,0.12)', '--accent-foreground': '#7c3aed', '--ring': '#8b5cf6' } as React.CSSProperties}
       >
         <DialogHeader>
-          <DialogTitle>{t('Import to CC Switch')}</DialogTitle>
+          <DialogTitle className='text-gray-900'>{t('Import to CC Switch')}</DialogTitle>
         </DialogHeader>
 
         <div className='space-y-4'>

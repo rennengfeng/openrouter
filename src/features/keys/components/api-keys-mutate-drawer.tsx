@@ -92,14 +92,14 @@ function ApiKeyFormSection(props: ApiKeyFormSectionProps) {
   const Icon = props.icon
 
   return (
-    <section className='bg-card rounded-lg border'>
-      <div className='flex items-center gap-2.5 border-b px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3'>
-        <div className='bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-lg border sm:size-10'>
+    <section className='rounded-lg border border-gray-200 bg-white'>
+      <div className='flex items-center gap-2.5 border-b border-gray-200 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3'>
+        <div className='flex size-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-gray-600 sm:size-10'>
           <Icon className='size-4 sm:size-5' />
         </div>
         <div className='min-w-0'>
-          <h3 className='text-sm leading-none font-medium'>{props.title}</h3>
-          <p className='text-muted-foreground mt-0.5 text-xs sm:mt-1'>
+          <h3 className='text-sm leading-none font-medium text-gray-900'>{props.title}</h3>
+          <p className='mt-0.5 text-xs text-gray-500 sm:mt-1'>
             {props.description}
           </p>
         </div>
@@ -244,13 +244,13 @@ export function ApiKeysMutateDrawer({
       <SheetContent
         side={side}
         style={LIGHT_THEME_STYLE}
-        className='bg-background text-foreground flex !h-dvh !w-screen max-w-none gap-0 overflow-hidden p-0 sm:!w-full sm:!max-w-[620px]'
+        className='flex !h-dvh !w-screen max-w-none gap-0 overflow-hidden bg-white p-0 text-gray-900 sm:!w-full sm:!max-w-[620px]'
       >
-        <SheetHeader className='bg-background border-b px-4 py-3 text-start sm:px-5 sm:py-4'>
-          <SheetTitle className='text-base sm:text-lg'>
+        <SheetHeader className='border-b border-gray-200 bg-white px-4 py-3 text-start sm:px-5 sm:py-4'>
+          <SheetTitle className='text-base text-gray-900 sm:text-lg'>
             {isUpdate ? t('Update API Key') : t('Create API Key')}
           </SheetTitle>
-          <SheetDescription className='pr-6 text-xs sm:text-sm'>
+          <SheetDescription className='pr-6 text-xs text-gray-500 sm:text-sm'>
             {isUpdate
               ? t('Update the API key by providing necessary info.')
               : t('Add a new API key by providing necessary info.')}{' '}
@@ -432,35 +432,35 @@ export function ApiKeysMutateDrawer({
             </ApiKeyFormSection>
 
             <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-              <section className='bg-card rounded-lg border'>
+              <section className='rounded-lg border border-gray-200 bg-white'>
                 <CollapsibleTrigger
                   render={
                     <button
                       type='button'
-                      className='hover:bg-muted/50 flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors sm:gap-3 sm:px-4 sm:py-3'
+                      className='flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-gray-50 sm:gap-3 sm:px-4 sm:py-3'
                     />
                   }
                 >
-                  <div className='bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-lg border sm:size-10'>
+                  <div className='flex size-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-gray-600 sm:size-10'>
                     <Settings2 className='size-4 sm:size-5' />
                   </div>
                   <div className='min-w-0 flex-1'>
-                    <h3 className='text-sm leading-none font-medium'>
+                    <h3 className='text-sm leading-none font-medium text-gray-900'>
                       {t('Advanced Settings')}
                     </h3>
-                    <p className='text-muted-foreground mt-1 text-xs'>
+                    <p className='mt-1 text-xs text-gray-500'>
                       {t('Set API key access restrictions')}
                     </p>
                   </div>
                   <ChevronDown
                     className={cn(
-                      'text-muted-foreground size-4 shrink-0 transition-transform',
+                      'size-4 shrink-0 text-gray-400 transition-transform',
                       advancedOpen && 'rotate-180'
                     )}
                   />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className='space-y-3 border-t p-3 sm:space-y-4 sm:p-4'>
+                  <div className='space-y-3 border-t border-gray-200 p-3 sm:space-y-4 sm:p-4'>
                     <FormField
                       control={form.control}
                       name='model_limits'
@@ -521,7 +521,7 @@ export function ApiKeysMutateDrawer({
             </Collapsible>
           </form>
         </Form>
-        <SheetFooter className='bg-background grid grid-cols-2 gap-2 border-t px-3 py-3 sm:flex sm:flex-row sm:justify-end sm:px-5 sm:py-4'>
+        <SheetFooter className='grid grid-cols-2 gap-2 border-t border-gray-200 bg-white px-3 py-3 sm:flex sm:flex-row sm:justify-end sm:px-5 sm:py-4'>
           <SheetClose
             render={<Button variant='outline' className='w-full sm:w-auto' />}
           >
