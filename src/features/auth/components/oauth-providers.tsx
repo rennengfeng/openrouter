@@ -18,7 +18,6 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Send } from 'lucide-react'
 import {
   IconDiscord,
   IconGithub,
@@ -167,26 +166,12 @@ export function OAuthProviders({
         )}
 
         {showTelegram && (
-          <div className='flex justify-center'>
-            {disabled || isLoading ? (
-              // Show a disabled placeholder button when legal consent is not checked
-              <Button
-                variant='outline'
-                type='button'
-                disabled
-                className='h-11 w-full justify-center gap-2 rounded-lg'
-              >
-                <Send className='h-4 w-4' />
-                {t('Continue with Telegram')}
-              </Button>
-            ) : (
-              // Render the real Telegram widget only when enabled
-              <TelegramLoginButton
-                botName={status!.telegram_bot_name!}
-                onAuth={handleTelegramLogin}
-              />
-            )}
-          </div>
+          <TelegramLoginButton
+            botName={status!.telegram_bot_name!}
+            onAuth={handleTelegramLogin}
+            disabled={disabled || isLoading}
+            label={t('Continue with Telegram')}
+          />
         )}
       </div>
     </div>

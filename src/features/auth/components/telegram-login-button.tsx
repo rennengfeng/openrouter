@@ -17,6 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect, useRef } from 'react'
+import { Send } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export type TelegramAuthData = {
   id: number | string
@@ -32,17 +34,11 @@ export type TelegramAuthData = {
 type TelegramLoginButtonProps = {
   botName: string
   onAuth: (data: TelegramAuthData) => void
-  /** Callback fired before the Telegram popup opens — return false to cancel */
-  onBeforeAuth?: () => boolean
+  /** Disable the button (e.g. legal consent not yet given) */
+  disabled?: boolean
+  label: string
   /** 'write' to request the ability to send messages, omit otherwise */
   requestAccess?: 'write'
-  /** Telegram widget button size */
-  buttonSize?: 'large' | 'medium' | 'small'
-  /** corner radius of the widget button, in px */
-  cornerRadius?: number
-  /** show the user's avatar next to the button */
-  showUserPhoto?: boolean
-  className?: string
 }
 
 // Telegram's widget invokes a global callback by name. Keep a stable, unique
@@ -50,12 +46,16 @@ type TelegramLoginButtonProps = {
 let telegramCallbackSeq = 0
 
 /**
- * Renders the official Telegram Login Widget by injecting
- * https://telegram.org/js/telegram-widget.js. When the user authorizes, the
- * widget calls our global callback with the signed auth payload, which we hand
- * back to the parent via `onAuth`.
+ * A Telegram login button that visually matches the other OAuth buttons
+ * (outline style), while still using Telegram's official auth widget.
  *
- * `onBeforeAuth` is called before opening the popup — return false to cancel.
+ * Technique: a styled outline button is always rendered as the visible layer.
+ * The real Telegram widget iframe is injected once into a transparent overlay
+ * stacked on top of the button (so toggling consent never re-loads it — no
+ * flicker). The transparent iframe is scaled up to cover the whole button so
+ * a click anywhere triggers Telegram's auth popup. When `disabled`, the overlay
+ * is click-through (pointer-events: none) and the button shows its disabled
+ * state, exactly like the other OAuth providers.
  *
  * Note: the bot must have its domain configured via BotFather (/setdomain),
  * and the page must be served over HTTPS on that exact domain — otherwise the
@@ -64,32 +64,23 @@ let telegramCallbackSeq = 0
 export function TelegramLoginButton({
   botName,
   onAuth,
-  onBeforeAuth,
+  disabled = false,
+  label,
   requestAccess,
-  buttonSize = 'large',
-  cornerRadius,
-  showUserPhoto = false,
-  className,
 }: TelegramLoginButtonProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
+  const overlayRef = useRef<HTMLDivElement | null>(null)
   const onAuthRef = useRef(onAuth)
-  const onBeforeAuthRef = useRef(onBeforeAuth)
   onAuthRef.current = onAuth
-  onBeforeAuthRef.current = onBeforeAuth
 
   useEffect(() => {
-    if (!botName || !containerRef.current) return
+    if (!botName || !overlayRef.current) return
 
-    const container = containerRef.current
+    const container = overlayRef.current
     const callbackName = `__onTelegramAuth_${telegramCallbackSeq++}`
 
     ;(window as unknown as Record<string, unknown>)[callbackName] = (
       user: TelegramAuthData
     ) => {
-      // Intercept: check onBeforeAuth first
-      if (onBeforeAuthRef.current && !onBeforeAuthRef.current()) {
-        return
-      }
       onAuthRef.current(user)
     }
 
@@ -97,21 +88,56 @@ export function TelegramLoginButton({
     script.src = 'https://telegram.org/js/telegram-widget.js?22'
     script.async = true
     script.setAttribute('data-telegram-login', botName)
-    script.setAttribute('data-size', buttonSize)
+    script.setAttribute('data-size', 'large')
     script.setAttribute('data-onauth', `${callbackName}(user)`)
     script.setAttribute('data-request-access', requestAccess ?? '')
-    script.setAttribute('data-userpic', showUserPhoto ? 'true' : 'false')
-    if (typeof cornerRadius === 'number') {
-      script.setAttribute('data-radius', String(cornerRadius))
-    }
+    script.setAttribute('data-userpic', 'false')
+    script.setAttribute('data-radius', '8')
 
     container.appendChild(script)
+
+    // Once Telegram injects its iframe, scale it up so the (invisible) clickable
+    // area covers the whole button beneath it.
+    const observer = new MutationObserver(() => {
+      const iframe = container.querySelector<HTMLIFrameElement>('iframe')
+      if (iframe) {
+        iframe.style.transform = 'scale(6)'
+        iframe.style.transformOrigin = 'center'
+        observer.disconnect()
+      }
+    })
+    observer.observe(container, { childList: true, subtree: true })
 
     return () => {
       container.innerHTML = ''
       delete (window as unknown as Record<string, unknown>)[callbackName]
+      observer.disconnect()
     }
-  }, [botName, buttonSize, cornerRadius, requestAccess, showUserPhoto])
+  }, [botName, requestAccess])
 
-  return <div ref={containerRef} className={className} />
+  return (
+    <div className='relative w-full'>
+      {/* Visible styled button — matches the other OAuth providers */}
+      <Button
+        variant='outline'
+        type='button'
+        disabled={disabled}
+        className='h-11 w-full justify-center gap-2 rounded-lg'
+      >
+        <Send className='h-4 w-4' />
+        {label}
+      </Button>
+
+      {/* Transparent Telegram widget overlay (click target). Loaded once. */}
+      <div
+        ref={overlayRef}
+        aria-hidden='true'
+        className='absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg'
+        style={{
+          opacity: 0,
+          pointerEvents: disabled ? 'none' : 'auto',
+        }}
+      />
+    </div>
+  )
 }
