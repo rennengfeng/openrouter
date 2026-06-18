@@ -5036,6 +5036,9 @@
         "portal.page.chat.err.modelUnavailable": "The model is temporarily unavailable. Please try again later or switch to another model.",
         "portal.page.models.perCall": "call",
         "portal.page.home.card.recentTokens": "Tokens (30d)",
-        "portal.page.home.card.recentTokensDesc": "Tokens used in the last 30 days"
+        "portal.page.home.card.recentTokensDesc": "Tokens used in the last 30 days",
+        "portal.page.logs.phrase.imgSize": "Size",
+        "portal.page.logs.phrase.imgQuality": "Quality",
+        "portal.page.logs.phrase.imgCount": "Count"
     }
 }

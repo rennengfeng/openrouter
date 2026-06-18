@@ -161,7 +161,8 @@ export function PortalLogs() {
       }
       if (keyFilter) params.token_name = keyFilter
       if (modelFilter) params.model_name = modelFilter
-      if (statusFilter && statusFilter !== 'all') params.type = statusFilter === 'success' ? 0 : 1
+      // 使用日志只展示请求类日志：消费(2)/错误(5)，排除充值(1)/管理(3)/系统(4)/退款(6)
+      params.type = statusFilter === 'error' ? 5 : 2
       const res = await api.get('/api/log/self/stat', { params })
       return res.data?.data as { quota?: number; rpm?: number; tpm?: number } | undefined
     },
@@ -181,6 +182,10 @@ export function PortalLogs() {
     [/bad response/gi, 'portal.page.logs.phrase.badResponse'],
     [/status[_ ]code/gi, 'portal.page.logs.phrase.statusCode'],
     [/openai_error/gi, 'portal.page.logs.phrase.openaiError'],
+    // 图片生成日志详情（消费日志 content）：大小 1024x1024, 品质 standard, 生成数量 1
+    [/大小/g, 'portal.page.logs.phrase.imgSize'],
+    [/品质/g, 'portal.page.logs.phrase.imgQuality'],
+    [/生成数量/g, 'portal.page.logs.phrase.imgCount'],
   ]
   const translateLogContent = (content?: string): string => {
     if (!content) return content ?? ''
@@ -243,7 +248,8 @@ export function PortalLogs() {
       }
       if (keyFilter) params.token_name = keyFilter
       if (modelFilter) params.model_name = modelFilter
-      if (statusFilter && statusFilter !== 'all') params.type = statusFilter === 'success' ? 0 : 1
+      // 使用日志只展示请求类日志：消费(2)/错误(5)，排除充值(1)/管理(3)/系统(4)/退款(6)
+      params.type = statusFilter === 'error' ? 5 : 2
       const res = await api.get('/api/log/self', { params })
       return res.data?.data as { items?: LogItem[]; total?: number } | undefined
     },
@@ -514,7 +520,7 @@ export function PortalLogs() {
               </thead>
               <tbody>
                 {logs.map((log) => {
-                  const isError = log.type === 1
+                  const isError = log.type === 5
                   const isExpanded = expandedId === log.id
                   const totalTokens = (log.prompt_tokens ?? 0) + (log.completion_tokens ?? 0)
                   const cost = (log.quota ?? 0) / 500000

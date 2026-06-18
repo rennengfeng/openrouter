@@ -4537,6 +4537,9 @@
         "portal.page.chat.err.modelUnavailable": "Mô hình tạm thời không khả dụng. Vui lòng thử lại sau hoặc chuyển sang mô hình khác.",
         "portal.page.models.perCall": "lần",
         "portal.page.home.card.recentTokens": "Token (30 ngày)",
-        "portal.page.home.card.recentTokensDesc": "Token đã dùng trong 30 ngày qua"
+        "portal.page.home.card.recentTokensDesc": "Token đã dùng trong 30 ngày qua",
+        "portal.page.logs.phrase.imgSize": "Kích thước",
+        "portal.page.logs.phrase.imgQuality": "Chất lượng",
+        "portal.page.logs.phrase.imgCount": "Số lượng"
     }
 }

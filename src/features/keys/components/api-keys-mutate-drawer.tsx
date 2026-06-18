@@ -72,6 +72,7 @@ import {
 } from '../lib'
 import { type ApiKey } from '../types'
 import { useApiKeys } from './api-keys-provider'
+import { LIGHT_THEME_STYLE } from '@/lib/force-light'
 
 type ApiKeyMutateDrawerProps = {
   open: boolean
@@ -242,6 +243,7 @@ export function ApiKeysMutateDrawer({
     >
       <SheetContent
         side={side}
+        style={LIGHT_THEME_STYLE}
         className='bg-background flex !h-dvh !w-screen max-w-none gap-0 overflow-hidden p-0 sm:!w-full sm:!max-w-[620px]'
       >
         <SheetHeader className='bg-background border-b px-4 py-3 text-start sm:px-5 sm:py-4'>

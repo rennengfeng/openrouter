@@ -384,15 +384,35 @@ export function ModelSquare() {
                 <h3 className="text-sm font-semibold text-gray-900">{t('API Endpoint')}</h3>
               </div>
               <p className="mb-3 text-xs text-gray-400">{t('Supported endpoint types for this model')}</p>
-              {(selectedModel.model.supported_endpoint_types ?? ['openai: /v1/chat/completions']).map((ep, i) => (
-                <div key={i} className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-green-400" />
-                    <span className="text-gray-700">{typeof ep === 'string' ? ep : `openai: /v1/chat/completions`}</span>
+              {(() => {
+                const epMap = (payload?.supported_endpoint ?? {}) as Record<
+                  string,
+                  { path?: string; method?: string }
+                >
+                const types = selectedModel.model.supported_endpoint_types ?? []
+                const eps = types.map((type) => {
+                  const info = epMap[type] || {}
+                  const path = (info.path || '').replace(
+                    /\{model\}/g,
+                    selectedModel.model.model_name || ''
+                  )
+                  return { type, path, method: info.method || 'POST' }
+                })
+                return eps.map((ep) => (
+                  <div key={ep.type} className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-green-400" />
+                      <span className="text-gray-700">
+                        {ep.type}
+                        {ep.path && (
+                          <span className="ml-1 font-mono text-gray-500">{ep.path}</span>
+                        )}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-400">{ep.method}</span>
                   </div>
-                  <span className="text-xs text-gray-400">POST</span>
-                </div>
-              ))}
+                ))
+              })()}
             </div>
 
             {/* Pricing Section */}

@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { PortalLayout } from '@/features/frontend-portal/portal-layout'
+import { PortalTopBar } from '@/features/frontend-portal/portal-top-bar'
 import { PublicLayout } from '@/components/layout'
 import { useAuthStore } from '@/stores/auth-store'
 import { getSelf } from '@/lib/api'
@@ -47,10 +48,14 @@ export const Route = createFileRoute('/portal')({
 function PortalRoute() {
   const user = useAuthStore((s) => s.auth.user)
 
-  // 未登录访客（仅会停留在公开模型广场）使用二开精简公共外壳，无侧边栏
+  // 未登录访客（仅会停留在公开模型广场）使用与「关于/隐私」页一致的锁定顶栏
+  // （PortalTopBar：左 logo / 右 中EN RU + 登录，左右分居、固定不变）
   if (!user) {
     return (
-      <PublicLayout headerProps={{ showNavigation: false }}>
+      <PublicLayout
+        header={<PortalTopBar />}
+        headerProps={{ showNavigation: false, lockHeader: true }}
+      >
         <Outlet />
       </PublicLayout>
     )

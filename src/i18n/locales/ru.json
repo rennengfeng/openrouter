@@ -5050,6 +5050,9 @@
         "portal.page.chat.err.modelUnavailable": "Модель временно недоступна. Повторите позже или выберите другую модель.",
         "portal.page.models.perCall": "вызов",
         "portal.page.home.card.recentTokens": "Токены (30 дн.)",
-        "portal.page.home.card.recentTokensDesc": "Токены за последние 30 дней"
+        "portal.page.home.card.recentTokensDesc": "Токены за последние 30 дней",
+        "portal.page.logs.phrase.imgSize": "Размер",
+        "portal.page.logs.phrase.imgQuality": "Качество",
+        "portal.page.logs.phrase.imgCount": "Количество"
     }
 }

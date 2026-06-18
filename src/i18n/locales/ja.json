@@ -4537,6 +4537,9 @@
         "portal.page.chat.err.modelUnavailable": "モデルは一時的に利用できません。後でもう一度お試しいただくか、別のモデルに切り替えてください。",
         "portal.page.models.perCall": "回",
         "portal.page.home.card.recentTokens": "トークン（30日）",
-        "portal.page.home.card.recentTokensDesc": "過去30日間に使用したトークン"
+        "portal.page.home.card.recentTokensDesc": "過去30日間に使用したトークン",
+        "portal.page.logs.phrase.imgSize": "サイズ",
+        "portal.page.logs.phrase.imgQuality": "品質",
+        "portal.page.logs.phrase.imgCount": "生成数"
     }
 }

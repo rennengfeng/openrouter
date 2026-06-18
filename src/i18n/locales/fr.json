@@ -4537,6 +4537,9 @@
         "portal.page.chat.err.modelUnavailable": "Le modèle est temporairement indisponible. Réessayez plus tard ou changez de modèle.",
         "portal.page.models.perCall": "appel",
         "portal.page.home.card.recentTokens": "Tokens (30 j)",
-        "portal.page.home.card.recentTokensDesc": "Tokens utilisés ces 30 derniers jours"
+        "portal.page.home.card.recentTokensDesc": "Tokens utilisés ces 30 derniers jours",
+        "portal.page.logs.phrase.imgSize": "Taille",
+        "portal.page.logs.phrase.imgQuality": "Qualité",
+        "portal.page.logs.phrase.imgCount": "Quantité"
     }
 }
