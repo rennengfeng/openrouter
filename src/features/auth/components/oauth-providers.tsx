@@ -54,7 +54,7 @@ export function OAuthProviders({
   onWeChatLogin,
   isWeChatLoading = false,
 }: OAuthProvidersProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const {
     isLoading,
     githubButtonText,
@@ -131,7 +131,7 @@ export function OAuthProviders({
   }
 
   const showTelegram = Boolean(
-    status?.telegram_oauth && status?.telegram_bot_name
+    status?.telegram_oauth && status?.telegram_bot_id
   )
 
   if (providerButtons.length === 0 && !showTelegram) return null
@@ -168,10 +168,11 @@ export function OAuthProviders({
 
         {showTelegram && (
           <TelegramLoginButton
-            botName={status!.telegram_bot_name!}
+            botId={status!.telegram_bot_id!}
             onAuth={handleTelegramLogin}
             disabled={disabled || isLoading}
             label={t('Continue with Telegram')}
+            lang={i18n.language}
             onDisabledClick={() =>
               toast.info(
                 t(

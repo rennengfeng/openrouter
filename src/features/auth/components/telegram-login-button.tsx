@@ -16,8 +16,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { Send } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 export type TelegramAuthData = {
@@ -31,121 +32,149 @@ export type TelegramAuthData = {
   [key: string]: unknown
 }
 
+type TelegramLoginOptions = {
+  bot_id: string | number
+  request_access?: string
+  lang?: string
+}
+
+declare global {
+  interface Window {
+    Telegram?: {
+      Login?: {
+        auth: (
+          options: TelegramLoginOptions,
+          callback: (user: TelegramAuthData | false) => void
+        ) => void
+      }
+    }
+  }
+}
+
 type TelegramLoginButtonProps = {
-  botName: string
+  /** Numeric bot id (the part before ':' in the bot token). */
+  botId: string
   onAuth: (data: TelegramAuthData) => void
-  /** When true, block clicks (e.g. legal consent not yet given) */
+  /** When true, show a disabled look and surface onDisabledClick instead of auth */
   disabled?: boolean
   /** Called when the user clicks while disabled (e.g. to show a hint) */
   onDisabledClick?: () => void
   label: string
   /** 'write' to request the ability to send messages, omit otherwise */
   requestAccess?: 'write'
+  /** UI language to localize the Telegram auth popup (e.g. 'en', 'zh') */
+  lang?: string
 }
 
-// Telegram's widget invokes a global callback by name. Keep a stable, unique
-// name per mounted widget so multiple instances don't clobber each other.
-let telegramCallbackSeq = 0
+const WIDGET_SRC = 'https://telegram.org/js/telegram-widget.js?22'
+
+// Load telegram-widget.js exactly once across the app. We only need the script
+// to define `window.Telegram.Login.auth`; we do NOT render Telegram's own blue
+// button. Our styled button calls auth() directly, which opens Telegram's
+// official popup — fully reliable and fully custom-styled.
+let widgetPromise: Promise<void> | null = null
+function ensureTelegramWidget(): Promise<void> {
+  if (widgetPromise) return widgetPromise
+  widgetPromise = new Promise<void>((resolve, reject) => {
+    if (typeof document === 'undefined') {
+      reject(new Error('no document'))
+      return
+    }
+    if (window.Telegram?.Login) {
+      resolve()
+      return
+    }
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src="${WIDGET_SRC}"]`
+    )
+    if (existing) {
+      existing.addEventListener('load', () => resolve())
+      existing.addEventListener('error', () => reject(new Error('load failed')))
+      return
+    }
+    const script = document.createElement('script')
+    script.src = WIDGET_SRC
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('load failed'))
+    document.head.appendChild(script)
+  })
+  return widgetPromise
+}
 
 /**
- * A Telegram login button that looks exactly like the other OAuth buttons
- * (outline style, icon + label) but is driven by Telegram's OFFICIAL widget.
+ * Telegram login button that matches the other OAuth buttons (outline style,
+ * icon + label) and reliably triggers Telegram's official auth popup.
  *
- * How it stays clickable AND custom-styled:
- *  - The visible layer is our own outline <Button>.
- *  - Telegram's official widget is injected once and overlaid on top at
- *    opacity 0. Opacity-0 elements still receive pointer events, so clicking
- *    the (invisible) Telegram button triggers its auth popup.
- *  - Crucially we do NOT apply any CSS transform to the iframe. Scaling a
- *    cross-origin iframe breaks click-coordinate mapping (that was the cause of
- *    the earlier "can't click" bug). At natural size the click lands correctly.
- *  - The widget is rendered with the largest size and centered so its clickable
- *    area covers the button's center (where the icon + label sit).
+ * Implementation: we load telegram-widget.js once (which defines
+ * `window.Telegram.Login.auth`) but never render Telegram's blue widget button.
+ * Our own <Button> calls `Telegram.Login.auth({ bot_id }, cb)` synchronously on
+ * click, opening Telegram's official popup. This avoids the transparent-overlay
+ * clickjacking trick (blocked by browsers/Telegram) entirely.
  *
- * Legal-consent gating: while `disabled`, the overlay is click-through
- * (pointer-events: none), the visible button shows its disabled state, and a
- * separate transparent blocker calls `onDisabledClick` (e.g. a toast).
- *
- * Note: the bot must have its domain configured via BotFather (/setdomain),
- * and the page must be served over HTTPS on that exact domain — otherwise the
- * widget silently refuses to render.
+ * Requires the bot's numeric id (exposed by the backend status as
+ * `telegram_bot_id`) and the bot's domain configured via BotFather (/setdomain)
+ * on the exact HTTPS host.
  */
 export function TelegramLoginButton({
-  botName,
+  botId,
   onAuth,
   disabled = false,
   onDisabledClick,
   label,
   requestAccess,
+  lang,
 }: TelegramLoginButtonProps) {
-  const overlayRef = useRef<HTMLDivElement | null>(null)
-  const onAuthRef = useRef(onAuth)
-  onAuthRef.current = onAuth
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    if (!botName || !overlayRef.current) return
-
-    const container = overlayRef.current
-    const callbackName = `__onTelegramAuth_${telegramCallbackSeq++}`
-
-    ;(window as unknown as Record<string, unknown>)[callbackName] = (
-      user: TelegramAuthData
-    ) => {
-      onAuthRef.current(user)
-    }
-
-    const script = document.createElement('script')
-    script.src = 'https://telegram.org/js/telegram-widget.js?22'
-    script.async = true
-    script.setAttribute('data-telegram-login', botName)
-    script.setAttribute('data-size', 'large')
-    script.setAttribute('data-onauth', `${callbackName}(user)`)
-    script.setAttribute('data-request-access', requestAccess ?? '')
-    script.setAttribute('data-userpic', 'false')
-    script.setAttribute('data-radius', '8')
-
-    container.appendChild(script)
-
+    let mounted = true
+    ensureTelegramWidget()
+      .then(() => {
+        if (mounted) setReady(true)
+      })
+      .catch(() => {
+        /* widget failed to load; button click will no-op */
+      })
     return () => {
-      container.innerHTML = ''
-      delete (window as unknown as Record<string, unknown>)[callbackName]
+      mounted = false
     }
-  }, [botName, requestAccess])
+  }, [])
+
+  const handleClick = () => {
+    if (disabled) {
+      onDisabledClick?.()
+      return
+    }
+    const login = window.Telegram?.Login
+    if (!login || !ready) return
+    // Must be called synchronously within the click gesture so the popup isn't
+    // blocked.
+    login.auth(
+      {
+        bot_id: botId,
+        ...(requestAccess ? { request_access: requestAccess } : {}),
+        ...(lang ? { lang } : {}),
+      },
+      (user) => {
+        if (user) onAuth(user)
+      }
+    )
+  }
 
   return (
-    <div className='relative w-full'>
-      {/* Visible styled button — matches the other OAuth providers */}
-      <Button
-        variant='outline'
-        type='button'
-        disabled={disabled}
-        className='h-11 w-full justify-center gap-2 rounded-lg'
-      >
-        <Send className='h-4 w-4' />
-        {label}
-      </Button>
-
-      {/* Official Telegram widget overlay — transparent, natural size, centered.
-          No transform, so clicks map correctly. Loaded once (no flicker). */}
-      <div
-        ref={overlayRef}
-        aria-hidden='true'
-        className='absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg'
-        style={{
-          opacity: 0,
-          pointerEvents: disabled ? 'none' : 'auto',
-        }}
-      />
-
-      {/* Consent gate: transparent click-blocker shown only while disabled */}
-      {disabled && (
-        <button
-          type='button'
-          aria-label='Telegram login disabled'
-          onClick={onDisabledClick}
-          className='absolute inset-0 z-20 cursor-not-allowed bg-transparent'
-        />
+    <Button
+      variant='outline'
+      type='button'
+      aria-disabled={disabled}
+      onClick={handleClick}
+      className={cn(
+        'h-11 w-full justify-center gap-2 rounded-lg',
+        disabled && 'cursor-not-allowed opacity-50'
       )}
-    </div>
+    >
+      <Send className='h-4 w-4' />
+      {label}
+    </Button>
   )
 }
