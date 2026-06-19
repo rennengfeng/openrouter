@@ -232,7 +232,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                 <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => navigate({ to: '/portal/settings' })}>
+              <DropdownMenuItem onSelect={() => navigate({ to: '/portal' })}>
                 <User className="mr-2 h-4 w-4" />
                 {t('portal.profile')}
               </DropdownMenuItem>

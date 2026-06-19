@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
-import { KeyRound, Search, Plus, CheckCircle, XCircle, Copy, Eye, EyeOff, Loader2, Power, PowerOff, Pencil, Trash2, MoreVertical, Activity, Terminal } from 'lucide-react'
+import { KeyRound, Search, Plus, CheckCircle, XCircle, Copy, Eye, EyeOff, Loader2, Power, PowerOff, Pencil, Trash2, MoreVertical, Terminal } from 'lucide-react'
 import { toast } from 'sonner'
 import { ApiKeysProvider, useApiKeys } from '@/features/keys/components/api-keys-provider'
 import { ApiKeysMutateDrawer } from '@/features/keys/components/api-keys-mutate-drawer'
@@ -322,17 +322,6 @@ function PortalTokensInner() {
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
                                     {t('Edit')}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      // Activity - you can link to a stats page or implement tracking
-                                      setOpenMenuId(null)
-                                    }}
-                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-600 transition hover:bg-gray-50 hover:text-gray-900"
-                                  >
-                                    <Activity className="h-3.5 w-3.5" />
-                                    {t('Activity')}
                                   </button>
                                   <button
                                     type="button"

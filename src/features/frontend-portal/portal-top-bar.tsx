@@ -84,7 +84,7 @@ export function PortalTopBar() {
 
   return (
     <header
-      className="z-30 flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-3 text-gray-900"
+      className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-3 text-gray-900"
       style={{ colorScheme: 'light' } as CSSProperties}
     >
       <Link
@@ -139,7 +139,7 @@ export function PortalTopBar() {
                 </p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => navigate({ to: '/portal/settings' })}>
+              <DropdownMenuItem onSelect={() => navigate({ to: '/portal' })}>
                 <User className="mr-2 h-4 w-4" />
                 {t('portal.profile')}
               </DropdownMenuItem>

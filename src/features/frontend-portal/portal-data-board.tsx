@@ -39,31 +39,78 @@ const DARK_TITLE_STYLE = { textStyle: { fill: 'hsl(var(--foreground))' }, subtex
 const DARK_LEGEND_ITEM = { shape: { style: { symbolType: 'circle' as const } }, label: { style: { fill: 'hsl(var(--foreground))' } } }
 
 
-const MODEL_COLOR_MAP: Record<string, string> = {
-  'gpt-3.5-turbo': 'rgb(184,227,167)',
-  'gpt-4': 'rgb(135,206,235)',
-  'gpt-4o': 'rgb(100,149,237)',
-  'gpt-4o-mini': 'rgb(30,144,255)',
-  'claude-3-opus-20240229': 'rgb(255,132,31)',
-  'claude-3-sonnet-20240229': 'rgb(253,135,93)',
-  'claude-3-haiku-20240307': 'rgb(255,175,146)',
-  'claude-3-5-sonnet-20241022': 'rgb(255,100,50)',
-  'dall-e-3': 'rgb(153,50,204)',
-}
+// Curated, muted palette inspired by design-seeds / colorhunt — teal-led with
+// warm earthy accents (clay, ochre, sage, rose, mauve). Avoids garish primary
+// red / electric blue / saturated purple, AND avoids pale/pastel tones that
+// would wash out on the white chart background — every entry is kept at medium
+// depth so it stays visible.
+//
+// Order is deliberate. The FIRST 10 are a hand-picked "hero" set: well-spaced
+// around the hue wheel and maximally distinct, so the common case (a handful of
+// models) always looks like a balanced, designed palette. Entries 11+ extend it
+// for installs with many models. No per-model hardcoding — each model simply
+// takes the next color in this fixed order as it first appears, so new models
+// are themed automatically without touching code.
+const CHART_PALETTE = [
+  // ── Hero set (1–10): balanced, distinct, the colors most users will see ──
+  '#3f8e8c', //  1 deep teal
+  '#e08a5e', //  2 coral clay
+  '#4a6f93', //  3 dusty blue
+  '#8aa873', //  4 sage green
+  '#e0a94e', //  5 amber gold
+  '#a86d8f', //  6 plum rose
+  '#5fa39a', //  7 jade teal
+  '#d96f68', //  8 terracotta
+  '#3d6b63', //  9 pine teal
+  '#c79a52', // 10 brass ochre
+  // ── Extended set (11–50): same muted, medium-depth register ──
+  '#6b8fb0', // 11 slate blue
+  '#cf8a6a', // 12 clay tan
+  '#7a9e6e', // 13 moss green
+  '#b5728f', // 14 dusty mauve-rose
+  '#4f9d96', // 15 deep aqua
+  '#d98f4e', // 16 ochre orange
+  '#5c7a96', // 17 steel blue
+  '#c06b6b', // 18 brick rose
+  '#6f9e88', // 19 medium seafoam
+  '#b89a4e', // 20 olive gold
+  '#8f7aa3', // 21 muted lavender-grey
+  '#d97f5e', // 22 coral orange
+  '#4d8378', // 23 green-teal
+  '#c98a5e', // 24 caramel
+  '#7090a8', // 25 dusty steel
+  '#b56b7e', // 26 rose
+  '#6a9c7a', // 27 fern green
+  '#5a8a8f', // 28 teal grey
+  '#a87d5e', // 29 taupe brown
+  '#c47a6a', // 30 light terracotta
+  '#5b7d9a', // 31 blue slate
+  '#88a86a', // 32 olive sage
+  '#b8728a', // 33 mauve pink
+  '#50968c', // 34 teal
+  '#d9a05e', // 35 sand gold
+  '#6d7fa0', // 36 periwinkle slate
+  '#c0795e', // 37 rust
+  '#7ba890', // 38 medium mint
+  '#a99050', // 39 dark brass
+  '#9a6d8a', // 40 plum mauve
+  '#e0975e', // 41 apricot
+  '#4f8a82', // 42 pine
+  '#c98a72', // 43 clay rose
+  '#6b95a8', // 44 sky slate
+  '#b07a5e', // 45 cocoa tan
+  '#84a87e', // 46 green sage
+  '#bf7f7f', // 47 dusty rose
+  '#5e8f96', // 48 teal blue
+  '#c9a05e', // 49 honey
+  '#7d6f96', // 50 muted indigo-grey
+]
 
-// High-contrast color generation — uses index-based assignment within a session
-// to guarantee no two models share the same color, regardless of name similarity
-const DISTINCT_HUES = [0, 210, 120, 45, 280, 330, 170, 60, 240, 15, 300, 90, 195, 150, 350, 75, 255, 30, 135, 315]
 const sessionColorMap = new Map<string, string>()
 
 function modelToColor(name: string): string {
-  if (MODEL_COLOR_MAP[name]) return MODEL_COLOR_MAP[name]
   if (sessionColorMap.has(name)) return sessionColorMap.get(name)!
-  const idx = sessionColorMap.size
-  const hue = DISTINCT_HUES[idx % DISTINCT_HUES.length]
-  const saturation = 70 + (idx % 3) * 5
-  const lightness = 55 + (Math.floor(idx / DISTINCT_HUES.length) * 8) % 15
-  const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`
+  const color = CHART_PALETTE[sessionColorMap.size % CHART_PALETTE.length]
   sessionColorMap.set(name, color)
   return color
 }
