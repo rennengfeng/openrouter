@@ -293,13 +293,8 @@ export function AccountBindingsTab({
               </div>
             </div>
             <Button
-              variant='outline'
               size='sm'
-              className={`h-7 shrink-0 px-2.5 text-xs ${
-                binding.isBound && binding.id !== 'email'
-                  ? ''
-                  : 'border-sky-500 text-sky-600 hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700'
-              }`}
+              className='h-7 shrink-0 px-2.5 text-xs'
               onClick={binding.onBind}
               disabled={binding.isBound && binding.id !== 'email'}
             >
@@ -365,9 +360,8 @@ export function AccountBindingsTab({
                     </Button>
                   ) : (
                     <Button
-                      variant='outline'
                       size='sm'
-                      className='h-7 shrink-0 px-2.5 text-xs border-sky-500 text-sky-600 hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700'
+                      className='h-7 shrink-0 px-2.5 text-xs'
                       onClick={() => handleBindCustomOAuth(provider)}
                     >
                       {t('Bind')}

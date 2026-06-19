@@ -39,71 +39,71 @@ const DARK_TITLE_STYLE = { textStyle: { fill: 'hsl(var(--foreground))' }, subtex
 const DARK_LEGEND_ITEM = { shape: { style: { symbolType: 'circle' as const } }, label: { style: { fill: 'hsl(var(--foreground))' } } }
 
 
-// Curated, muted palette inspired by design-seeds / colorhunt — teal-led with
-// warm earthy accents (clay, ochre, sage, rose, mauve). Avoids garish primary
-// red / electric blue / saturated purple, AND avoids pale/pastel tones that
-// would wash out on the white chart background — every entry is kept at medium
-// depth so it stays visible.
+// Curated, vivid-but-tasteful palette inspired by design-seeds / colorhunt —
+// fresh and bright (turquoise, coral, sky blue, green, golden), NOT dusty or
+// dark. The chart sits on a near-white card (not pure white), so colors don't
+// need to be deepened to stay visible; brighter reads cleaner and livelier.
+// Still avoids garish pure red / electric blue / deep violet.
 //
-// Order is deliberate. The FIRST 10 are a hand-picked "hero" set: well-spaced
-// around the hue wheel and maximally distinct, so the common case (a handful of
-// models) always looks like a balanced, designed palette. Entries 11+ extend it
-// for installs with many models. No per-model hardcoding — each model simply
-// takes the next color in this fixed order as it first appears, so new models
-// are themed automatically without touching code.
+// Order is deliberate. The FIRST 10 are a hand-picked "hero" set: warm/cool
+// alternate and the hue is well-spaced, so the common case (a handful of models)
+// always looks like a balanced, designed palette and adjacent pie slices stay
+// distinct. Entries 11+ extend it for installs with many models. No per-model
+// hardcoding — each model just takes the next color in this fixed order as it
+// first appears, so new models are themed automatically without touching code.
 const CHART_PALETTE = [
-  // ── Hero set (1–10): balanced, distinct, the colors most users will see ──
-  '#3f8e8c', //  1 deep teal
-  '#e08a5e', //  2 coral clay
-  '#4a6f93', //  3 dusty blue
-  '#8aa873', //  4 sage green
-  '#e0a94e', //  5 amber gold
-  '#a86d8f', //  6 plum rose
-  '#5fa39a', //  7 jade teal
-  '#d96f68', //  8 terracotta
-  '#3d6b63', //  9 pine teal
-  '#c79a52', // 10 brass ochre
-  // ── Extended set (11–50): same muted, medium-depth register ──
-  '#6b8fb0', // 11 slate blue
-  '#cf8a6a', // 12 clay tan
-  '#7a9e6e', // 13 moss green
-  '#b5728f', // 14 dusty mauve-rose
-  '#4f9d96', // 15 deep aqua
-  '#d98f4e', // 16 ochre orange
-  '#5c7a96', // 17 steel blue
-  '#c06b6b', // 18 brick rose
-  '#6f9e88', // 19 medium seafoam
-  '#b89a4e', // 20 olive gold
-  '#8f7aa3', // 21 muted lavender-grey
-  '#d97f5e', // 22 coral orange
-  '#4d8378', // 23 green-teal
-  '#c98a5e', // 24 caramel
-  '#7090a8', // 25 dusty steel
-  '#b56b7e', // 26 rose
-  '#6a9c7a', // 27 fern green
-  '#5a8a8f', // 28 teal grey
-  '#a87d5e', // 29 taupe brown
-  '#c47a6a', // 30 light terracotta
-  '#5b7d9a', // 31 blue slate
-  '#88a86a', // 32 olive sage
-  '#b8728a', // 33 mauve pink
-  '#50968c', // 34 teal
-  '#d9a05e', // 35 sand gold
-  '#6d7fa0', // 36 periwinkle slate
-  '#c0795e', // 37 rust
-  '#7ba890', // 38 medium mint
-  '#a99050', // 39 dark brass
-  '#9a6d8a', // 40 plum mauve
-  '#e0975e', // 41 apricot
-  '#4f8a82', // 42 pine
-  '#c98a72', // 43 clay rose
-  '#6b95a8', // 44 sky slate
-  '#b07a5e', // 45 cocoa tan
-  '#84a87e', // 46 green sage
-  '#bf7f7f', // 47 dusty rose
-  '#5e8f96', // 48 teal blue
-  '#c9a05e', // 49 honey
-  '#7d6f96', // 50 muted indigo-grey
+  // ── Hero set (1–10): vivid, distinct, the colors most users will see ──
+  '#2fb89a', //  1 turquoise green
+  '#f59140', //  2 coral orange
+  '#5b9bd5', //  3 sky blue
+  '#b9c94a', //  4 lime
+  '#d97ab8', //  5 orchid pink
+  '#33b9c4', //  6 cyan
+  '#ef6f5e', //  7 coral red
+  '#7b86d6', //  8 periwinkle
+  '#6cc06a', //  9 fresh green
+  '#f4be3e', // 10 golden yellow
+  // ── Extended set (11–50): same fresh, bright register ──
+  '#4cb3a0', // 11 teal
+  '#f0a35a', // 12 apricot
+  '#6f9be0', // 13 cornflower
+  '#9cc35e', // 14 yellow-green
+  '#e08ab0', // 15 pink
+  '#45c0bf', // 16 aqua
+  '#ef8268', // 17 salmon
+  '#8f8ad6', // 18 lavender blue
+  '#5cbf80', // 19 green
+  '#f0c94a', // 20 yellow
+  '#c77fc4', // 21 orchid
+  '#f59668', // 22 coral
+  '#3fb4a8', // 23 sea teal
+  '#e8b14a', // 24 gold
+  '#6fa8e0', // 25 light blue
+  '#db7fa0', // 26 rose
+  '#84c45e', // 27 leaf green
+  '#54b6c8', // 28 blue cyan
+  '#f0a04e', // 29 orange
+  '#b98ad0', // 30 soft purple
+  '#ee7a5e', // 31 coral
+  '#5cb0d0', // 32 sky
+  '#a8c850', // 33 lime green
+  '#e58fb0', // 34 pink rose
+  '#3fbf9c', // 35 mint teal
+  '#f5a83f', // 36 amber
+  '#7f93da', // 37 indigo blue
+  '#ef9678', // 38 peach coral
+  '#62c08f', // 39 seafoam
+  '#e6c24a', // 40 honey
+  '#cf86c0', // 41 magenta orchid
+  '#f08a52', // 42 tangerine
+  '#49b6b0', // 43 teal
+  '#d9a04a', // 44 ochre gold
+  '#6bb0e0', // 45 sky blue
+  '#d98aa0', // 46 dusty rose
+  '#92c85e', // 47 green
+  '#58aec0', // 48 cyan blue
+  '#f0b15a', // 49 marigold
+  '#9b88d4', // 50 violet blue
 ]
 
 const sessionColorMap = new Map<string, string>()
