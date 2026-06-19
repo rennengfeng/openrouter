@@ -155,7 +155,7 @@ export function CCSwitchDialog(props: Props) {
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
         className='sm:max-w-md bg-white text-gray-900'
-        style={{ ...LIGHT_THEME_STYLE, '--primary': '#8b5cf6', '--primary-foreground': '#ffffff', '--accent': 'rgba(139,92,246,0.12)', '--accent-foreground': '#7c3aed', '--ring': '#8b5cf6' } as React.CSSProperties}
+        style={{ ...LIGHT_THEME_STYLE, '--primary': '#0ea5e9', '--primary-foreground': '#ffffff', '--accent': 'rgba(14,165,233,0.12)', '--accent-foreground': '#0284c7', '--ring': '#0ea5e9' } as React.CSSProperties}
       >
         <DialogHeader>
           <DialogTitle className='text-gray-900'>{t('Import to CC Switch')}</DialogTitle>

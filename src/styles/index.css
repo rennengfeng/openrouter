@@ -584,80 +584,14 @@ For commercial licensing, please contact support@quantumnous.com
   }
 }
 
-/* ── Portal dark theme overrides ──
-   The portal layout forces class="dark" with inline CSS variables.
-   These overrides ensure all shadcn components inside it render dark. */
-.dark [data-slot='card'] {
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  background: oklch(1 0 0 / 0.05);
-  border-color: oklch(1 0 0 / 0.1);
-  color: oklch(0.95 0 0);
-}
-
-.dark [data-slot='input'] {
-  background: oklch(1 0 0 / 0.05);
-  border-color: oklch(1 0 0 / 0.1);
-  color: oklch(0.95 0 0);
-}
-
-.dark [data-slot='badge'] {
-  border-color: oklch(1 0 0 / 0.1);
-}
-
-.dark [data-slot='button'][data-variant='outline'] {
-  border-color: oklch(1 0 0 / 0.1);
-  color: oklch(0.9 0 0);
-}
-
-.dark [data-slot='button'][data-variant='ghost'] {
-  color: oklch(0.85 0 0);
-}
-
-.dark [data-slot='switch'] {
-  border-color: oklch(1 0 0 / 0.15);
-}
-
-.dark [data-slot='switch'][data-unchecked] {
-  background: oklch(1 0 0 / 0.1);
-}
-
-.dark [data-slot='switch'][data-checked] {
-  background: oklch(0.7 0.15 145);
-}
-
-.dark [data-slot='switch-thumb'] {
-  background: oklch(0.95 0 0);
-}
-
-.dark [data-slot='tabs-list'] {
-  background: oklch(1 0 0 / 0.05);
-  border-color: oklch(1 0 0 / 0.1);
-}
-
-.dark [data-slot='tabs-trigger'][data-selected] {
-  background: oklch(1 0 0 / 0.1);
-  color: oklch(0.95 0 0);
-}
-
-.dark [data-slot='select-trigger'] {
-  background: oklch(1 0 0 / 0.05);
-  border-color: oklch(1 0 0 / 0.1);
-  color: oklch(0.9 0 0);
-}
-
-.dark label {
-  color: oklch(0.9 0 0);
-}
-
-.dark .text-muted-foreground {
-  color: oklch(0.7 0 0);
-}
-
 /* Sheet (drawer) dark theme — Sheet portals to <body>, outside .dark scope.
    Set CSS variables so Tailwind utilities (bg-background, text-foreground, etc.)
-   resolve correctly inside the drawer. */
-[data-slot='sheet-content'] {
+   resolve correctly inside the drawer.
+   Excludes `.drawer-light`: light-forced drawers (e.g. the portal API-key drawer)
+   pin their own light theme inline and must not inherit these dark overrides,
+   otherwise the high-specificity descendant color rules below repaint their
+   text light-gray on white and make it unreadable. */
+[data-slot='sheet-content']:not(.drawer-light) {
   --background: #12121e;
   --foreground: oklch(0.95 0 0);
   --card: rgba(255, 255, 255, 0.02);
@@ -682,98 +616,98 @@ For commercial licensing, please contact support@quantumnous.com
   color: var(--foreground);
 }
 
-[data-slot='sheet-content'] [data-slot='sheet-title'] {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='sheet-title'] {
   color: oklch(0.95 0 0);
 }
 
-[data-slot='sheet-content'] [data-slot='sheet-description'] {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='sheet-description'] {
   color: oklch(0.6 0 0);
 }
 
-[data-slot='sheet-content'] section {
+[data-slot='sheet-content']:not(.drawer-light) section {
   background: oklch(1 0 0 / 0.03);
   border-color: oklch(1 0 0 / 0.08);
 }
 
-[data-slot='sheet-content'] section h3 {
+[data-slot='sheet-content']:not(.drawer-light) section h3 {
   color: oklch(0.92 0 0);
 }
 
-[data-slot='sheet-content'] section p {
+[data-slot='sheet-content']:not(.drawer-light) section p {
   color: oklch(0.6 0 0);
 }
 
-[data-slot='sheet-content'] label {
+[data-slot='sheet-content']:not(.drawer-light) label {
   color: oklch(0.88 0 0);
 }
 
-[data-slot='sheet-content'] input,
-[data-slot='sheet-content'] textarea,
-[data-slot='sheet-content'] select {
+[data-slot='sheet-content']:not(.drawer-light) input,
+[data-slot='sheet-content']:not(.drawer-light) textarea,
+[data-slot='sheet-content']:not(.drawer-light) select {
   background: oklch(1 0 0 / 0.05);
   border-color: oklch(1 0 0 / 0.1);
   color: oklch(0.92 0 0);
 }
 
-[data-slot='sheet-content'] input::placeholder,
-[data-slot='sheet-content'] textarea::placeholder {
+[data-slot='sheet-content']:not(.drawer-light) input::placeholder,
+[data-slot='sheet-content']:not(.drawer-light) textarea::placeholder {
   color: oklch(0.5 0 0);
 }
 
-[data-slot='sheet-content'] .text-muted-foreground {
+[data-slot='sheet-content']:not(.drawer-light) .text-muted-foreground {
   color: oklch(0.6 0 0);
 }
 
-[data-slot='sheet-content'] .bg-muted {
+[data-slot='sheet-content']:not(.drawer-light) .bg-muted {
   background: oklch(1 0 0 / 0.06);
 }
 
-[data-slot='sheet-content'] .text-muted-foreground svg {
+[data-slot='sheet-content']:not(.drawer-light) .text-muted-foreground svg {
   color: oklch(0.7 0 0);
 }
 
-[data-slot='sheet-content'] [data-slot='switch'] {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='switch'] {
   border-color: oklch(1 0 0 / 0.15);
 }
 
-[data-slot='sheet-content'] [data-slot='switch'][data-unchecked] {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='switch'][data-unchecked] {
   background: oklch(1 0 0 / 0.1);
 }
 
-[data-slot='sheet-content'] [data-slot='switch'][data-checked] {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='switch'][data-checked] {
   background: #8b5cf6;
 }
 
-[data-slot='sheet-content'] button[type='submit'] {
+[data-slot='sheet-content']:not(.drawer-light) button[type='submit'] {
   background: #8b5cf6;
   color: #ffffff;
 }
 
-[data-slot='sheet-content'] [data-slot='button'][data-variant='outline'] {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='button'][data-variant='outline'] {
   background: oklch(1 0 0 / 0.05);
   border-color: oklch(1 0 0 / 0.15);
   color: oklch(0.9 0 0);
 }
 
-[data-slot='sheet-content'] [data-slot='button'][data-variant='outline']:hover {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='button'][data-variant='outline']:hover {
   background: oklch(1 0 0 / 0.1);
   color: oklch(0.95 0 0);
 }
 
-[data-slot='sheet-content'] [data-slot='button'][data-variant='ghost'] {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='button'][data-variant='ghost'] {
   color: oklch(0.85 0 0);
 }
 
-[data-slot='sheet-content'] [data-slot='button'][data-variant='ghost']:hover {
+[data-slot='sheet-content']:not(.drawer-light) [data-slot='button'][data-variant='ghost']:hover {
   background: oklch(1 0 0 / 0.08);
   color: oklch(0.95 0 0);
 }
 
-[data-slot='sheet-content'] .border {
+[data-slot='sheet-content']:not(.drawer-light) .border {
   border-color: oklch(1 0 0 / 0.08);
 }
 
-[data-slot='sheet-content'] .border-b {
+[data-slot='sheet-content']:not(.drawer-light) .border-b {
   border-color: oklch(1 0 0 / 0.08);
 }
 

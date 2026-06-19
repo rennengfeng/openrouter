@@ -270,10 +270,10 @@ export function AccountBindingsTab({
         {bindings.map((binding) => (
           <div
             key={binding.id}
-            className='flex items-center justify-between gap-2.5 rounded-lg border border-white/10 p-2.5 sm:gap-3 sm:p-3'
+            className='flex items-center justify-between gap-2.5 rounded-lg border border-gray-200 p-2.5 sm:gap-3 sm:p-3'
           >
             <div className='flex min-w-0 items-center gap-2.5 sm:gap-3'>
-              <div className='bg-white/10 shrink-0 rounded-md p-1.5 sm:p-2'>
+              <div className='bg-gray-100 shrink-0 rounded-md p-1.5 sm:p-2'>
                 <binding.icon className='h-4 w-4' />
               </div>
               <div className='min-w-0'>
@@ -325,10 +325,10 @@ export function AccountBindingsTab({
               return (
                 <div
                   key={provider.id}
-                  className='flex items-center justify-between gap-2.5 rounded-lg border border-white/10 p-2.5 sm:gap-3 sm:p-3'
+                  className='flex items-center justify-between gap-2.5 rounded-lg border border-gray-200 p-2.5 sm:gap-3 sm:p-3'
                 >
                   <div className='flex min-w-0 items-center gap-2.5 sm:gap-3'>
-                    <div className='bg-white/10 shrink-0 rounded-md p-1.5 sm:p-2'>
+                    <div className='bg-gray-100 shrink-0 rounded-md p-1.5 sm:p-2'>
                       <Link2 className='h-4 w-4' />
                     </div>
                     <div className='min-w-0'>

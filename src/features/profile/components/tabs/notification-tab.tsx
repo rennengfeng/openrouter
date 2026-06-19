@@ -140,7 +140,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
                 htmlFor={method.value}
                 className={`flex min-h-16 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border p-2 text-center transition-colors sm:min-h-20 sm:gap-2 sm:border-2 sm:p-3 ${
                   isSelected
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
+                    ? 'border-sky-500 bg-sky-50 text-sky-600'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
@@ -285,7 +285,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
               )}
             </p>
           </div>
-          <div className='bg-white/5 rounded-lg border border-white/10 p-3 sm:p-4'>
+          <div className='bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4'>
             <h5 className='mb-1.5 text-sm font-medium sm:mb-2'>
               {t('Setup Instructions')}
             </h5>
@@ -310,7 +310,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
       )}
 
       {/* Divider */}
-      <div className='border-t border-white/10' />
+      <div className='border-t border-gray-200' />
 
       {/* Preferences Section */}
       <div className='space-y-3'>
@@ -323,7 +323,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
 
         {/* Receive Upstream Model Update Notifications (admin only) */}
         {isAdmin && (
-          <div className='flex items-start justify-between gap-3 rounded-lg border border-white/10 p-3 sm:items-center sm:p-4'>
+          <div className='flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3 sm:items-center sm:p-4'>
             <div className='space-y-0.5'>
               <Label htmlFor='upstreamModelUpdateNotify'>
                 {t('Receive Upstream Model Update Notifications')}
@@ -346,7 +346,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
         )}
 
         {/* Accept Unset Model Price */}
-        <div className='flex items-start justify-between gap-3 rounded-lg border border-white/10 p-3 sm:items-center sm:p-4'>
+        <div className='flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3 sm:items-center sm:p-4'>
           <div className='space-y-0.5'>
             <Label htmlFor='acceptUnsetPrice'>
               {t('Accept Unpriced Models')}
@@ -366,7 +366,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
         </div>
 
         {/* Record IP Log */}
-        <div className='flex items-start justify-between gap-3 rounded-lg border border-white/10 p-3 sm:items-center sm:p-4'>
+        <div className='flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3 sm:items-center sm:p-4'>
           <div className='space-y-0.5'>
             <Label htmlFor='recordIp'>{t('Record IP Address')}</Label>
             <p className='text-muted-foreground text-xs sm:text-sm'>

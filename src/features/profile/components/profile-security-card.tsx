@@ -100,7 +100,7 @@ export function ProfileSecurityCard({
               key={item.title}
               type='button'
               onClick={item.action}
-              className='flex items-center gap-3 rounded-lg border border-white/8 p-3 text-left transition-all md:flex-col md:gap-2 md:p-4 md:text-center outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50 hover:border-purple-500/40 hover:bg-purple-500/5'
+              className='flex items-center gap-3 rounded-lg border border-gray-200 p-3 text-left transition-all md:flex-col md:gap-2 md:p-4 md:text-center outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50 hover:border-sky-500/40 hover:bg-sky-500/5'
             >
               <div
                 className={`rounded-md p-2 ${

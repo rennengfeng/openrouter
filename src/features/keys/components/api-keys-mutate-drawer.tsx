@@ -243,8 +243,8 @@ export function ApiKeysMutateDrawer({
     >
       <SheetContent
         side={side}
-        style={LIGHT_THEME_STYLE}
-        className='flex !h-dvh !w-screen max-w-none gap-0 overflow-hidden bg-white p-0 text-gray-900 sm:!w-full sm:!max-w-[620px]'
+        style={{ ...LIGHT_THEME_STYLE, '--primary': '#0ea5e9', '--primary-foreground': '#ffffff', '--accent': 'rgba(14,165,233,0.12)', '--accent-foreground': '#0284c7', '--ring': '#0ea5e9' } as React.CSSProperties}
+        className='drawer-light flex !h-dvh !w-screen max-w-none gap-0 overflow-hidden bg-white p-0 text-gray-900 sm:!w-full sm:!max-w-[620px]'
       >
         <SheetHeader className='border-b border-gray-200 bg-white px-4 py-3 text-start sm:px-5 sm:py-4'>
           <SheetTitle className='text-base text-gray-900 sm:text-lg'>
