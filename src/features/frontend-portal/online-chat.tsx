@@ -957,29 +957,31 @@ export function OnlineChat() {
               )}
             </div>
 
-            {/* Controls row — evenly distributed */}
+            {/* Controls row — full width (matches input), split into equal
+                columns: 3 in chat (Chat / Image / Model), 4 in image
+                (Chat / Image / Size / Model). */}
             <div className={cn('mt-2 grid gap-2', chatMode === 'image' ? 'grid-cols-4' : 'grid-cols-3')}>
-              {/* Mode switch */}
-              <div className="flex items-center rounded-lg border p-0.5">
-                <Button
-                  variant={chatMode === 'chat' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setChatMode('chat')}
-                  className="h-7 flex-1 gap-1 px-1 text-xs"
-                >
-                  <MessageSquareIcon className="h-3.5 w-3.5" />
-                  {t('Chat')}
-                </Button>
-                <Button
-                  variant={chatMode === 'image' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setChatMode('image')}
-                  className="h-7 flex-1 gap-1 px-1 text-xs"
-                >
-                  <ImageIcon className="h-3.5 w-3.5" />
-                  {t('Image')}
-                </Button>
-              </div>
+              {/* Mode: Chat */}
+              <Button
+                variant={chatMode === 'chat' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setChatMode('chat')}
+                className="h-7 w-full gap-1 px-2 text-xs"
+              >
+                <MessageSquareIcon className="h-3.5 w-3.5" />
+                {t('Chat')}
+              </Button>
+
+              {/* Mode: Image */}
+              <Button
+                variant={chatMode === 'image' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setChatMode('image')}
+                className="h-7 w-full gap-1 px-2 text-xs"
+              >
+                <ImageIcon className="h-3.5 w-3.5" />
+                {t('Image')}
+              </Button>
 
               {/* Image size (only in image mode) */}
               {chatMode === 'image' && (

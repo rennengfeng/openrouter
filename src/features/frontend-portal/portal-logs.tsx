@@ -522,7 +522,6 @@ export function PortalLogs() {
                 {logs.map((log) => {
                   const isError = log.type === 5
                   const isExpanded = expandedId === log.id
-                  const totalTokens = (log.prompt_tokens ?? 0) + (log.completion_tokens ?? 0)
                   const cost = (log.quota ?? 0) / 500000
                   const otherData = parseOther(log.other)
                   const firstResponseTime = otherData?.frt ? (otherData.frt / 1000).toFixed(1) : null
@@ -556,11 +555,15 @@ export function PortalLogs() {
                           ) : '—'}
                         </td>
                         <td className="px-3 py-3 text-center text-xs text-gray-500">
-                          {totalTokens.toLocaleString()}
-                          {otherData?.cache_tokens ? (
-                            <span className="ml-1 text-[10px] text-gray-400">
-                              {t('portal.page.logs.cacheRead')} {otherData.cache_tokens.toLocaleString()}
-                            </span>
+                          <div className="leading-tight">
+                            {t('portal.page.logs.inputLabel')}：{(log.prompt_tokens ?? 0).toLocaleString()}
+                          </div>
+                          {otherData?.cache_tokens || otherData?.cache_creation_tokens ? (
+                            <div className="mt-0.5 text-[10px] leading-tight text-gray-400">
+                              {t('portal.page.logs.cacheReadShort')}:{(otherData?.cache_tokens ?? 0).toLocaleString()}
+                              {' · '}
+                              {t('portal.page.logs.cacheWriteShort')}:{(otherData?.cache_creation_tokens ?? 0).toLocaleString()}
+                            </div>
                           ) : null}
                         </td>
                         <td className="px-3 py-3 text-center text-xs font-medium text-gray-600">${cost.toFixed(6)}</td>
