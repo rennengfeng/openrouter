@@ -49,6 +49,7 @@ export function Markdown({ children, className }: MarkdownProps) {
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        remarkRehypeOptions={{ allowDangerousHtml: true }}
         rehypePlugins={[rehypeRaw]}
         components={{
           // 自定义组件渲染（可选）
