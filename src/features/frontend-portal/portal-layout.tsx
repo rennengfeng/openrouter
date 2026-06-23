@@ -27,6 +27,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Markdown } from '@/components/ui/markdown'
 import { NoticeCodeExamples } from './components/notice-code-examples'
+import { NoticeUrlCards } from './components/notice-url-cards'
 import {
   BarChart3,
   Bell,
@@ -369,15 +370,25 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
             {noticeTab === 'notice' ? (
               noticeData ? (
                 <div className="prose prose-invert prose-sm max-h-[400px] overflow-y-auto text-gray-600">
-                  {noticeData.includes('<!-- CODE_EXAMPLES -->') ? (
+                  {noticeData.includes('<!-- URL_CARDS -->') || noticeData.includes('<!-- CODE_EXAMPLES -->') ? (
                     <>
-                      <Markdown>
-                        {pickLang(noticeData, i18n.language).split('<!-- CODE_EXAMPLES -->')[0]}
-                      </Markdown>
-                      <NoticeCodeExamples />
-                      <Markdown>
-                        {pickLang(noticeData, i18n.language).split('<!-- CODE_EXAMPLES -->')[1] || ''}
-                      </Markdown>
+                      {(() => {
+                        const content = pickLang(noticeData, i18n.language)
+                        const parts = content.split(/<!-- URL_CARDS -->|<!-- CODE_EXAMPLES -->/)
+                        const markers = content.match(/<!-- URL_CARDS -->|<!-- CODE_EXAMPLES -->/g) || []
+
+                        return (
+                          <>
+                            {parts.map((part, i) => (
+                              <div key={i}>
+                                <Markdown>{part}</Markdown>
+                                {markers[i] === '<!-- URL_CARDS -->' && <NoticeUrlCards />}
+                                {markers[i] === '<!-- CODE_EXAMPLES -->' && <NoticeCodeExamples />}
+                              </div>
+                            ))}
+                          </>
+                        )
+                      })()}
                     </>
                   ) : (
                     <Markdown>
