@@ -17,10 +17,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useNotificationStore } from '@/stores/notification-store'
 import { getNotice } from '@/lib/api'
 import { useStatus } from '@/hooks/use-status'
+import { pickLang } from '@/lib/multilang'
 
 function hashString(input: string): string {
   let hash = 0
@@ -62,6 +64,7 @@ function getAnnouncementKey(item: Record<string, unknown>): string {
  * Provides unread counts and read status management
  */
 export function useNotifications() {
+  const { i18n } = useTranslation()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'notice' | 'announcements'>(
     'notice'
@@ -98,7 +101,7 @@ export function useNotifications() {
 
   // Extract notice content
   const noticeContent = noticeResponse?.success
-    ? (noticeResponse.data || '').trim()
+    ? pickLang((noticeResponse.data || '').trim(), i18n.language)
     : ''
 
   // Calculate unread counts
