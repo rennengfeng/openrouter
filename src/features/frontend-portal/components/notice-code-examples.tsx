@@ -142,7 +142,7 @@ function SDKCard({ sdk }: { sdk: SDKExample }) {
   const { t } = useTranslation()
 
   return (
-    <div className="flex-1 min-w-[280px] rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
       <div className="mb-2 font-semibold" style={{ color: sdk.color }}>
         {t(sdk.nameKey, sdk.name)}
       </div>
@@ -184,13 +184,15 @@ function SDKCard({ sdk }: { sdk: SDKExample }) {
           TypeScript
         </button>
       </div>
-      <CodeBlock
-        code={sdk.examples[lang]}
-        language={lang === 'curl' ? 'bash' : lang === 'typescript' ? 'typescript' : 'python'}
-        className="text-xs"
-      >
-        <CodeBlockCopyButton size="sm" />
-      </CodeBlock>
+      <div className="relative">
+        <CodeBlock
+          code={sdk.examples[lang]}
+          language={lang === 'curl' ? 'bash' : lang === 'typescript' ? 'typescript' : 'python'}
+          className="text-xs"
+        >
+          <CodeBlockCopyButton size="sm" />
+        </CodeBlock>
+      </div>
     </div>
   )
 }
@@ -206,7 +208,7 @@ export function NoticeCodeExamples() {
       <div className="mb-4 text-xs text-gray-600">
         {t('portal.notice.codeExamples.subtitle', '本站完美兼容 OpenAI SDK，选择你的语言查看代码。')}
       </div>
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col gap-4">
         {EXAMPLES.map((sdk) => (
           <SDKCard key={sdk.name} sdk={sdk} />
         ))}
