@@ -333,7 +333,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
       {noticeOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setNoticeOpen(false)}>
           <div
-            className="relative w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl"
+            className="relative w-full max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">

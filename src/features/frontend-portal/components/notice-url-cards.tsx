@@ -58,27 +58,27 @@ function UrlCardItem({ card }: { card: UrlCard }) {
 
   return (
     <div
-      className="rounded-lg border p-3"
+      className="rounded-lg border p-4"
       style={{ borderColor: card.color + '40', backgroundColor: card.bgColor }}
     >
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-sm font-bold" style={{ color: card.color }}>
+        <span className="text-sm font-bold whitespace-nowrap" style={{ color: card.color }}>
           {t(card.labelKey)}
         </span>
         <span
-          className="rounded-lg px-2 py-0.5 text-xs font-medium"
+          className="rounded-lg px-2 py-0.5 text-xs font-medium whitespace-nowrap"
           style={{ backgroundColor: card.badgeBg, color: card.badgeColor }}
         >
           {t(card.badgeKey)}
         </span>
       </div>
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <code className="flex-1 text-xs font-bold text-gray-800">{card.url}</code>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <code className="flex-1 text-sm font-semibold text-gray-800">{card.url}</code>
         <CopyButton
           value={card.url}
           size="sm"
-          className="h-7 w-7"
-          iconClassName="h-3.5 w-3.5"
+          className="h-8 w-8 shrink-0"
+          iconClassName="h-4 w-4"
         />
       </div>
       <div className="text-xs text-gray-600">{t(card.descKey)}</div>
