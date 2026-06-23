@@ -26,6 +26,7 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Markdown } from '@/components/ui/markdown'
+import { NoticeCodeExamples } from './components/notice-code-examples'
 import {
   BarChart3,
   Bell,
@@ -368,9 +369,21 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
             {noticeTab === 'notice' ? (
               noticeData ? (
                 <div className="prose prose-invert prose-sm max-h-[400px] overflow-y-auto text-gray-600">
-                  <Markdown>
-                    {pickLang(noticeData, i18n.language)}
-                  </Markdown>
+                  {noticeData.includes('<!-- CODE_EXAMPLES -->') ? (
+                    <>
+                      <Markdown>
+                        {pickLang(noticeData, i18n.language).split('<!-- CODE_EXAMPLES -->')[0]}
+                      </Markdown>
+                      <NoticeCodeExamples />
+                      <Markdown>
+                        {pickLang(noticeData, i18n.language).split('<!-- CODE_EXAMPLES -->')[1] || ''}
+                      </Markdown>
+                    </>
+                  ) : (
+                    <Markdown>
+                      {pickLang(noticeData, i18n.language)}
+                    </Markdown>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-gray-400">{t('portal.notice.empty')}</p>
