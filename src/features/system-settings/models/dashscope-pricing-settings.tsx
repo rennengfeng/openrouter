@@ -17,12 +17,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Copy, RotateCcw } from 'lucide-react'
+import { ChevronDown, Copy, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { SettingsSection } from '../components/settings-section'
 import { useUpdateOption } from '../hooks/use-update-option'
@@ -40,6 +47,92 @@ const DEFAULT_TEMPLATE = {
     price_expr:
       'param("resolution") == "1080p" ? tier("1080p", 0.0) : tier("default", 0.0)',
   },
+}
+
+type PricingRule = {
+  field: string
+  operator: '==' | '!='
+  value: string
+  amount: string
+}
+
+type PricingModel = {
+  unit: 'second' | 'image'
+  rules: PricingRule[]
+}
+
+const FIELD_OPTIONS = [
+  { value: 'resolution', label: 'resolution' },
+  { value: 'raw_resolution', label: 'raw_resolution' },
+  { value: 'size', label: 'size' },
+  { value: 'duration', label: 'duration' },
+  { value: 'image_count', label: 'image_count' },
+  { value: 'model', label: 'model' },
+  { value: 'action', label: 'action' },
+]
+
+const VALUE_OPTIONS = ['480p', '720p', '1080p', '2k', '4k']
+
+const UNIT_OPTIONS: Array<{ value: PricingModel['unit']; label: string }> = [
+  { value: 'second', label: 'second' },
+  { value: 'image', label: 'image' },
+]
+
+function createDefaultRule(): PricingRule {
+  return {
+    field: 'resolution',
+    operator: '==',
+    value: '1080p',
+    amount: '0',
+  }
+}
+
+function normalizePricingConfig(raw: string): Record<string, PricingModel> {
+  try {
+    const parsed = JSON.parse(raw || '{}') as Record<string, unknown>
+    const normalized: Record<string, PricingModel> = {}
+    Object.entries(parsed).forEach(([model, config]) => {
+      if (!config || typeof config !== 'object' || Array.isArray(config)) return
+      const typed = config as Record<string, unknown>
+      const unit =
+        typed.unit === 'image' || typed.unit === 'second' ? typed.unit : 'second'
+      const rules: PricingRule[] = Array.isArray(typed.rules)
+        ? typed.rules
+            .map((item) => item as Record<string, unknown>)
+            .filter(Boolean)
+            .map((item) => ({
+              field:
+                typeof item.field === 'string' && item.field
+                  ? item.field
+                  : 'resolution',
+              operator: item.operator === '!=' ? '!=' : '==',
+              value: typeof item.value === 'string' ? item.value : '1080p',
+              amount: String(item.amount ?? '0'),
+            }))
+        : []
+      normalized[model] = {
+        unit,
+        rules: rules.length > 0 ? rules : [createDefaultRule()],
+      }
+    })
+    return normalized
+  } catch {
+    return {}
+  }
+}
+
+function buildPriceExpr(rule: PricingRule) {
+  return `param(${JSON.stringify(rule.field)}) ${rule.operator} ${JSON.stringify(rule.value)} ? tier(${JSON.stringify(rule.value)}, ${Number(rule.amount || 0)}) : `
+}
+
+function serializePricingModel(model: PricingModel) {
+  const expr = model.rules
+    .map((rule) => buildPriceExpr(rule))
+    .join('')
+  return {
+    unit: model.unit,
+    price_expr: `${expr}tier("default", 0.0)`,
+  }
 }
 
 function formatJson(value: unknown) {
@@ -67,10 +160,14 @@ export function DashScopePricingSettings({
   const updateOption = useUpdateOption()
   const [jsonText, setJsonText] = useState(() => normalizeJsonText(defaultValue))
   const [jsonError, setJsonError] = useState('')
+  const [builderData, setBuilderData] = useState<Record<string, PricingModel>>(
+    () => normalizePricingConfig(defaultValue)
+  )
 
   useEffect(() => {
     setJsonText(normalizeJsonText(defaultValue))
     setJsonError('')
+    setBuilderData(normalizePricingConfig(defaultValue))
   }, [defaultValue])
 
   const fields = useMemo(
@@ -123,6 +220,16 @@ export function DashScopePricingSettings({
     })
   }, [jsonText, t, updateOption, validateJson])
 
+  const syncBuilderToJson = useCallback((next: Record<string, PricingModel>) => {
+    const payload = Object.fromEntries(
+      Object.entries(next).map(([model, config]) => [model, serializePricingModel(config)])
+    )
+    const text = formatJson(payload)
+    setBuilderData(next)
+    setJsonText(text)
+    validateJson(text)
+  }, [validateJson])
+
   const handleCopyTemplate = useCallback(async () => {
     const text = formatJson(DEFAULT_TEMPLATE)
     try {
@@ -138,6 +245,32 @@ export function DashScopePricingSettings({
     setJsonText(text)
     setJsonError('')
   }, [])
+
+  const updateBuilderModel = useCallback(
+    (modelName: string, updater: (current: PricingModel) => PricingModel) => {
+      const current = builderData[modelName] || {
+        unit: 'second',
+        rules: [createDefaultRule()],
+      }
+      const next = {
+        ...builderData,
+        [modelName]: updater(current),
+      }
+      syncBuilderToJson(next)
+    },
+    [builderData, syncBuilderToJson]
+  )
+
+  const addModelFromTemplate = useCallback(() => {
+    const modelName = `dashscope-model-${Object.keys(builderData).length + 1}`
+    syncBuilderToJson({
+      ...builderData,
+      [modelName]: {
+        unit: 'second',
+        rules: [createDefaultRule()],
+      },
+    })
+  }, [builderData, syncBuilderToJson])
 
   return (
     <SettingsSection
@@ -164,6 +297,155 @@ export function DashScopePricingSettings({
 
         <div className='grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]'>
           <div className='space-y-2'>
+            <div className='flex flex-wrap items-center gap-2'>
+              <Button variant='outline' size='sm' onClick={addModelFromTemplate}>
+                <Plus className='mr-2 h-4 w-4' />
+                {t('Add model')}
+              </Button>
+            </div>
+            {Object.entries(builderData).map(([modelName, config]) => (
+              <div key={modelName} className='space-y-3 rounded-md border p-3'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <Input
+                    value={modelName}
+                    onChange={(event) => {
+                      const nextName = event.target.value.trim()
+                      if (!nextName) return
+                      const next = { ...builderData }
+                      const current = next[modelName]
+                      delete next[modelName]
+                      next[nextName] = current
+                      syncBuilderToJson(next)
+                    }}
+                    className='max-w-xs'
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant='outline' size='sm'>
+                        {t(config.unit)}
+                        <ChevronDown className='ml-2 h-4 w-4' />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {UNIT_OPTIONS.map((option) => (
+                        <DropdownMenuItem
+                          key={option.value}
+                          onClick={() =>
+                            updateBuilderModel(modelName, (current) => ({
+                              ...current,
+                              unit: option.value,
+                            }))
+                          }
+                        >
+                          {t(option.label)}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => {
+                      const next = { ...builderData }
+                      delete next[modelName]
+                      syncBuilderToJson(next)
+                    }}
+                  >
+                    <Trash2 className='h-4 w-4' />
+                  </Button>
+                </div>
+
+                <div className='space-y-2'>
+                  {config.rules.map((rule, index) => (
+                    <div key={`${modelName}-${index}`} className='grid gap-2 md:grid-cols-4'>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant='outline' size='sm' className='justify-between'>
+                            {rule.field}
+                            <ChevronDown className='ml-2 h-4 w-4' />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {FIELD_OPTIONS.map((option) => (
+                            <DropdownMenuItem
+                              key={option.value}
+                              onClick={() =>
+                                updateBuilderModel(modelName, (current) => ({
+                                  ...current,
+                                  rules: current.rules.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? { ...item, field: option.value }
+                                      : item
+                                  ),
+                                }))
+                              }
+                            >
+                              {option.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant='outline' size='sm' className='justify-between'>
+                            {rule.value}
+                            <ChevronDown className='ml-2 h-4 w-4' />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {VALUE_OPTIONS.map((option) => (
+                            <DropdownMenuItem
+                              key={option}
+                              onClick={() =>
+                                updateBuilderModel(modelName, (current) => ({
+                                  ...current,
+                                  rules: current.rules.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? { ...item, value: option }
+                                      : item
+                                  ),
+                                }))
+                              }
+                            >
+                              {option}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Input
+                        value={rule.amount}
+                        onChange={(event) =>
+                          updateBuilderModel(modelName, (current) => ({
+                            ...current,
+                            rules: current.rules.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, amount: event.target.value }
+                                : item
+                            ),
+                          }))
+                        }
+                        placeholder='0.00'
+                      />
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        onClick={() =>
+                          updateBuilderModel(modelName, (current) => ({
+                            ...current,
+                            rules:
+                              current.rules.length > 1
+                                ? current.rules.filter((_, itemIndex) => itemIndex !== index)
+                                : [createDefaultRule()],
+                          }))
+                        }
+                      >
+                        <Trash2 className='h-4 w-4' />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
             <Textarea
               value={jsonText}
               onChange={(event) => handleTextChange(event.target.value)}

@@ -62,6 +62,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { combineBillingExpr } from '@/features/pricing/lib/billing-expr'
@@ -85,6 +93,7 @@ type ModelPricingFormValues = z.infer<
 >
 
 type PricingMode = 'per-token' | 'per-request' | 'per-second' | 'tiered_expr'
+type BillingUnit = 'request' | 'second' | 'image'
 type LaneKey =
   | 'completion'
   | 'cache'
@@ -104,7 +113,7 @@ export type ModelRatioData = {
   audioRatio?: string
   audioCompletionRatio?: string
   billingMode?: PricingMode
-  billingUnit?: 'request' | 'second'
+  billingUnit?: BillingUnit
   billingExpr?: string
   requestRuleExpr?: string
 }
@@ -295,6 +304,7 @@ function buildPreviewRows(
   mode: PricingMode,
   billingExpr: string,
   requestRuleExpr: string,
+  billingUnit: BillingUnit,
   promptPrice: string,
   lanePrices: Record<LaneKey, string>,
   laneEnabled: Record<LaneKey, boolean>,
@@ -304,6 +314,7 @@ function buildPreviewRows(
     const effectiveExpr = combineBillingExpr(billingExpr, requestRuleExpr)
     return [
       { key: 'mode', label: 'BillingMode', value: 'tiered_expr' },
+      { key: 'unit', label: 'BillingUnit', value: billingUnit },
       {
         key: 'expr',
         label: t('Expression'),
@@ -437,6 +448,8 @@ export function ModelPricingEditorPanel({
   })
   const [billingExpr, setBillingExpr] = useState('')
   const [requestRuleExpr, setRequestRuleExpr] = useState('')
+  const [tieredBillingUnit, setTieredBillingUnit] =
+    useState<BillingUnit>('request')
   const [previewOpen, setPreviewOpen] = useState(true)
   const isEditMode = !!editData
 
@@ -481,6 +494,7 @@ export function ModelPricingEditorPanel({
       )
       setBillingExpr(editData.billingExpr || '')
       setRequestRuleExpr(editData.requestRuleExpr || '')
+      setTieredBillingUnit(editData.billingUnit || 'request')
     } else {
       form.reset({
         name: '',
@@ -496,6 +510,7 @@ export function ModelPricingEditorPanel({
       setPricingMode('per-token')
       setBillingExpr('')
       setRequestRuleExpr('')
+      setTieredBillingUnit('request')
     }
 
     setPromptPrice(nextLaneState.promptPrice)
@@ -632,6 +647,7 @@ export function ModelPricingEditorPanel({
         pricingMode,
         billingExpr,
         requestRuleExpr,
+        tieredBillingUnit,
         promptPrice,
         lanePrices,
         laneEnabled,
@@ -644,6 +660,7 @@ export function ModelPricingEditorPanel({
       pricingMode,
       promptPrice,
       requestRuleExpr,
+      tieredBillingUnit,
       t,
       watchedValues,
     ]
@@ -722,7 +739,12 @@ export function ModelPricingEditorPanel({
     const data: ModelRatioData = {
       name: values.name.trim(),
       billingMode: pricingMode,
-      billingUnit: pricingMode === 'per-second' ? 'second' : 'request',
+      billingUnit:
+        pricingMode === 'tiered_expr'
+          ? tieredBillingUnit
+          : pricingMode === 'per-second'
+            ? 'second'
+            : 'request',
       price: values.price || '',
       ratio: values.ratio || '',
       cacheRatio: values.cacheRatio || '',
@@ -947,6 +969,40 @@ export function ModelPricingEditorPanel({
                   value='tiered_expr'
                   className='flex flex-col gap-5'
                 >
+                  <Field>
+                    <FieldLabel>{t('Billing unit')}</FieldLabel>
+                    <Select
+                      items={[
+                        { value: 'request', label: t('per request') },
+                        { value: 'second', label: t('per second') },
+                        { value: 'image', label: t('per image') },
+                      ]}
+                      value={tieredBillingUnit}
+                      onValueChange={(value) =>
+                        setTieredBillingUnit(value as BillingUnit)
+                      }
+                    >
+                      <SelectTrigger className='w-48'>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent alignItemWithTrigger={false}>
+                        <SelectGroup>
+                          <SelectItem value='request'>
+                            {t('per request')}
+                          </SelectItem>
+                          <SelectItem value='second'>
+                            {t('per second')}
+                          </SelectItem>
+                          <SelectItem value='image'>{t('per image')}</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FieldDescription>
+                      {t(
+                        'Use second for video duration billing, image for per-image billing, or request for one-off task billing.'
+                      )}
+                    </FieldDescription>
+                  </Field>
                   <TieredPricingEditor
                     modelName={watchedValues.name}
                     billingExpr={billingExpr}

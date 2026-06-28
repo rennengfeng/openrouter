@@ -92,7 +92,7 @@ type ModelRow = {
   audioRatio?: string
   audioCompletionRatio?: string
   billingMode?: string
-  billingUnit?: 'request' | 'second'
+  billingUnit?: 'request' | 'second' | 'image'
   billingExpr?: string
   requestRuleExpr?: string
   hasConflict: boolean
@@ -117,6 +117,13 @@ const ratioToPrice = (ratio?: string, denominator?: string) => {
   const denominatorNumber = denominator ? toNumberOrNull(denominator) : 2
   if (ratioNumber === null || denominatorNumber === null) return ''
   return formatPrice(ratioNumber * denominatorNumber)
+}
+
+const normalizeBillingUnit = (
+  value?: string
+): 'request' | 'second' | 'image' => {
+  if (value === 'second' || value === 'image') return value
+  return 'request'
 }
 
 const filterBySelectedValues = (
@@ -362,8 +369,7 @@ export const ModelRatioVisualEditor = memo(
           return {
             name,
             billingMode: 'tiered_expr',
-            billingUnit:
-              billingUnitMap[name] === 'second' ? 'second' : 'request',
+            billingUnit: normalizeBillingUnit(billingUnitMap[name]),
             billingExpr: pureExpr,
             requestRuleExpr,
             price,
@@ -394,8 +400,7 @@ export const ModelRatioVisualEditor = memo(
                 ? 'per-second'
                 : 'per-request'
               : 'per-token',
-          billingUnit:
-            billingUnitMap[name] === 'second' ? 'second' : 'request',
+          billingUnit: normalizeBillingUnit(billingUnitMap[name]),
           hasConflict:
             price !== '' &&
             (ratio !== '' ||
@@ -831,8 +836,8 @@ export const ModelRatioVisualEditor = memo(
               billingModeMap[name] = 'tiered_expr'
               billingExprMap[name] = combined
             }
-            if (data.billingUnit === 'second') {
-              billingUnitMap[name] = 'second'
+            if (data.billingUnit === 'second' || data.billingUnit === 'image') {
+              billingUnitMap[name] = data.billingUnit
             }
             // Always serialize ratio/price values for tiered_expr models so they
             // serve as fallback during multi-instance sync delays. The backend's

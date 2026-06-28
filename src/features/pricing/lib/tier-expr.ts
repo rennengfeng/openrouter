@@ -22,9 +22,23 @@ export const CACHE_MODE_TIMED = 'timed'
 export const CACHE_MODE_GENERIC = 'generic'
 export type CacheMode = typeof CACHE_MODE_TIMED | typeof CACHE_MODE_GENERIC
 
+export type TierConditionVar =
+  | 'p'
+  | 'c'
+  | 'len'
+  | 'resolution'
+  | 'raw_resolution'
+  | 'size'
+  | 'duration'
+  | 'image_count'
+  | 'model'
+  | 'action'
+
+export type TierConditionOp = '<' | '<=' | '>' | '>=' | '==' | '!='
+
 export type TierConditionInput = {
-  var: 'p' | 'c' | 'len'
-  op: '<' | '<=' | '>' | '>='
+  var: TierConditionVar
+  op: TierConditionOp
   value: number | string
 }
 
@@ -108,7 +122,12 @@ function buildConditionStr(conditions: TierConditionInput[]): string {
   if (!conditions || conditions.length === 0) return ''
   return conditions
     .filter((c) => c.var && c.op && c.value != null && c.value !== '')
-    .map((c) => `${c.var} ${c.op} ${c.value}`)
+    .map((c) => {
+      if (isParamConditionVar(c.var)) {
+        return `param("${c.var}") ${c.op} ${formatParamConditionValue(c)}`
+      }
+      return `${c.var} ${c.op} ${Number(c.value) || 0}`
+    })
     .join(' && ')
 }
 
@@ -193,9 +212,16 @@ export function tryParseVisualConfig(
       })
     }
 
+    const tokenCond = `(?:p|c|len)\\s*(?:<=|<|>=|>)\\s*[\\d.eE+-]+`
+    const paramName = PARAM_CONDITION_VARS.join('|')
+    const quotedValue = `(?:"(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*')`
+    const bareValue = `[\\w.:/-]+`
+    const paramCond =
+      `param\\("(?:${paramName})"\\)\\s*(?:==|!=|<=|<|>=|>)\\s*` +
+      `(?:[\\d.eE+-]+|${quotedValue}|${bareValue})`
+    const conditionAtom = `(?:${tokenCond}|${paramCond})`
     const condGroup =
-      `((?:(?:p|c|len)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)` +
-      `(?:\\s*&&\\s*(?:p|c|len)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)*)`
+      `((?:${conditionAtom})(?:\\s*&&\\s*${conditionAtom})*)`
     const tierRe = new RegExp(
       `(?:${condGroup}\\s*\\?\\s*)?tier\\("([^"]*)",\\s*${bodyPat}\\)`,
       'g'
@@ -207,14 +233,8 @@ export function tryParseVisualConfig(
       const conditions: TierConditionInput[] = []
       if (condStr) {
         for (const cp of condStr.split(/\s*&&\s*/)) {
-          const cm = cp.trim().match(/^(p|c|len)\s*(<|<=|>|>=)\s*([\d.eE+]+)$/)
-          if (cm) {
-            conditions.push({
-              var: cm[1] as TierConditionInput['var'],
-              op: cm[2] as TierConditionInput['op'],
-              value: Number(cm[3]),
-            })
-          }
+          const condition = parseConditionPart(cp)
+          if (condition) conditions.push(condition)
         }
       }
       const tier: Record<string, unknown> = {
@@ -292,6 +312,18 @@ export function evalExprLocally(
       p: promptTokens,
       c: completionTokens,
       len,
+      param: (path: string) => {
+        const values: Record<string, string | number> = {
+          resolution: '720p',
+          raw_resolution: '720p',
+          size: '1280*720',
+          duration: 1,
+          image_count: 1,
+          model: '',
+          action: '',
+        }
+        return values[path] ?? ''
+      },
       tier: tierFn,
       max: Math.max,
       min: Math.min,
@@ -321,3 +353,77 @@ export function exprUsesExtraVars(exprStr: string): boolean {
 }
 
 export const ESTIMATOR_EXTRA_FIELDS = ESTIMATOR_VARS
+
+export const PARAM_CONDITION_VARS = [
+  'resolution',
+  'raw_resolution',
+  'size',
+  'duration',
+  'image_count',
+  'model',
+  'action',
+] as const
+
+const NUMERIC_PARAM_CONDITION_VARS = ['duration', 'image_count'] as const
+
+export function isParamConditionVar(
+  value: TierConditionVar
+): value is (typeof PARAM_CONDITION_VARS)[number] {
+  return (PARAM_CONDITION_VARS as readonly string[]).includes(value)
+}
+
+export function isNumericTierConditionVar(value: TierConditionVar): boolean {
+  return (
+    value === 'p' ||
+    value === 'c' ||
+    value === 'len' ||
+    (NUMERIC_PARAM_CONDITION_VARS as readonly string[]).includes(value)
+  )
+}
+
+function formatParamConditionValue(condition: TierConditionInput): string {
+  if (isNumericTierConditionVar(condition.var)) {
+    const value = Number(condition.value)
+    return Number.isFinite(value) ? String(value) : '0'
+  }
+  return JSON.stringify(String(condition.value))
+}
+
+function parseConditionPart(part: string): TierConditionInput | null {
+  const trimmed = part.trim()
+  const tokenMatch = trimmed.match(/^(p|c|len)\s*(<=|<|>=|>)\s*([\d.eE+-]+)$/)
+  if (tokenMatch) {
+    return {
+      var: tokenMatch[1] as TierConditionVar,
+      op: tokenMatch[2] as TierConditionOp,
+      value: Number(tokenMatch[3]),
+    }
+  }
+
+  const paramMatch = trimmed.match(
+    /^param\("(resolution|raw_resolution|size|duration|image_count|model|action)"\)\s*(==|!=|<=|<|>=|>)\s*(.+)$/
+  )
+  if (!paramMatch) return null
+
+  const varName = paramMatch[1] as TierConditionVar
+  const rawValue = paramMatch[3].trim()
+  let value: string | number = rawValue
+  if (/^".*"$/.test(rawValue)) {
+    try {
+      value = JSON.parse(rawValue)
+    } catch {
+      value = rawValue.slice(1, -1)
+    }
+  } else if (/^'.*'$/.test(rawValue)) {
+    value = rawValue.slice(1, -1).replace(/\\'/g, "'")
+  } else if (isNumericTierConditionVar(varName)) {
+    const parsed = Number(rawValue)
+    value = Number.isFinite(parsed) ? parsed : rawValue
+  }
+
+  return {
+    var: varName,
+    op: paramMatch[2] as TierConditionOp,
+    value,
+  }
+}

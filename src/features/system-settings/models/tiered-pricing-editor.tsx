@@ -94,6 +94,8 @@ import {
   exprUsesExtraVars,
   generateExprFromVisualConfig,
   getTierCacheMode,
+  isNumericTierConditionVar,
+  isParamConditionVar,
   normalizeVisualConfig,
   normalizeVisualTier,
   tryParseVisualConfig,
@@ -114,8 +116,17 @@ const CONDITION_INPUT_OPTIONS: {
   { value: 'len', labelKey: 'Full input length' },
   { value: 'p', labelKey: 'Billable input tokens' },
   { value: 'c', labelKey: 'Billable output tokens' },
+  { value: 'resolution', labelKey: 'Resolution' },
+  { value: 'raw_resolution', labelKey: 'Raw resolution' },
+  { value: 'size', labelKey: 'Size' },
+  { value: 'duration', labelKey: 'Duration seconds' },
+  { value: 'image_count', labelKey: 'Image count' },
+  { value: 'model', labelKey: 'Model' },
+  { value: 'action', labelKey: 'Action' },
 ]
-const OPS: TierConditionInput['op'][] = ['<', '<=', '>', '>=']
+const NUMERIC_OPS: TierConditionInput['op'][] = ['<', '<=', '>', '>=']
+const STRING_OPS: TierConditionInput['op'][] = ['==', '!=']
+const RESOLUTION_OPTIONS = ['480p', '720p', '1080p', '2k', '4k']
 
 type Preset = {
   key: string
@@ -430,6 +441,26 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
   const currentInputOption = CONDITION_INPUT_OPTIONS.find(
     (option) => option.value === condition.var
   )
+  const isNumericCondition = isNumericTierConditionVar(condition.var)
+  const isResolutionCondition =
+    condition.var === 'resolution' || condition.var === 'raw_resolution'
+  const ops = isNumericCondition ? NUMERIC_OPS : STRING_OPS
+  const normalizedOp = ops.includes(condition.op) ? condition.op : ops[0]
+
+  const handleVarChange = (value: string) => {
+    const nextVar = value as TierConditionInput['var']
+    const nextIsNumeric = isNumericTierConditionVar(nextVar)
+    onChange({
+      ...condition,
+      var: nextVar,
+      op: nextIsNumeric ? '<=' : '==',
+      value: nextIsNumeric
+        ? 0
+        : nextVar === 'resolution' || nextVar === 'raw_resolution'
+          ? '720p'
+          : '',
+    })
+  }
 
   return (
     <div className='flex items-center gap-2'>
@@ -441,11 +472,9 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
           })),
         ]}
         value={condition.var}
-        onValueChange={(value) =>
-          onChange({ ...condition, var: value as TierConditionInput['var'] })
-        }
+        onValueChange={handleVarChange}
       >
-        <SelectTrigger className='w-32' size='sm'>
+        <SelectTrigger className='w-40' size='sm'>
           <SelectValue>
             {currentInputOption
               ? t(currentInputOption.labelKey)
@@ -463,8 +492,8 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
         </SelectContent>
       </Select>
       <Select
-        items={[...OPS.map((op) => ({ value: op, label: op }))]}
-        value={condition.op}
+        items={[...ops.map((op) => ({ value: op, label: op }))]}
+        value={normalizedOp}
         onValueChange={(value) =>
           onChange({ ...condition, op: value as TierConditionInput['op'] })
         }
@@ -474,7 +503,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
         </SelectTrigger>
         <SelectContent alignItemWithTrigger={false}>
           <SelectGroup>
-            {OPS.map((op) => (
+            {ops.map((op) => (
               <SelectItem key={op} value={op}>
                 {op}
               </SelectItem>
@@ -482,16 +511,55 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
           </SelectGroup>
         </SelectContent>
       </Select>
-      <DraftNumberInput
-        min={0}
-        value={condition.value}
-        onValueChange={(value) => onChange({ ...condition, value })}
-        placeholder='tokens'
-        className='w-32'
-      />
-      <span className='text-muted-foreground text-xs'>
-        {formatTokenHint(condition.value)}
-      </span>
+      {isResolutionCondition ? (
+        <Select
+          items={RESOLUTION_OPTIONS.map((value) => ({
+            value,
+            label: value,
+          }))}
+          value={String(condition.value || '720p')}
+          onValueChange={(value) => onChange({ ...condition, value })}
+        >
+          <SelectTrigger className='w-32' size='sm'>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false}>
+            <SelectGroup>
+              {RESOLUTION_OPTIONS.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      ) : isNumericCondition ? (
+        <>
+          <DraftNumberInput
+            min={0}
+            value={condition.value}
+            onValueChange={(value) => onChange({ ...condition, value })}
+            placeholder={
+              isParamConditionVar(condition.var) ? t('value') : 'tokens'
+            }
+            className='w-32'
+          />
+          {!isParamConditionVar(condition.var) && (
+            <span className='text-muted-foreground text-xs'>
+              {formatTokenHint(condition.value)}
+            </span>
+          )}
+        </>
+      ) : (
+        <Input
+          value={String(condition.value ?? '')}
+          onChange={(event) =>
+            onChange({ ...condition, value: event.target.value })
+          }
+          placeholder={t('value')}
+          className='h-8 w-40'
+        />
+      )}
       <Button
         variant='ghost'
         size='icon'

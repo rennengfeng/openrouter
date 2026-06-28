@@ -643,15 +643,21 @@ export function ChannelMutateDrawer({
     }
   }, [currentType, isEditing, form])
 
-  // Validate base_url - warn if it ends with /v1
+  // Validate base_url - NewAPI channel base URL should be the provider root.
   useEffect(() => {
-    if (!currentBaseUrl || !currentBaseUrl.endsWith('/v1')) return
+    const normalizedBaseUrl = (currentBaseUrl || '').replace(/\/+$/, '')
+    if (
+      !normalizedBaseUrl ||
+      !/(\/v1|\/api\/v1|\/compatible-mode\/v1)$/i.test(normalizedBaseUrl)
+    ) {
+      return
+    }
 
     // Show warning toast
     const timer = setTimeout(() => {
       toast.warning(
         t(
-          'Warning: Base URL should not end with /v1. New API will handle it automatically. This may cause request failures.'
+          'Warning: Base URL should be the provider root. Do not add /v1, /api/v1, or /compatible-mode/v1. New API will append paths automatically.'
         ),
         { duration: 5000 }
       )

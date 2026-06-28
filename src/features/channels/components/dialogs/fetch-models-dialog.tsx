@@ -152,14 +152,16 @@ export function FetchModelsDialog({
           toast.success(t('Fetched {{count}} models', { count: list.length }))
         } else {
           toast.error(response.message || t('Failed to fetch models'))
-          setFetchedModels([])
+          setFetchedModels(existingModels)
+          setSelectedModels(existingModels)
         }
       }
     } catch (error: unknown) {
       toast.error(
         error instanceof Error ? error.message : t('Failed to fetch models')
       )
-      setFetchedModels([])
+      setFetchedModels(existingModels)
+      setSelectedModels(existingModels)
     } finally {
       setIsFetching(false)
     }
