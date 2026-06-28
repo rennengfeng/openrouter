@@ -37,6 +37,8 @@ import { isTokenBasedModel } from '../lib/model-helpers'
 import {
   formatPrice,
   formatRequestPrice,
+  getFixedBillingTypeLabelKey,
+  getFixedBillingUnitLabelKey,
   stripTrailingZeros,
 } from '../lib/price'
 import type { PricingModel, TokenUnit } from '../types'
@@ -138,10 +140,11 @@ export function usePricingColumns(
       meta: { label: t('Type') },
       header: t('Type'),
       cell: ({ row }) => {
-        const isTokenBased = row.original.quota_type === QUOTA_TYPE_VALUES.TOKEN
+        const model = row.original
+        const isTokenBased = model.quota_type === QUOTA_TYPE_VALUES.TOKEN
         return (
           <span className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
-            {isTokenBased ? t('Token') : t('Request')}
+            {isTokenBased ? t('Token') : t(getFixedBillingTypeLabelKey(model))}
           </span>
         )
       },
@@ -266,7 +269,7 @@ export function usePricingColumns(
           <div className='min-w-[100px]'>
             <span className='font-mono text-sm tabular-nums'>{price}</span>
             <div className='text-muted-foreground/50 text-[10px]'>
-              / {t('request')}
+              / {t(getFixedBillingUnitLabelKey(model))}
             </div>
           </div>
         )

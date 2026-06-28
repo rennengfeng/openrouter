@@ -55,6 +55,8 @@ export type PricingModel = {
   billing_mode?: string
   /** Raw expression describing dynamic / tiered billing */
   billing_expr?: string
+  /** Fixed-price billing unit for quota_type=1 models */
+  billing_unit?: BillingUnit
   /** Pricing version returned by backend, useful for cache busting */
   pricing_version?: string
   /**
@@ -103,6 +105,7 @@ export type PricingData = {
 }
 
 export type TokenUnit = 'M' | 'K'
+export type BillingUnit = 'request' | 'second' | 'image'
 export type PriceType =
   | 'input'
   | 'output'
@@ -111,4 +114,4 @@ export type PriceType =
   | 'image'
   | 'audio_input'
   | 'audio_output'
-export type QuotaType = 0 | 1 // 0: token-based, 1: per-request
+export type QuotaType = 0 | 1 // 0: token-based, 1: fixed price

@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { formatCurrencyFromUSD } from '@/lib/currency'
 import { QUOTA_TYPE_VALUES, TOKEN_UNIT_DIVISORS } from '../constants'
-import type { PricingModel, TokenUnit, PriceType } from '../types'
+import type { BillingUnit, PricingModel, TokenUnit, PriceType } from '../types'
 
 // ----------------------------------------------------------------------------
 // Price Calculation Utilities
@@ -119,6 +119,28 @@ function calculateTokenPrice(
 
 function hasRatio(value: number | null | undefined): boolean {
   return value !== undefined && value !== null && Number.isFinite(Number(value))
+}
+
+export function getFixedBillingUnit(model: PricingModel): BillingUnit {
+  if (model.billing_unit === 'second' || model.billing_unit === 'image') {
+    return model.billing_unit
+  }
+  return 'request'
+}
+
+export function getFixedBillingUnitLabelKey(model: PricingModel): string {
+  return getFixedBillingUnit(model)
+}
+
+export function getFixedBillingTypeLabelKey(model: PricingModel): string {
+  switch (getFixedBillingUnit(model)) {
+    case 'second':
+      return 'Per Second'
+    case 'image':
+      return 'Per Image'
+    default:
+      return 'Per Request'
+  }
 }
 
 /**
@@ -230,7 +252,7 @@ export function formatGroupPrice(
 }
 
 /**
- * Format fixed price for pay-per-request models (with specific group)
+ * Format fixed price models (with specific group)
  */
 export function formatFixedPrice(
   model: PricingModel,
@@ -262,7 +284,7 @@ export function formatFixedPrice(
 }
 
 /**
- * Format fixed price for pay-per-request models (minimum price from all groups)
+ * Format fixed price models (minimum price from all groups)
  */
 export function formatRequestPrice(
   model: PricingModel,
