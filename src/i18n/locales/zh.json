@@ -5084,6 +5084,22 @@
         "portal.page.home.card.recentTokensDesc": "近30天累计 Token 消耗",
         "portal.page.logs.phrase.imgSize": "大小",
         "portal.page.logs.phrase.imgQuality": "品质",
-        "portal.page.logs.phrase.imgCount": "生成数量"
+        "portal.page.logs.phrase.imgCount": "生成数量",
+        "DashScope Pricing": "DashScope ??",
+        "Configure native DashScope image and video pricing": "?? DashScope ?????????",
+        "Configure native DashScope image and video pricing with JSON expressions.": "?? JSON ????? DashScope ??????????",
+        "Each model uses a billing unit and a price expression. The expression returns the USD unit price; the backend multiplies it by image count or seconds automatically.": "????????????????????????????????????????",
+        "Use param(\"resolution\") for normalized tiers: 480p, 720p, 1080p, 2k, 4k.": "?? param(\"resolution\") ????????480p?720p?1080p?2k?4k?",
+        "Condition fields": "????",
+        "original resolution value": "??????",
+        "original size value, for example 1920*1080": "???????? 1920*1080",
+        "video seconds": "????",
+        "generated image count": "??????",
+        "requested model name": "??????",
+        "dashscope_image or dashscope_video": "dashscope_image ? dashscope_video",
+        "Example structure": "????",
+        "Use template": "????",
+        "Copy template": "????",
+        "Save DashScope pricing": "?? DashScope ??"
     }
 }

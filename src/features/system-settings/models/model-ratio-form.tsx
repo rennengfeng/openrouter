@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (C) 2023-2026 QuantumNous
 
 This program is free software: you can redistribute it and/or modify
@@ -45,6 +45,7 @@ type ModelFormValues = {
   AudioCompletionRatio: string
   ExposeRatioEnabled: boolean
   BillingMode: string
+  BillingUnit: string
   BillingExpr: string
 }
 
@@ -111,10 +112,12 @@ export const ModelRatioForm = memo(function ModelRatioForm({
               audioRatio={form.watch('AudioRatio')}
               audioCompletionRatio={form.watch('AudioCompletionRatio')}
               billingMode={form.watch('BillingMode')}
+              billingUnit={form.watch('BillingUnit')}
               billingExpr={form.watch('BillingExpr')}
               onChange={(field, value) => {
                 const fieldMap: Record<string, keyof ModelFormValues> = {
                   'billing_setting.billing_mode': 'BillingMode',
+                  'billing_setting.billing_unit': 'BillingUnit',
                   'billing_setting.billing_expr': 'BillingExpr',
                 }
                 const formField =
@@ -122,6 +125,7 @@ export const ModelRatioForm = memo(function ModelRatioForm({
                 handleFieldChange(formField, value)
               }}
             />
+
 
             <FormField
               control={form.control}
@@ -175,7 +179,7 @@ export const ModelRatioForm = memo(function ModelRatioForm({
                   </FormControl>
                   <FormDescription>
                     {t(
-                      'JSON map of model → USD cost per request. Takes precedence over ratio based billing.'
+                      'JSON map of model 鈫?USD cost per request. Takes precedence over ratio based billing.'
                     )}
                   </FormDescription>
                   <FormMessage />
@@ -194,7 +198,7 @@ export const ModelRatioForm = memo(function ModelRatioForm({
                   </FormControl>
                   <FormDescription>
                     {t(
-                      'JSON map of model → multiplier applied to quota billing.'
+                      'JSON map of model 鈫?multiplier applied to quota billing.'
                     )}
                   </FormDescription>
                   <FormMessage />
@@ -249,7 +253,7 @@ export const ModelRatioForm = memo(function ModelRatioForm({
                   </FormControl>
                   <FormDescription>
                     {t(
-                      'Applies to custom completion endpoints. JSON map of model → ratio.'
+                      'Applies to custom completion endpoints. JSON map of model 鈫?ratio.'
                     )}
                   </FormDescription>
                   <FormMessage />
@@ -308,6 +312,61 @@ export const ModelRatioForm = memo(function ModelRatioForm({
                     {t(
                       'Ratio applied to audio completions for streaming models.'
                     )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='BillingMode'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Billing mode')}</FormLabel>
+                  <FormControl>
+                    <Textarea rows={5} {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    {t(
+                      'JSON map of model to billing mode. Use tiered_expr for expression billing.'
+                    )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='BillingUnit'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Billing unit')}</FormLabel>
+                  <FormControl>
+                    <Textarea rows={5} {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    {t(
+                      'JSON map of model to billing unit, such as request or second.'
+                    )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='BillingExpr'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Billing expression')}</FormLabel>
+                  <FormControl>
+                    <Textarea rows={6} {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    {t('JSON map of model to expression billing formula.')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

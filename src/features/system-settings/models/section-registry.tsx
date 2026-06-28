@@ -21,6 +21,7 @@ import { IoNetDeploymentSettingsSection } from '../integrations/ionet-deployment
 import type { ModelSettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
 import { ClaudeSettingsCard } from './claude-settings-card'
+import { DashScopePricingSettings } from './dashscope-pricing-settings'
 import { GeminiSettingsCard } from './gemini-settings-card'
 import { GlobalSettingsCard } from './global-settings-card'
 import { GrokSettingsCard } from './grok-settings-card'
@@ -121,6 +122,16 @@ const MODELS_SECTIONS = [
           'grok.violation_deduction_amount':
             settings['grok.violation_deduction_amount'] ?? 0.05,
         }}
+      />
+    ),
+  },
+  {
+    id: 'dashscope-pricing',
+    titleKey: 'DashScope Pricing',
+    descriptionKey: 'Configure native DashScope image and video pricing',
+    build: (settings: ModelSettings) => (
+      <DashScopePricingSettings
+        defaultValue={settings['dashscope_pricing.models']}
       />
     ),
   },

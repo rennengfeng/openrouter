@@ -155,6 +155,7 @@ export type ModelSettings = {
   'claude.thinking_adapter_budget_tokens_percentage': number
   'grok.violation_deduction_enabled': boolean
   'grok.violation_deduction_amount': number
+  'dashscope_pricing.models': string
   ModelPrice: string
   ModelRatio: string
   CacheRatio: string
@@ -165,6 +166,7 @@ export type ModelSettings = {
   AudioCompletionRatio: string
   ExposeRatioEnabled: boolean
   'billing_setting.billing_mode': string
+  'billing_setting.billing_unit': string
   'billing_setting.billing_expr': string
   'tool_price_setting.prices': string
   TopupGroupRatio: string
@@ -208,6 +210,7 @@ export type BillingSettings = {
   AudioCompletionRatio: string
   ExposeRatioEnabled: boolean
   'billing_setting.billing_mode': string
+  'billing_setting.billing_unit': string
   'billing_setting.billing_expr': string
   'tool_price_setting.prices': string
   TopupGroupRatio: string
@@ -349,6 +352,7 @@ export type RatioType =
   | 'audio_completion_ratio'
   | 'model_price'
   | 'billing_mode'
+  | 'billing_unit'
   | 'billing_expr'
 
 export type RatioDifference = {

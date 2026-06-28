@@ -100,7 +100,7 @@ const extendedModelFormSchema = z.object({
 
 type ExtendedModelFormValues = z.infer<typeof extendedModelFormSchema>
 
-type PricingMode = 'per-token' | 'per-request'
+type PricingMode = 'per-token' | 'per-request' | 'per-second'
 type PricingSubMode = 'ratio' | 'price'
 
 type ModelMutateDrawerProps = {
@@ -175,6 +175,7 @@ export function ModelMutateDrawer({
       AudioCompletionRatio: '',
       ExposeRatioEnabled: false,
       'billing_setting.billing_mode': '{}',
+      'billing_setting.billing_unit': '{}',
       'billing_setting.billing_expr': '{}',
       'tool_price_setting.prices': '{}',
       TopupGroupRatio: '',
@@ -187,6 +188,7 @@ export function ModelMutateDrawer({
       'group_ratio_setting.group_special_usable_group': '{}',
       'grok.violation_deduction_enabled': false,
       'grok.violation_deduction_amount': 0,
+      'dashscope_pricing.models': '{}',
       'channel_affinity_setting.enabled': false,
       'channel_affinity_setting.switch_on_success': true,
       'channel_affinity_setting.max_entries': 100000,
@@ -308,6 +310,10 @@ export function ModelMutateDrawer({
           modelSettings.AudioCompletionRatio,
           { fallback: {}, silent: true }
         )
+        const billingUnitMap = safeJsonParse<Record<string, string>>(
+          modelSettings['billing_setting.billing_unit'],
+          { fallback: {}, silent: true }
+        )
 
         // Extract ratio config for this model
         const modelName = model.model_name
@@ -321,7 +327,11 @@ export function ModelMutateDrawer({
 
         // Determine pricing mode
         if (price !== undefined && price !== null) {
-          setPricingMode('per-request')
+          setPricingMode(
+            billingUnitMap[modelName] === 'second'
+              ? 'per-second'
+              : 'per-request'
+          )
           form.reset({
             ...baseModelData,
             price: price.toString(),
@@ -416,7 +426,8 @@ export function ModelMutateDrawer({
           // Handle ratio configuration updates in system settings
           const finalModelName = values.model_name
           const hasRatioConfig =
-            (pricingMode === 'per-request' &&
+            ((pricingMode === 'per-request' ||
+              pricingMode === 'per-second') &&
               values.price &&
               values.price !== '') ||
             (pricingMode === 'per-token' &&
@@ -459,6 +470,10 @@ export function ModelMutateDrawer({
               modelSettings.AudioCompletionRatio,
               { fallback: {}, silent: true }
             )
+            const billingUnitMap = safeJsonParse<Record<string, string>>(
+              modelSettings['billing_setting.billing_unit'],
+              { fallback: {}, silent: true }
+            )
 
             // Remove old model name entries if model name changed (always, even if no new config)
             if (isEditing && oldModelName && oldModelName !== finalModelName) {
@@ -469,6 +484,7 @@ export function ModelMutateDrawer({
               delete imageMap[oldModelName]
               delete audioMap[oldModelName]
               delete audioCompletionMap[oldModelName]
+              delete billingUnitMap[oldModelName]
             }
 
             // Remove current model name from all maps first (always, to handle mode switches or clearing)
@@ -480,15 +496,19 @@ export function ModelMutateDrawer({
             delete imageMap[finalModelName]
             delete audioMap[finalModelName]
             delete audioCompletionMap[finalModelName]
+            delete billingUnitMap[finalModelName]
 
             // Only add new entries if user provided new configuration
             if (hasRatioConfig) {
               if (
-                pricingMode === 'per-request' &&
+                (pricingMode === 'per-request' ||
+                  pricingMode === 'per-second') &&
                 values.price &&
                 values.price !== ''
               ) {
                 priceMap[finalModelName] = parseFloat(values.price)
+                billingUnitMap[finalModelName] =
+                  pricingMode === 'per-second' ? 'second' : 'request'
               } else if (pricingMode === 'per-token') {
                 if (values.ratio && values.ratio !== '') {
                   ratioMap[finalModelName] = parseFloat(values.ratio)
@@ -579,6 +599,19 @@ export function ModelMutateDrawer({
               updates.push({
                 key: 'AudioCompletionRatio',
                 value: newAudioCompletionRatio,
+              })
+            }
+
+            const newBillingUnit = normalizeJsonString(
+              JSON.stringify(billingUnitMap)
+            )
+            if (
+              newBillingUnit !==
+              normalizeJsonString(modelSettings['billing_setting.billing_unit'])
+            ) {
+              updates.push({
+                key: 'billing_setting.billing_unit',
+                value: newBillingUnit,
               })
             }
 
@@ -913,10 +946,16 @@ export function ModelMutateDrawer({
                       {t('Per-request (fixed price)')}
                     </Label>
                   </div>
+                  <div className='flex items-center space-x-2'>
+                    <RadioGroupItem value='per-second' id='per-second' />
+                    <Label htmlFor='per-second' className='font-normal'>
+                      {t('Per-second (fixed price)')}
+                    </Label>
+                  </div>
                 </RadioGroup>
               </div>
 
-              {pricingMode === 'per-request' ? (
+              {pricingMode === 'per-request' || pricingMode === 'per-second' ? (
                 <FormField
                   control={form.control}
                   name='price'
@@ -937,9 +976,11 @@ export function ModelMutateDrawer({
                         />
                       </FormControl>
                       <FormDescription>
-                        {t(
-                          'Cost in USD per request, regardless of tokens used.'
-                        )}
+                        {pricingMode === 'per-second'
+                          ? t('Cost in USD per generated video second.')
+                          : t(
+                              'Cost in USD per request, regardless of tokens used.'
+                            )}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

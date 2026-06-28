@@ -84,7 +84,7 @@ type ModelPricingFormValues = z.infer<
   ReturnType<typeof createModelPricingSchema>
 >
 
-type PricingMode = 'per-token' | 'per-request' | 'tiered_expr'
+type PricingMode = 'per-token' | 'per-request' | 'per-second' | 'tiered_expr'
 type LaneKey =
   | 'completion'
   | 'cache'
@@ -104,6 +104,7 @@ export type ModelRatioData = {
   audioRatio?: string
   audioCompletionRatio?: string
   billingMode?: PricingMode
+  billingUnit?: 'request' | 'second'
   billingExpr?: string
   requestRuleExpr?: string
 }
@@ -274,6 +275,7 @@ function createInitialLaneState(data?: ModelRatioData | null) {
 }
 
 function getModeLabel(mode: PricingMode) {
+  if (mode === 'per-second') return 'Per-second'
   if (mode === 'per-request') return 'Per-request'
   if (mode === 'tiered_expr') return 'Expression'
   return 'Per-token'
@@ -282,6 +284,7 @@ function getModeLabel(mode: PricingMode) {
 function getModeBadgeVariant(
   mode: PricingMode
 ): 'default' | 'secondary' | 'outline' {
+  if (mode === 'per-second') return 'secondary'
   if (mode === 'per-request') return 'secondary'
   if (mode === 'tiered_expr') return 'default'
   return 'outline'
@@ -310,8 +313,13 @@ function buildPreviewRows(
     ]
   }
 
-  if (mode === 'per-request') {
+  if (mode === 'per-request' || mode === 'per-second') {
     return [
+      {
+        key: 'mode',
+        label: 'BillingUnit',
+        value: mode === 'per-second' ? 'second' : 'request',
+      },
       {
         key: 'price',
         label: 'ModelPrice',
@@ -465,7 +473,9 @@ export function ModelPricingEditorPanel({
       setPricingMode(
         editData.billingMode === 'tiered_expr'
           ? 'tiered_expr'
-          : editData.price
+          : editData.price && editData.billingUnit === 'second'
+            ? 'per-second'
+            : editData.price
             ? 'per-request'
             : 'per-token'
       )
@@ -712,6 +722,7 @@ export function ModelPricingEditorPanel({
     const data: ModelRatioData = {
       name: values.name.trim(),
       billingMode: pricingMode,
+      billingUnit: pricingMode === 'per-second' ? 'second' : 'request',
       price: values.price || '',
       ratio: values.ratio || '',
       cacheRatio: values.cacheRatio || '',
@@ -800,10 +811,13 @@ export function ModelPricingEditorPanel({
               />
 
               <Tabs value={pricingMode} onValueChange={handleModeChange}>
-                <TabsList className='grid w-full grid-cols-3'>
+                <TabsList className='grid w-full grid-cols-4'>
                   <TabsTrigger value='per-token'>{t('Per-token')}</TabsTrigger>
                   <TabsTrigger value='per-request'>
                     {t('Per-request')}
+                  </TabsTrigger>
+                  <TabsTrigger value='per-second'>
+                    {t('Per-second')}
                   </TabsTrigger>
                   <TabsTrigger value='tiered_expr'>
                     {t('Expression')}
@@ -884,6 +898,43 @@ export function ModelPricingEditorPanel({
                         <FormDescription>
                           {t(
                             'Cost in USD per request, regardless of tokens used.'
+                          )}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
+                <TabsContent value='per-second' className='flex flex-col gap-5'>
+                  <FormField
+                    control={form.control}
+                    name='price'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Second price')}</FormLabel>
+                        <FormControl>
+                          <InputGroup>
+                            <InputGroupAddon>$</InputGroupAddon>
+                            <InputGroupInput
+                              inputMode='decimal'
+                              placeholder='0.01'
+                              {...field}
+                              onChange={(event) => {
+                                const value = event.target.value
+                                if (numericDraftRegex.test(value)) {
+                                  field.onChange(value)
+                                }
+                              }}
+                            />
+                            <InputGroupAddon align='inline-end'>
+                              {t('per second')}
+                            </InputGroupAddon>
+                          </InputGroup>
+                        </FormControl>
+                        <FormDescription>
+                          {t(
+                            'Cost in USD per generated video second. The backend multiplies this price by request duration.'
                           )}
                         </FormDescription>
                         <FormMessage />

@@ -5056,6 +5056,22 @@
         "portal.page.home.card.recentTokensDesc": "Tokens used in the last 30 days",
         "portal.page.logs.phrase.imgSize": "Size",
         "portal.page.logs.phrase.imgQuality": "Quality",
-        "portal.page.logs.phrase.imgCount": "Count"
+        "portal.page.logs.phrase.imgCount": "Count",
+        "DashScope Pricing": "DashScope Pricing",
+        "Configure native DashScope image and video pricing": "Configure native DashScope image and video pricing",
+        "Configure native DashScope image and video pricing with JSON expressions.": "Configure native DashScope image and video pricing with JSON expressions.",
+        "Each model uses a billing unit and a price expression. The expression returns the USD unit price; the backend multiplies it by image count or seconds automatically.": "Each model uses a billing unit and a price expression. The expression returns the USD unit price; the backend multiplies it by image count or seconds automatically.",
+        "Use param(\"resolution\") for normalized tiers: 480p, 720p, 1080p, 2k, 4k.": "Use param(\"resolution\") for normalized tiers: 480p, 720p, 1080p, 2k, 4k.",
+        "Condition fields": "Condition fields",
+        "original resolution value": "original resolution value",
+        "original size value, for example 1920*1080": "original size value, for example 1920*1080",
+        "video seconds": "video seconds",
+        "generated image count": "generated image count",
+        "requested model name": "requested model name",
+        "dashscope_image or dashscope_video": "dashscope_image or dashscope_video",
+        "Example structure": "Example structure",
+        "Use template": "Use template",
+        "Copy template": "Copy template",
+        "Save DashScope pricing": "Save DashScope pricing"
     }
 }
