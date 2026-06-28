@@ -104,10 +104,15 @@ const endpointTypeOptions: Array<{ value: string; label: string }> = [
     value: 'image-generation',
     label: 'Image Generation (/v1/images/generations)',
   },
+  {
+    value: 'dashscope',
+    label: 'DashScope Native (/dashscope/api/v1/services/...)',
+  },
   { value: 'embeddings', label: 'Embeddings (/v1/embeddings)' },
 ]
 
 const STREAM_INCOMPATIBLE_ENDPOINTS = new Set([
+  'dashscope',
   'embeddings',
   'image-generation',
   'jina-rerank',

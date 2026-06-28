@@ -4541,6 +4541,7 @@
         "portal.page.logs.phrase.imgSize": "サイズ",
         "portal.page.logs.phrase.imgQuality": "品質",
         "portal.page.logs.phrase.imgCount": "生成数",
+        "DashScope Native (/dashscope/api/v1/services/...)": "DashScope ネイティブ (/dashscope/api/v1/services/...)",
         "DashScope Pricing": "DashScope ??",
         "Configure native DashScope image and video pricing": "DashScope ???????????????",
         "Configure native DashScope image and video pricing with JSON expressions.": "JSON ?? DashScope ???????????????????",

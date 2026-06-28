@@ -55,6 +55,8 @@ import {
   type ResolutionsMap,
 } from './upstream-ratio-sync-helpers'
 
+type SyncValue = number | string | Record<string, unknown>
+
 type UpstreamRatioSyncTableProps = {
   differences: DifferencesMap
   resolutions: ResolutionsMap
@@ -63,7 +65,7 @@ type UpstreamRatioSyncTableProps = {
   onSelectValue: (
     model: string,
     ratioType: RatioType,
-    value: number | string,
+    value: SyncValue,
     sourceName: string
   ) => void
   onUnselectValue: (model: string, ratioType: RatioType) => void
@@ -141,7 +143,7 @@ export function UpstreamRatioSyncTable({
               onSelectValue(
                 row.model,
                 ratioType,
-                upstreamVal as number | string,
+                upstreamVal as SyncValue,
                 upstream
               )
             }

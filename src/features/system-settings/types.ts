@@ -168,6 +168,7 @@ export type ModelSettings = {
   'billing_setting.billing_mode': string
   'billing_setting.billing_unit': string
   'billing_setting.billing_expr': string
+  'dashscope_pricing.models': string
   'tool_price_setting.prices': string
   TopupGroupRatio: string
   GroupRatio: string
@@ -354,10 +355,11 @@ export type RatioType =
   | 'billing_mode'
   | 'billing_unit'
   | 'billing_expr'
+  | 'dashscope_pricing'
 
 export type RatioDifference = {
-  current: number | string | null
-  upstreams: Record<string, number | string | 'same'>
+  current: number | string | Record<string, unknown> | null
+  upstreams: Record<string, number | string | Record<string, unknown> | 'same'>
   confidence: Record<string, boolean>
 }
 

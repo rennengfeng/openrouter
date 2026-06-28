@@ -212,6 +212,7 @@ type RatioSettingsCardProps = {
   modelDefaults: ModelFormValues
   groupDefaults: GroupFormValues
   toolPricesDefault: string
+  dashScopePricingDefault?: string
   titleKey?: string
   descriptionKey?: string
   visibleTabs?: RatioTabId[]
@@ -221,6 +222,7 @@ export function RatioSettingsCard({
   modelDefaults,
   groupDefaults,
   toolPricesDefault,
+  dashScopePricingDefault = '{}',
   titleKey = 'Pricing Ratios',
   descriptionKey = 'Configure model, caching, and group ratios used for billing',
   visibleTabs = ['models', 'groups', 'tool-prices', 'upstream-sync'],
@@ -507,6 +509,7 @@ export function RatioSettingsCard({
           'billing_setting.billing_mode': modelDefaults.BillingMode,
           'billing_setting.billing_unit': modelDefaults.BillingUnit,
           'billing_setting.billing_expr': modelDefaults.BillingExpr,
+          'dashscope_pricing.models': dashScopePricingDefault,
         }}
       />
     )

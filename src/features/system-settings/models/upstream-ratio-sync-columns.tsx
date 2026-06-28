@@ -38,6 +38,16 @@ import {
   type ResolutionsMap,
 } from './upstream-ratio-sync-helpers'
 
+type SyncValue = number | string | Record<string, unknown>
+
+function syncValuesEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  if (typeof a === 'object' && typeof b === 'object' && a && b) {
+    return JSON.stringify(a) === JSON.stringify(b)
+  }
+  return false
+}
+
 export function useUpstreamRatioSyncColumns(
   upstreamNames: string[],
   resolutions: ResolutionsMap,
@@ -46,7 +56,7 @@ export function useUpstreamRatioSyncColumns(
   onSelectValue: (
     model: string,
     ratioType: RatioType,
-    value: number | string,
+    value: SyncValue,
     sourceName: string
   ) => void,
   onUnselectValue: (model: string, ratioType: RatioType) => void,
@@ -169,7 +179,7 @@ export function useUpstreamRatioSyncColumns(
                   isSelectableUpstreamValue(upstreamVal)
                 ) {
                   selectableCount++
-                  if (resolutions[row.model]?.[ratioType] === upstreamVal) {
+                  if (syncValuesEqual(resolutions[row.model]?.[ratioType], upstreamVal)) {
                     selectedCount++
                   }
                 }
@@ -238,15 +248,17 @@ export function useUpstreamRatioSyncColumns(
                         upstreamVal,
                         isConfident,
                         isSelected:
-                          resolutions[row.original.model]?.[ratioType] ===
-                          upstreamVal,
+                          syncValuesEqual(
+                            resolutions[row.original.model]?.[ratioType],
+                            upstreamVal
+                          ),
                         isDisabled,
                         t,
                         onSelect: () =>
                           onSelectValue(
                             row.original.model,
                             ratioType,
-                            upstreamVal as number | string,
+                            upstreamVal as SyncValue,
                             upstreamName
                           ),
                         onUnselect: () =>
@@ -277,7 +289,7 @@ export function useUpstreamRatioSyncColumns(
 }
 
 type RenderUpstreamValueArgs = {
-  upstreamVal: number | string | 'same' | null | undefined
+  upstreamVal: SyncValue | 'same' | null | undefined
   isConfident: boolean
   isSelected: boolean
   isDisabled: boolean
@@ -311,7 +323,10 @@ function renderUpstreamValue(args: RenderUpstreamValueArgs) {
     )
   }
 
-  const text = String(upstreamVal)
+  const text =
+    typeof upstreamVal === 'object'
+      ? JSON.stringify(upstreamVal)
+      : String(upstreamVal)
 
   return (
     <div className='flex min-w-0 items-center gap-2'>
@@ -330,11 +345,11 @@ function renderUpstreamValue(args: RenderUpstreamValueArgs) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <span className='inline-block max-w-[240px] cursor-default truncate font-mono text-sm' />
+              <span className='inline-block max-w-[240px] cursor-default truncate font-mono text-sm'>
+                {text}
+              </span>
             }
-          >
-            {text}
-          </TooltipTrigger>
+          ></TooltipTrigger>
           <TooltipContent>
             <p className='max-w-xs text-xs break-all'>{text}</p>
           </TooltipContent>

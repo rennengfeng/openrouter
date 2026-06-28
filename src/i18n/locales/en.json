@@ -5057,6 +5057,7 @@
         "portal.page.logs.phrase.imgSize": "Size",
         "portal.page.logs.phrase.imgQuality": "Quality",
         "portal.page.logs.phrase.imgCount": "Count",
+        "DashScope Native (/dashscope/api/v1/services/...)": "DashScope Native (/dashscope/api/v1/services/...)",
         "DashScope Pricing": "DashScope Pricing",
         "Configure native DashScope image and video pricing": "Configure native DashScope image and video pricing",
         "Configure native DashScope image and video pricing with JSON expressions.": "Configure native DashScope image and video pricing with JSON expressions.",
