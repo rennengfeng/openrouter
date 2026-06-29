@@ -106,7 +106,7 @@ const endpointTypeOptions: Array<{ value: string; label: string }> = [
   },
   {
     value: 'dashscope',
-    label: 'DashScope Native (/dashscope/api/v1/services/...)',
+    label: 'DashScope Native diagnostic (/dashscope/api/v1/services/...)',
   },
   { value: 'embeddings', label: 'Embeddings (/v1/embeddings)' },
 ]
@@ -155,9 +155,6 @@ export function ChannelTestDialog({
   useEffect(() => {
     if (open && currentRow) {
       resetState()
-      if (currentRow.type === ALI_CHANNEL_TYPE) {
-        setEndpointType('dashscope')
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, currentRow?.id, resetState])
@@ -228,11 +225,7 @@ export function ChannelTestDialog({
           {
             testModel: model,
             endpointType:
-              endpointType === 'auto'
-                ? currentRow.type === ALI_CHANNEL_TYPE
-                  ? 'dashscope'
-                  : undefined
-                : endpointType,
+              endpointType === 'auto' ? undefined : endpointType,
             stream: isStreamTest || undefined,
           },
           (success, responseTime, error, errorCode) => {
