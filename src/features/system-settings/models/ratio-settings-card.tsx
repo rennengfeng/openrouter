@@ -32,6 +32,7 @@ import { GroupRatioForm } from './group-ratio-form'
 import { ModelRatioForm } from './model-ratio-form'
 import { ToolPriceSettings } from './tool-price-settings'
 import { UpstreamRatioSync } from './upstream-ratio-sync'
+import { DashScopePricingSettings } from './dashscope-pricing-settings'
 import {
   formatJsonForTextarea,
   normalizeJsonString,
@@ -206,7 +207,12 @@ const groupSchema = z.object({
 
 type ModelFormValues = z.infer<typeof modelSchema>
 type GroupFormValues = z.infer<typeof groupSchema>
-type RatioTabId = 'models' | 'groups' | 'tool-prices' | 'upstream-sync'
+type RatioTabId =
+  | 'models'
+  | 'groups'
+  | 'tool-prices'
+  | 'dashscope-pricing'
+  | 'upstream-sync'
 
 type RatioSettingsCardProps = {
   modelDefaults: ModelFormValues
@@ -460,6 +466,7 @@ export function RatioSettingsCard({
     models: 'Model prices',
     groups: 'Group ratios',
     'tool-prices': 'Tool prices',
+    'dashscope-pricing': 'DashScope image/video pricing',
     'upstream-sync': 'Upstream price sync',
   }
   const tabsGridClass =
@@ -468,7 +475,8 @@ export function RatioSettingsCard({
       2: 'grid-cols-2',
       3: 'grid-cols-3',
       4: 'grid-cols-4',
-    }[visibleTabs.length] ?? 'grid-cols-4'
+      5: 'grid-cols-5',
+    }[visibleTabs.length] ?? 'grid-cols-5'
   const defaultTab = visibleTabs[0] ?? 'models'
 
   const renderTabContent = (tab: RatioTabId) => {
@@ -494,6 +502,9 @@ export function RatioSettingsCard({
     }
     if (tab === 'tool-prices') {
       return <ToolPriceSettings defaultValue={toolPricesDefault} />
+    }
+    if (tab === 'dashscope-pricing') {
+      return <DashScopePricingSettings defaultValue={dashScopePricingDefault} />
     }
     return (
       <UpstreamRatioSync

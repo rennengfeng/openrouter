@@ -115,7 +115,12 @@ const BILLING_SECTIONS = [
         groupDefaults={getGroupDefaults(settings)}
         toolPricesDefault={settings['tool_price_setting.prices']}
         dashScopePricingDefault={settings['dashscope_pricing.models']}
-        visibleTabs={['models', 'tool-prices', 'upstream-sync']}
+        visibleTabs={[
+          'models',
+          'tool-prices',
+          'dashscope-pricing',
+          'upstream-sync',
+        ]}
       />
     ),
   },
