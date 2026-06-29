@@ -448,8 +448,6 @@ export function ModelPricingEditorPanel({
   })
   const [billingExpr, setBillingExpr] = useState('')
   const [requestRuleExpr, setRequestRuleExpr] = useState('')
-  const [tieredBillingUnit, setTieredBillingUnit] =
-    useState<BillingUnit>('request')
   const [previewOpen, setPreviewOpen] = useState(true)
   const isEditMode = !!editData
 
@@ -494,7 +492,6 @@ export function ModelPricingEditorPanel({
       )
       setBillingExpr(editData.billingExpr || '')
       setRequestRuleExpr(editData.requestRuleExpr || '')
-      setTieredBillingUnit(editData.billingUnit || 'request')
     } else {
       form.reset({
         name: '',
@@ -510,7 +507,6 @@ export function ModelPricingEditorPanel({
       setPricingMode('per-token')
       setBillingExpr('')
       setRequestRuleExpr('')
-      setTieredBillingUnit('request')
     }
 
     setPromptPrice(nextLaneState.promptPrice)
@@ -647,7 +643,7 @@ export function ModelPricingEditorPanel({
         pricingMode,
         billingExpr,
         requestRuleExpr,
-        tieredBillingUnit,
+        'request',
         promptPrice,
         lanePrices,
         laneEnabled,
@@ -660,7 +656,6 @@ export function ModelPricingEditorPanel({
       pricingMode,
       promptPrice,
       requestRuleExpr,
-      tieredBillingUnit,
       t,
       watchedValues,
     ]
@@ -741,7 +736,7 @@ export function ModelPricingEditorPanel({
       billingMode: pricingMode,
       billingUnit:
         pricingMode === 'tiered_expr'
-          ? tieredBillingUnit
+          ? 'request'
           : pricingMode === 'per-second'
             ? 'second'
             : 'request',
@@ -971,35 +966,9 @@ export function ModelPricingEditorPanel({
                 >
                   <Field>
                     <FieldLabel>{t('Billing unit')}</FieldLabel>
-                    <Select
-                      items={[
-                        { value: 'request', label: t('per request') },
-                        { value: 'second', label: t('per second') },
-                        { value: 'image', label: t('per image') },
-                      ]}
-                      value={tieredBillingUnit}
-                      onValueChange={(value) =>
-                        setTieredBillingUnit(value as BillingUnit)
-                      }
-                    >
-                      <SelectTrigger className='w-48'>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent alignItemWithTrigger={false}>
-                        <SelectGroup>
-                          <SelectItem value='request'>
-                            {t('per request')}
-                          </SelectItem>
-                          <SelectItem value='second'>
-                            {t('per second')}
-                          </SelectItem>
-                          <SelectItem value='image'>{t('per image')}</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
                     <FieldDescription>
                       {t(
-                        'Use second for video duration billing, image for per-image billing, or request for one-off task billing.'
+                        'Expression pricing keeps the native token billing unit. Use DashScope Pricing for image or video per-unit billing.'
                       )}
                     </FieldDescription>
                   </Field>

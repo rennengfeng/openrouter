@@ -39,51 +39,48 @@ const OPTION_KEY = 'dashscope_pricing.models'
 const DEFAULT_TEMPLATE = {
   'your-dashscope-video-model': {
     unit: 'second',
-    price_expr:
-      'param("resolution") == "4k" ? tier("4k", 0.0) : param("resolution") == "2k" ? tier("2k", 0.0) : param("resolution") == "1080p" ? tier("1080p", 0.0) : param("resolution") == "720p" ? tier("720p", 0.0) : tier("default", 0.0)',
+    prices: {
+      default: 0,
+      '480p': 0,
+      '720p': 0,
+      '1080p': 0,
+      '2k': 0,
+      '4k': 0,
+    },
   },
   'your-dashscope-image-model': {
     unit: 'image',
-    price_expr:
-      'param("resolution") == "1080p" ? tier("1080p", 0.0) : tier("default", 0.0)',
+    prices: {
+      default: 0,
+      '480p': 0,
+      '720p': 0,
+      '1080p': 0,
+      '2k': 0,
+      '4k': 0,
+    },
   },
-}
-
-type PricingRule = {
-  field: string
-  operator: '==' | '!='
-  value: string
-  amount: string
 }
 
 type PricingModel = {
   unit: 'second' | 'image'
-  rules: PricingRule[]
+  prices: Record<string, string>
 }
 
-const FIELD_OPTIONS = [
-  { value: 'resolution', label: 'resolution' },
-  { value: 'raw_resolution', label: 'raw_resolution' },
-  { value: 'size', label: 'size' },
-  { value: 'duration', label: 'duration' },
-  { value: 'image_count', label: 'image_count' },
-  { value: 'model', label: 'model' },
-  { value: 'action', label: 'action' },
-]
-
-const VALUE_OPTIONS = ['480p', '720p', '1080p', '2k', '4k']
+const RESOLUTION_OPTIONS = ['default', '480p', '720p', '1080p', '2k', '4k']
 
 const UNIT_OPTIONS: Array<{ value: PricingModel['unit']; label: string }> = [
   { value: 'second', label: 'second' },
   { value: 'image', label: 'image' },
 ]
 
-function createDefaultRule(): PricingRule {
+function createDefaultPrices(): Record<string, string> {
   return {
-    field: 'resolution',
-    operator: '==',
-    value: '1080p',
-    amount: '0',
+    default: '0',
+    '480p': '0',
+    '720p': '0',
+    '1080p': '0',
+    '2k': '0',
+    '4k': '0',
   }
 }
 
@@ -96,23 +93,21 @@ function normalizePricingConfig(raw: string): Record<string, PricingModel> {
       const typed = config as Record<string, unknown>
       const unit =
         typed.unit === 'image' || typed.unit === 'second' ? typed.unit : 'second'
-      const rules: PricingRule[] = Array.isArray(typed.rules)
-        ? typed.rules
-            .map((item) => item as Record<string, unknown>)
-            .filter(Boolean)
-            .map((item) => ({
-              field:
-                typeof item.field === 'string' && item.field
-                  ? item.field
-                  : 'resolution',
-              operator: item.operator === '!=' ? '!=' : '==',
-              value: typeof item.value === 'string' ? item.value : '1080p',
-              amount: String(item.amount ?? '0'),
-            }))
-        : []
+      const prices = createDefaultPrices()
+      if (
+        typed.prices &&
+        typeof typed.prices === 'object' &&
+        !Array.isArray(typed.prices)
+      ) {
+        Object.entries(typed.prices as Record<string, unknown>).forEach(
+          ([key, value]) => {
+            prices[key] = String(value ?? '0')
+          }
+        )
+      }
       normalized[model] = {
         unit,
-        rules: rules.length > 0 ? rules : [createDefaultRule()],
+        prices,
       }
     })
     return normalized
@@ -121,17 +116,15 @@ function normalizePricingConfig(raw: string): Record<string, PricingModel> {
   }
 }
 
-function buildPriceExpr(rule: PricingRule) {
-  return `param(${JSON.stringify(rule.field)}) ${rule.operator} ${JSON.stringify(rule.value)} ? tier(${JSON.stringify(rule.value)}, ${Number(rule.amount || 0)}) : `
-}
-
 function serializePricingModel(model: PricingModel) {
-  const expr = model.rules
-    .map((rule) => buildPriceExpr(rule))
-    .join('')
+  const prices = Object.fromEntries(
+    Object.entries(model.prices)
+      .map(([key, value]) => [key, Number(value || 0)])
+      .filter(([key, value]) => key === 'default' || Number(value) > 0)
+  )
   return {
     unit: model.unit,
-    price_expr: `${expr}tier("default", 0.0)`,
+    prices,
   }
 }
 
@@ -204,7 +197,9 @@ export function DashScopePricingSettings({
   const handleTextChange = useCallback(
     (value: string) => {
       setJsonText(value)
-      validateJson(value)
+      if (validateJson(value)) {
+        setBuilderData(normalizePricingConfig(value))
+      }
     },
     [validateJson]
   )
@@ -244,13 +239,14 @@ export function DashScopePricingSettings({
     const text = formatJson(DEFAULT_TEMPLATE)
     setJsonText(text)
     setJsonError('')
+    setBuilderData(normalizePricingConfig(text))
   }, [])
 
   const updateBuilderModel = useCallback(
     (modelName: string, updater: (current: PricingModel) => PricingModel) => {
       const current = builderData[modelName] || {
         unit: 'second',
-        rules: [createDefaultRule()],
+        prices: createDefaultPrices(),
       }
       const next = {
         ...builderData,
@@ -267,7 +263,7 @@ export function DashScopePricingSettings({
       ...builderData,
       [modelName]: {
         unit: 'second',
-        rules: [createDefaultRule()],
+        prices: createDefaultPrices(),
       },
     })
   }, [builderData, syncBuilderToJson])
@@ -276,7 +272,7 @@ export function DashScopePricingSettings({
     <SettingsSection
       title={t('DashScope Pricing')}
       description={t(
-        'Configure native DashScope image and video pricing with JSON expressions.'
+        'Configure native DashScope image and video pricing by resolution.'
       )}
     >
       <div className='space-y-4'>
@@ -284,12 +280,12 @@ export function DashScopePricingSettings({
           <AlertDescription className='space-y-2 text-sm'>
             <p>
               {t(
-                'Each model uses a billing unit and a price expression. The expression returns the USD unit price; the backend multiplies it by image count or seconds automatically.'
+                'Each model uses a billing unit and resolution price table. The backend multiplies image prices by image count and video prices by seconds automatically.'
               )}
             </p>
             <p>
               {t(
-                'Use param("resolution") for normalized tiers: 480p, 720p, 1080p, 2k, 4k.'
+                'Leave a resolution price at 0 to fall back to the default price.'
               )}
             </p>
           </AlertDescription>
@@ -355,92 +351,28 @@ export function DashScopePricingSettings({
                   </Button>
                 </div>
 
-                <div className='space-y-2'>
-                  {config.rules.map((rule, index) => (
-                    <div key={`${modelName}-${index}`} className='grid gap-2 md:grid-cols-4'>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant='outline' size='sm' className='justify-between'>
-                            {rule.field}
-                            <ChevronDown className='ml-2 h-4 w-4' />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {FIELD_OPTIONS.map((option) => (
-                            <DropdownMenuItem
-                              key={option.value}
-                              onClick={() =>
-                                updateBuilderModel(modelName, (current) => ({
-                                  ...current,
-                                  rules: current.rules.map((item, itemIndex) =>
-                                    itemIndex === index
-                                      ? { ...item, field: option.value }
-                                      : item
-                                  ),
-                                }))
-                              }
-                            >
-                              {option.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant='outline' size='sm' className='justify-between'>
-                            {rule.value}
-                            <ChevronDown className='ml-2 h-4 w-4' />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {VALUE_OPTIONS.map((option) => (
-                            <DropdownMenuItem
-                              key={option}
-                              onClick={() =>
-                                updateBuilderModel(modelName, (current) => ({
-                                  ...current,
-                                  rules: current.rules.map((item, itemIndex) =>
-                                    itemIndex === index
-                                      ? { ...item, value: option }
-                                      : item
-                                  ),
-                                }))
-                              }
-                            >
-                              {option}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                <div className='grid gap-2 md:grid-cols-2 xl:grid-cols-3'>
+                  {RESOLUTION_OPTIONS.map((resolution) => (
+                    <div key={resolution} className='space-y-1'>
+                      <div className='flex items-center justify-between gap-2'>
+                        <Badge variant='secondary'>{resolution}</Badge>
+                        <span className='text-muted-foreground text-xs'>
+                          {config.unit === 'second' ? t('USD / second') : t('USD / image')}
+                        </span>
+                      </div>
                       <Input
-                        value={rule.amount}
+                        value={config.prices[resolution] ?? '0'}
                         onChange={(event) =>
                           updateBuilderModel(modelName, (current) => ({
                             ...current,
-                            rules: current.rules.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? { ...item, amount: event.target.value }
-                                : item
-                            ),
+                            prices: {
+                              ...current.prices,
+                              [resolution]: event.target.value,
+                            },
                           }))
                         }
                         placeholder='0.00'
                       />
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={() =>
-                          updateBuilderModel(modelName, (current) => ({
-                            ...current,
-                            rules:
-                              current.rules.length > 1
-                                ? current.rules.filter((_, itemIndex) => itemIndex !== index)
-                                : [createDefaultRule()],
-                          }))
-                        }
-                      >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
                     </div>
                   ))}
                 </div>
@@ -459,11 +391,11 @@ export function DashScopePricingSettings({
 
           <div className='space-y-4 rounded-md border p-4'>
             <div className='space-y-2'>
-              <h4 className='text-sm font-medium'>{t('Condition fields')}</h4>
+              <h4 className='text-sm font-medium'>{t('Billing parameters')}</h4>
               <div className='space-y-2'>
                 {fields.map(([field, hint]) => (
                   <div key={field} className='space-y-1'>
-                    <Badge variant='secondary'>param("{field}")</Badge>
+                    <Badge variant='secondary'>{field}</Badge>
                     <p className='text-muted-foreground text-xs'>{t(hint)}</p>
                   </div>
                 ))}
