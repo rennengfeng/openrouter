@@ -40,7 +40,6 @@ const DEFAULT_TEMPLATE = {
   'your-dashscope-video-model': {
     unit: 'second',
     prices: {
-      default: 0,
       '480p': 0,
       '720p': 0,
       '1080p': 0,
@@ -51,10 +50,7 @@ const DEFAULT_TEMPLATE = {
   'your-dashscope-image-model': {
     unit: 'image',
     prices: {
-      default: 0,
-      '480p': 0,
-      '720p': 0,
-      '1080p': 0,
+      '1k': 0,
       '2k': 0,
       '4k': 0,
     },
@@ -64,23 +60,32 @@ const DEFAULT_TEMPLATE = {
 type PricingModel = {
   unit: 'second' | 'image'
   prices: Record<string, string>
+  priceExpr?: string
 }
 
-const RESOLUTION_OPTIONS = ['default', '480p', '720p', '1080p', '2k', '4k']
+const VIDEO_TIER_OPTIONS = ['480p', '720p', '1080p', '2k', '4k']
+const IMAGE_TIER_OPTIONS = ['1k', '2k', '4k']
 
 const UNIT_OPTIONS: Array<{ value: PricingModel['unit']; label: string }> = [
   { value: 'second', label: 'second' },
   { value: 'image', label: 'image' },
 ]
 
-function createDefaultPrices(): Record<string, string> {
+function getTierOptions(unit: PricingModel['unit']) {
+  return unit === 'image' ? IMAGE_TIER_OPTIONS : VIDEO_TIER_OPTIONS
+}
+
+function createDefaultPrices(unit: PricingModel['unit'] = 'second'): Record<string, string> {
+  return Object.fromEntries(getTierOptions(unit).map((key) => [key, '0']))
+}
+
+function mergeDefaultPrices(
+  unit: PricingModel['unit'],
+  prices: Record<string, string> = {}
+): Record<string, string> {
   return {
-    default: '0',
-    '480p': '0',
-    '720p': '0',
-    '1080p': '0',
-    '2k': '0',
-    '4k': '0',
+    ...createDefaultPrices(unit),
+    ...prices,
   }
 }
 
@@ -93,7 +98,7 @@ function normalizePricingConfig(raw: string): Record<string, PricingModel> {
       const typed = config as Record<string, unknown>
       const unit =
         typed.unit === 'image' || typed.unit === 'second' ? typed.unit : 'second'
-      const prices = createDefaultPrices()
+      let prices = createDefaultPrices(unit)
       if (
         typed.prices &&
         typeof typed.prices === 'object' &&
@@ -105,9 +110,12 @@ function normalizePricingConfig(raw: string): Record<string, PricingModel> {
           }
         )
       }
+      prices = mergeDefaultPrices(unit, prices)
       normalized[model] = {
         unit,
         prices,
+        priceExpr:
+          typeof typed.price_expr === 'string' ? typed.price_expr : undefined,
       }
     })
     return normalized
@@ -120,12 +128,18 @@ function serializePricingModel(model: PricingModel) {
   const prices = Object.fromEntries(
     Object.entries(model.prices)
       .map(([key, value]) => [key, Number(value || 0)])
-      .filter(([key, value]) => key === 'default' || Number(value) > 0)
+      .filter(([, value]) => Number(value) > 0)
   )
-  return {
+  const payload: Record<string, unknown> = {
     unit: model.unit,
-    prices,
   }
+  if (model.priceExpr?.trim()) {
+    payload.price_expr = model.priceExpr.trim()
+  }
+  if (!model.priceExpr?.trim() || Object.keys(prices).length > 0) {
+    payload.prices = prices
+  }
+  return payload
 }
 
 function formatJson(value: unknown) {
@@ -166,6 +180,8 @@ export function DashScopePricingSettings({
   const fields = useMemo(
     () => [
       ['resolution', '480p / 720p / 1080p / 2k / 4k'],
+      ['quality', 'image quality or tier, for example auto / hd / 2k / 4k'],
+      ['aspect_ratio', 'aspect ratio, for example 1:1 / 4:3 / 16:9'],
       ['raw_resolution', 'original resolution value'],
       ['size', 'original size value, for example 1920*1080'],
       ['duration', 'video seconds'],
@@ -262,9 +278,9 @@ export function DashScopePricingSettings({
     syncBuilderToJson({
       ...builderData,
       [modelName]: {
-        unit: 'second',
-        prices: createDefaultPrices(),
-      },
+          unit: 'second',
+          prices: createDefaultPrices(),
+        },
     })
   }, [builderData, syncBuilderToJson])
 
@@ -285,7 +301,7 @@ export function DashScopePricingSettings({
             </p>
             <p>
               {t(
-                'Leave a resolution price at 0 to fall back to the default price.'
+                'Leave a tier price at 0 to use the base tier price.'
               )}
             </p>
           </AlertDescription>
@@ -330,6 +346,7 @@ export function DashScopePricingSettings({
                             updateBuilderModel(modelName, (current) => ({
                               ...current,
                               unit: option.value,
+                              prices: mergeDefaultPrices(option.value, current.prices),
                             }))
                           }
                         >
@@ -352,7 +369,7 @@ export function DashScopePricingSettings({
                 </div>
 
                 <div className='grid gap-2 md:grid-cols-2 xl:grid-cols-3'>
-                  {RESOLUTION_OPTIONS.map((resolution) => (
+                  {getTierOptions(config.unit).map((resolution) => (
                     <div key={resolution} className='space-y-1'>
                       <div className='flex items-center justify-between gap-2'>
                         <Badge variant='secondary'>{resolution}</Badge>
@@ -375,6 +392,26 @@ export function DashScopePricingSettings({
                       />
                     </div>
                   ))}
+                </div>
+                <div className='space-y-1'>
+                  <div className='flex items-center justify-between gap-2'>
+                    <Badge variant='outline'>price_expr</Badge>
+                    <span className='text-muted-foreground text-xs'>
+                      {t('Optional expression pricing')}
+                    </span>
+                  </div>
+                  <Textarea
+                    value={config.priceExpr ?? ''}
+                    onChange={(event) =>
+                      updateBuilderModel(modelName, (current) => ({
+                        ...current,
+                        priceExpr: event.target.value,
+                      }))
+                    }
+                    placeholder='param("resolution") == "4k" ? 0.28 : 0.14'
+                    className='min-h-16 font-mono text-xs'
+                    spellCheck={false}
+                  />
                 </div>
               </div>
             ))}

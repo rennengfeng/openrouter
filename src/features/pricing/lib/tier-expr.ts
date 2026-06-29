@@ -29,6 +29,8 @@ export type TierConditionVar =
   | 'resolution'
   | 'raw_resolution'
   | 'size'
+  | 'quality'
+  | 'aspect_ratio'
   | 'duration'
   | 'image_count'
   | 'model'
@@ -317,6 +319,8 @@ export function evalExprLocally(
           resolution: '720p',
           raw_resolution: '720p',
           size: '1280*720',
+          quality: 'auto',
+          aspect_ratio: '16:9',
           duration: 1,
           image_count: 1,
           model: '',
@@ -358,6 +362,8 @@ export const PARAM_CONDITION_VARS = [
   'resolution',
   'raw_resolution',
   'size',
+  'quality',
+  'aspect_ratio',
   'duration',
   'image_count',
   'model',
@@ -401,7 +407,7 @@ function parseConditionPart(part: string): TierConditionInput | null {
   }
 
   const paramMatch = trimmed.match(
-    /^param\("(resolution|raw_resolution|size|duration|image_count|model|action)"\)\s*(==|!=|<=|<|>=|>)\s*(.+)$/
+    /^param\("(resolution|raw_resolution|size|quality|aspect_ratio|duration|image_count|model|action)"\)\s*(==|!=|<=|<|>=|>)\s*(.+)$/
   )
   if (!paramMatch) return null
 

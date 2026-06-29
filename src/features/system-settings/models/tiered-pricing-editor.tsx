@@ -119,6 +119,8 @@ const CONDITION_INPUT_OPTIONS: {
   { value: 'resolution', labelKey: 'Resolution' },
   { value: 'raw_resolution', labelKey: 'Raw resolution' },
   { value: 'size', labelKey: 'Size' },
+  { value: 'quality', labelKey: 'Quality' },
+  { value: 'aspect_ratio', labelKey: 'Aspect ratio' },
   { value: 'duration', labelKey: 'Duration seconds' },
   { value: 'image_count', labelKey: 'Image count' },
   { value: 'model', labelKey: 'Model' },
@@ -126,7 +128,9 @@ const CONDITION_INPUT_OPTIONS: {
 ]
 const NUMERIC_OPS: TierConditionInput['op'][] = ['<', '<=', '>', '>=']
 const STRING_OPS: TierConditionInput['op'][] = ['==', '!=']
-const RESOLUTION_OPTIONS = ['480p', '720p', '1080p', '2k', '4k']
+const RESOLUTION_OPTIONS = ['480p', '720p', '1080p', '1k', '2k', '4k']
+const QUALITY_OPTIONS = ['auto', 'standard', 'hd', 'low', 'medium', 'high', '1k', '2k', '4k']
+const ASPECT_RATIO_OPTIONS = ['1:1', '4:3', '3:4', '16:9', '9:16', '21:9', '9:21']
 
 type Preset = {
   key: string
@@ -442,8 +446,14 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
     (option) => option.value === condition.var
   )
   const isNumericCondition = isNumericTierConditionVar(condition.var)
-  const isResolutionCondition =
+  const selectOptions =
     condition.var === 'resolution' || condition.var === 'raw_resolution'
+      ? RESOLUTION_OPTIONS
+      : condition.var === 'quality'
+        ? QUALITY_OPTIONS
+        : condition.var === 'aspect_ratio'
+          ? ASPECT_RATIO_OPTIONS
+          : null
   const ops = isNumericCondition ? NUMERIC_OPS : STRING_OPS
   const normalizedOp = ops.includes(condition.op) ? condition.op : ops[0]
 
@@ -458,6 +468,10 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
         ? 0
         : nextVar === 'resolution' || nextVar === 'raw_resolution'
           ? '720p'
+          : nextVar === 'quality'
+            ? 'auto'
+            : nextVar === 'aspect_ratio'
+              ? '1:1'
           : '',
     })
   }
@@ -511,13 +525,13 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
           </SelectGroup>
         </SelectContent>
       </Select>
-      {isResolutionCondition ? (
+      {selectOptions ? (
         <Select
-          items={RESOLUTION_OPTIONS.map((value) => ({
+          items={selectOptions.map((value) => ({
             value,
             label: value,
           }))}
-          value={String(condition.value || '720p')}
+          value={String(condition.value || selectOptions[0])}
           onValueChange={(value) => onChange({ ...condition, value })}
         >
           <SelectTrigger className='w-32' size='sm'>
@@ -525,7 +539,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
           </SelectTrigger>
           <SelectContent alignItemWithTrigger={false}>
             <SelectGroup>
-              {RESOLUTION_OPTIONS.map((value) => (
+              {selectOptions.map((value) => (
                 <SelectItem key={value} value={value}>
                   {value}
                 </SelectItem>
