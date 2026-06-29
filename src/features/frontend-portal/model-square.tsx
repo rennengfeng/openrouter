@@ -87,6 +87,24 @@ function formatPrice(
   return '-'
 }
 
+function fixedBillingUnitLabel(model: FrontendModel, t: (key: string) => string): string {
+  if (model.billing_unit === 'image') return t('image')
+  if (model.billing_unit === 'second') return t('second')
+  return t('portal.page.models.perCall')
+}
+
+function formatFixedPrice(model: FrontendModel, mode: PriceMode, ratio: number): string {
+  const modelPrice = mode === 'official'
+    ? Number(model.official_model_price ?? model.model_price ?? 0)
+    : Number(model.model_price ?? 0)
+  const r = mode === 'site' ? ratio : 1
+  return formatCurrencyFromUSD(modelPrice * r, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })
+}
+
+function isFixedUnitModel(model: FrontendModel): boolean {
+  return model.quota_type === 1 || model.billing_unit === 'image' || model.billing_unit === 'second'
+}
+
 export function ModelSquare() {
   const { t, i18n } = useTranslation()
   const uiLang = i18n.language?.startsWith('ru') ? 'ru' : i18n.language?.startsWith('zh') ? 'zh' : 'en'
@@ -304,13 +322,19 @@ export function ModelSquare() {
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
                   <span>by <span className="text-gray-600">{model.vendor_name || 'Unknown'}</span></span>
                   <span className="text-gray-200">|</span>
-                  <span>{formatPrice(model, 'input', priceMode, ratio, t)} {t('input')}</span>
-                  <span className="text-gray-200">|</span>
-                  <span>{formatPrice(model, 'output', priceMode, ratio, t)} {t('output')}</span>
-                  {formatPrice(model, 'cache_read', priceMode, ratio, t) !== '-' && (
+                  {isFixedUnitModel(model) ? (
+                    <span>{formatFixedPrice(model, priceMode, ratio)} / {fixedBillingUnitLabel(model, t)}</span>
+                  ) : (
                     <>
+                      <span>{formatPrice(model, 'input', priceMode, ratio, t)} {t('input')}</span>
                       <span className="text-gray-200">|</span>
-                      <span>{formatPrice(model, 'cache_read', priceMode, ratio, t)} {t('cache read')}</span>
+                      <span>{formatPrice(model, 'output', priceMode, ratio, t)} {t('output')}</span>
+                      {formatPrice(model, 'cache_read', priceMode, ratio, t) !== '-' && (
+                        <>
+                          <span className="text-gray-200">|</span>
+                          <span>{formatPrice(model, 'cache_read', priceMode, ratio, t)} {t('cache read')}</span>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -435,28 +459,37 @@ export function ModelSquare() {
                       <span className="rounded-md bg-sky-50 px-2 py-0.5 text-xs text-sky-600">{t('Token-based')}</span>
                     </td>
                     <td className="py-2 text-right">
-                      <div className="space-y-1">
+                      {isFixedUnitModel(selectedModel.model) ? (
                         <div className="text-xs">
-                          <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', priceMode, selectedModel.ratio, t)}</span>
-                          <span className="text-gray-400"> / 1M Tokens</span>
+                          <span className="font-semibold text-gray-900">
+                            {formatFixedPrice(selectedModel.model, priceMode, selectedModel.ratio)}
+                          </span>
+                          <span className="text-gray-400"> / {fixedBillingUnitLabel(selectedModel.model, t)}</span>
                         </div>
-                        <div className="text-xs">
-                          <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', priceMode, selectedModel.ratio, t)}</span>
-                          <span className="text-gray-400"> / 1M Tokens</span>
-                        </div>
-                        {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio, t) !== '-' && (
+                      ) : (
+                        <div className="space-y-1">
                           <div className="text-xs">
-                            <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio, t)}</span>
+                            <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', priceMode, selectedModel.ratio, t)}</span>
                             <span className="text-gray-400"> / 1M Tokens</span>
                           </div>
-                        )}
-                        {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio, t) !== '-' && (
                           <div className="text-xs">
-                            <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio, t)}</span>
+                            <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', priceMode, selectedModel.ratio, t)}</span>
                             <span className="text-gray-400"> / 1M Tokens</span>
                           </div>
-                        )}
-                      </div>
+                          {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio, t) !== '-' && (
+                            <div className="text-xs">
+                              <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio, t)}</span>
+                              <span className="text-gray-400"> / 1M Tokens</span>
+                            </div>
+                          )}
+                          {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio, t) !== '-' && (
+                            <div className="text-xs">
+                              <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio, t)}</span>
+                              <span className="text-gray-400"> / 1M Tokens</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 </tbody>
