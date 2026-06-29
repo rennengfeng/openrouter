@@ -128,9 +128,26 @@ const CONDITION_INPUT_OPTIONS: {
 ]
 const NUMERIC_OPS: TierConditionInput['op'][] = ['<', '<=', '>', '>=']
 const STRING_OPS: TierConditionInput['op'][] = ['==', '!=']
-const RESOLUTION_OPTIONS = ['480p', '720p', '1080p', '1k', '2k', '4k']
-const QUALITY_OPTIONS = ['auto', 'standard', 'hd', 'low', 'medium', 'high', '1k', '2k', '4k']
-const ASPECT_RATIO_OPTIONS = ['1:1', '4:3', '3:4', '16:9', '9:16', '21:9', '9:21']
+const DASHSCOPE_RESOLUTION_OPTIONS = ['480p', '720p', '1080p', '1k', '2k', '4k']
+const GENERIC_RESOLUTION_OPTIONS = ['480p', '720p', '1080p']
+const DASHSCOPE_QUALITY_OPTIONS = ['auto', 'standard', 'hd', 'low', 'medium', 'high', '1k', '2k', '4k']
+const GENERIC_QUALITY_OPTIONS = ['auto', 'standard', 'hd', 'low', 'medium', 'high']
+const GENERIC_SIZE_OPTIONS = ['auto', '1024x1024', '1024x1536', '1536x1024', '1024x1792', '1792x1024']
+const ASPECT_RATIO_OPTIONS = ['auto', '21:9', '16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16']
+
+function isDashScopeLikeModel(modelName?: string) {
+  const value = (modelName || '').toLowerCase()
+  return /(^|[-_:])(wan|dashscope|happyhorse)|qwen.*(image|vl|omni)|wan\d/.test(value)
+}
+
+function getConditionInputOptions(isDashScope: boolean, currentVar?: TierConditionInput['var']) {
+  return CONDITION_INPUT_OPTIONS.filter(
+    (option) =>
+      isDashScope ||
+      option.value !== 'aspect_ratio' ||
+      currentVar === 'aspect_ratio'
+  )
+}
 
 type Preset = {
   key: string
@@ -436,21 +453,32 @@ function DraftNumberInput({
 
 type ConditionRowProps = {
   condition: TierConditionInput
+  isDashScope: boolean
   onChange: (next: TierConditionInput) => void
   onRemove: () => void
 }
 
-function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
+function ConditionRow({ condition, isDashScope, onChange, onRemove }: ConditionRowProps) {
   const { t } = useTranslation()
-  const currentInputOption = CONDITION_INPUT_OPTIONS.find(
+  const conditionInputOptions = getConditionInputOptions(
+    isDashScope,
+    condition.var
+  )
+  const currentInputOption = conditionInputOptions.find(
     (option) => option.value === condition.var
   )
   const isNumericCondition = isNumericTierConditionVar(condition.var)
   const selectOptions =
     condition.var === 'resolution' || condition.var === 'raw_resolution'
-      ? RESOLUTION_OPTIONS
+      ? isDashScope
+        ? DASHSCOPE_RESOLUTION_OPTIONS
+        : GENERIC_RESOLUTION_OPTIONS
       : condition.var === 'quality'
-        ? QUALITY_OPTIONS
+        ? isDashScope
+          ? DASHSCOPE_QUALITY_OPTIONS
+          : GENERIC_QUALITY_OPTIONS
+        : condition.var === 'size' && !isDashScope
+          ? GENERIC_SIZE_OPTIONS
         : condition.var === 'aspect_ratio'
           ? ASPECT_RATIO_OPTIONS
           : null
@@ -470,8 +498,10 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
           ? '720p'
           : nextVar === 'quality'
             ? 'auto'
+            : nextVar === 'size' && !isDashScope
+              ? '1024x1024'
             : nextVar === 'aspect_ratio'
-              ? '1:1'
+              ? 'auto'
           : '',
     })
   }
@@ -480,7 +510,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
     <div className='flex items-center gap-2'>
       <Select
         items={[
-          ...CONDITION_INPUT_OPTIONS.map((option) => ({
+          ...conditionInputOptions.map((option) => ({
             value: option.value,
             label: t(option.labelKey),
           })),
@@ -497,7 +527,7 @@ function ConditionRow({ condition, onChange, onRemove }: ConditionRowProps) {
         </SelectTrigger>
         <SelectContent alignItemWithTrigger={false}>
           <SelectGroup>
-            {CONDITION_INPUT_OPTIONS.map((option) => (
+            {conditionInputOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {t(option.labelKey)}
               </SelectItem>
@@ -622,6 +652,7 @@ type VisualTierCardProps = {
   tier: VisualTier
   index: number
   total: number
+  isDashScope: boolean
   onChange: (next: VisualTier) => void
   onRemove: () => void
   onAddCondition: () => void
@@ -631,6 +662,7 @@ function VisualTierCard({
   tier,
   index,
   total,
+  isDashScope,
   onChange,
   onRemove,
   onAddCondition,
@@ -749,6 +781,7 @@ function VisualTierCard({
             <ConditionRow
               key={conditionIndex}
               condition={condition}
+              isDashScope={isDashScope}
               onChange={(next) => handleConditionChange(conditionIndex, next)}
               onRemove={() => handleConditionRemove(conditionIndex)}
             />
@@ -850,12 +883,14 @@ function VisualTierCard({
 // ---------------------------------------------------------------------------
 
 type VisualEditorProps = {
+  modelName?: string
   visualConfig: VisualConfig | null
   onChange: (next: VisualConfig) => void
 }
 
-function VisualEditor({ visualConfig, onChange }: VisualEditorProps) {
+function VisualEditor({ modelName, visualConfig, onChange }: VisualEditorProps) {
   const { t } = useTranslation()
+  const isDashScope = isDashScopeLikeModel(modelName)
   const config = useMemo(
     () => normalizeVisualConfig(visualConfig),
     [visualConfig]
@@ -933,6 +968,7 @@ function VisualEditor({ visualConfig, onChange }: VisualEditorProps) {
           tier={tier}
           index={index}
           total={config.tiers.length}
+          isDashScope={isDashScope}
           onChange={(next) => handleTierChange(index, next)}
           onRemove={() => handleRemoveTier(index)}
           onAddCondition={() => handleAddCondition(index)}
@@ -1885,6 +1921,7 @@ export const TieredPricingEditor = memo(function TieredPricingEditor({
       <div className='bg-muted/30 space-y-3 rounded-md border p-3'>
         {editorMode === 'visual' ? (
           <VisualEditor
+            modelName={modelName}
             visualConfig={visualConfig}
             onChange={handleVisualChange}
           />

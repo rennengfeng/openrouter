@@ -181,7 +181,7 @@ export function DashScopePricingSettings({
     () => [
       ['resolution', '480p / 720p / 1080p / 2k / 4k'],
       ['quality', 'image quality or tier, for example auto / hd / 2k / 4k'],
-      ['aspect_ratio', 'aspect ratio, for example 1:1 / 4:3 / 16:9'],
+      ['aspect_ratio', 'aspect ratio, for example auto / 21:9 / 16:9 / 3:2 / 1:1'],
       ['raw_resolution', 'original resolution value'],
       ['size', 'original size value, for example 1920*1080'],
       ['duration', 'video seconds'],

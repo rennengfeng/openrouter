@@ -5117,6 +5117,7 @@
         "original resolution value": "原始分辨率值",
         "image quality or tier, for example auto / hd / 2k / 4k": "图片质量或档位，例如 auto / hd / 2k / 4k",
         "aspect ratio, for example 1:1 / 4:3 / 16:9": "画面比例，例如 1:1 / 4:3 / 16:9",
+        "aspect ratio, for example auto / 21:9 / 16:9 / 3:2 / 1:1": "画面比例，例如 auto / 21:9 / 16:9 / 3:2 / 1:1",
         "original size value, for example 1920*1080": "原始尺寸值，例如 1920*1080",
         "video seconds": "视频秒数",
         "generated image count": "生成图片张数",

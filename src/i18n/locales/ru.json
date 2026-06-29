@@ -5079,6 +5079,7 @@
         "original resolution value": "исходное значение разрешения",
         "image quality or tier, for example auto / hd / 2k / 4k": "качество или уровень изображения, например auto / hd / 2k / 4k",
         "aspect ratio, for example 1:1 / 4:3 / 16:9": "соотношение сторон, например 1:1 / 4:3 / 16:9",
+        "aspect ratio, for example auto / 21:9 / 16:9 / 3:2 / 1:1": "соотношение сторон, например auto / 21:9 / 16:9 / 3:2 / 1:1",
         "original size value, for example 1920*1080": "исходное значение размера, например 1920*1080",
         "video seconds": "секунды видео",
         "generated image count": "количество сгенерированных изображений",
