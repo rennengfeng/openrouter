@@ -230,16 +230,62 @@ export async function handleTestChannel(
       toast.success(i18next.t(SUCCESS_MESSAGES.TESTED))
       onTestComplete?.(true, response.data?.response_time)
     } else {
-      toast.error(response.message || i18next.t(ERROR_MESSAGES.TEST_FAILED))
-      onTestComplete?.(false, undefined, response.message, response.error_code)
+      const errorMsg = getChannelTestErrorMessage(response)
+      toast.error(errorMsg)
+      onTestComplete?.(false, undefined, errorMsg, response.error_code)
     }
   } catch (_error: unknown) {
-    const err = _error as { response?: { data?: { message?: string } } }
-    const errorMsg =
-      err?.response?.data?.message || i18next.t(ERROR_MESSAGES.TEST_FAILED)
+    const errorMsg = getRequestErrorMessage(_error)
     toast.error(errorMsg)
     onTestComplete?.(false, undefined, errorMsg)
   }
+}
+
+function getChannelTestErrorMessage(response: unknown): string {
+  const payload = response as {
+    message?: string
+    error?: string | { message?: string }
+    data?: { error?: string; message?: string }
+  }
+  const message =
+    payload?.message ||
+    payload?.data?.error ||
+    payload?.data?.message ||
+    (typeof payload?.error === 'string'
+      ? payload.error
+      : payload?.error?.message)
+
+  if (message && message.trim()) return message
+
+  try {
+    return JSON.stringify(response)
+  } catch {
+    return i18next.t(ERROR_MESSAGES.TEST_FAILED)
+  }
+}
+
+function getRequestErrorMessage(error: unknown): string {
+  const err = error as {
+    message?: string
+    response?: {
+      data?: {
+        message?: string
+        error?: string | { message?: string }
+        data?: { error?: string; message?: string }
+      }
+    }
+  }
+  const data = err?.response?.data
+  const message =
+    data?.message ||
+    data?.data?.error ||
+    data?.data?.message ||
+    (typeof data?.error === 'string' ? data.error : data?.error?.message) ||
+    err?.message
+
+  return message && message.trim()
+    ? message
+    : i18next.t(ERROR_MESSAGES.TEST_FAILED)
 }
 
 /**
