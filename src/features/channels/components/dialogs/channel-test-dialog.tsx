@@ -119,6 +119,8 @@ const STREAM_INCOMPATIBLE_ENDPOINTS = new Set([
   'openai-response-compact',
 ])
 
+const ALI_CHANNEL_TYPE = 17
+
 export function ChannelTestDialog({
   open,
   onOpenChange,
@@ -153,6 +155,9 @@ export function ChannelTestDialog({
   useEffect(() => {
     if (open && currentRow) {
       resetState()
+      if (currentRow.type === ALI_CHANNEL_TYPE) {
+        setEndpointType('dashscope')
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, currentRow?.id, resetState])
@@ -222,7 +227,12 @@ export function ChannelTestDialog({
           currentRow.id,
           {
             testModel: model,
-            endpointType: endpointType === 'auto' ? undefined : endpointType,
+            endpointType:
+              endpointType === 'auto'
+                ? currentRow.type === ALI_CHANNEL_TYPE
+                  ? 'dashscope'
+                  : undefined
+                : endpointType,
             stream: isStreamTest || undefined,
           },
           (success, responseTime, error, errorCode) => {
