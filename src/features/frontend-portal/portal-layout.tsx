@@ -21,13 +21,15 @@ For commercial licensing, please contact support@quantumnous.com
  * /portal/* route. Designed to overlay on top of the existing default theme
  * without touching backend code: brand name and logo come from /api/status.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Markdown } from '@/components/ui/markdown'
 import { NoticeCodeExamples } from './components/notice-code-examples'
 import { NoticeUrlCards } from './components/notice-url-cards'
+import { useChatPresets } from '@/features/chat/hooks/use-chat-presets'
+import { isCanvasPreset } from './canvas-link'
 import {
   BarChart3,
   Bell,
@@ -45,6 +47,7 @@ import {
   Mail,
   Megaphone,
   MessageCircle,
+  Paintbrush,
   Settings,
   User,
   Wallet,
@@ -78,6 +81,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/portal/tokens', labelKey: 'portal.tokens', icon: KeyRound },
   { to: '/portal/models', labelKey: 'portal.models', icon: Boxes },
   { to: '/portal/chat', labelKey: 'portal.chat', icon: MessageCircle },
+  { to: '/portal/canvas', labelKey: 'portal.canvas', icon: Paintbrush },
   { to: '/portal/monitor', labelKey: 'portal.monitor', icon: Gauge },
   { to: '/portal/topup', labelKey: 'portal.recharge', icon: CreditCard },
   { to: '/portal/affiliate', labelKey: 'portal.affiliate', icon: Gift },
@@ -117,6 +121,14 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
   const brand = useBrand()
   const location = useLocation()
   const navigate = useNavigate()
+  const { chatPresets } = useChatPresets()
+  const visibleNavItems = useMemo(
+    () =>
+      NAV_ITEMS.filter(
+        (item) => item.to !== '/portal/canvas' || chatPresets.some(isCanvasPreset)
+      ),
+    [chatPresets]
+  )
 
   const { data: noticeData } = useQuery({
     queryKey: ['portal-notice-bell'],
@@ -276,7 +288,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
             )}
           </button>
           <nav className="flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => {
+            {visibleNavItems.map((item) => {
               const active =
                 !item.external && (location.pathname === item.to ||
                 (item.to !== '/portal' &&
