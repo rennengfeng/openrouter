@@ -31,6 +31,7 @@ import { Route as PortalLogsRouteImport } from './routes/portal/logs'
 import { Route as PortalDocsRouteImport } from './routes/portal/docs'
 import { Route as PortalDashboardRouteImport } from './routes/portal/dashboard'
 import { Route as PortalContactRouteImport } from './routes/portal/contact'
+import { Route as PortalCanvasRouteImport } from './routes/portal/canvas'
 import { Route as PortalChatRouteImport } from './routes/portal/chat'
 import { Route as PortalAffiliateRouteImport } from './routes/portal/affiliate'
 import { Route as PortalAboutRouteImport } from './routes/portal/about'
@@ -190,6 +191,11 @@ const PortalDashboardRoute = PortalDashboardRouteImport.update({
 const PortalContactRoute = PortalContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalCanvasRoute = PortalCanvasRouteImport.update({
+  id: '/canvas',
+  path: '/canvas',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalChatRoute = PortalChatRouteImport.update({
@@ -1108,6 +1114,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalContactRouteImport
       parentRoute: typeof PortalRouteRoute
     }
+    '/portal/canvas': {
+      id: '/portal/canvas'
+      path: '/canvas'
+      fullPath: '/portal/canvas'
+      preLoaderRoute: typeof PortalCanvasRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
     '/portal/chat': {
       id: '/portal/chat'
       path: '/chat'
@@ -1607,6 +1620,7 @@ interface PortalRouteRouteChildren {
   PortalAboutRoute: typeof PortalAboutRoute
   PortalAffiliateRoute: typeof PortalAffiliateRoute
   PortalChatRoute: typeof PortalChatRoute
+  PortalCanvasRoute: typeof PortalCanvasRoute
   PortalContactRoute: typeof PortalContactRoute
   PortalDashboardRoute: typeof PortalDashboardRoute
   PortalDocsRoute: typeof PortalDocsRoute
@@ -1625,6 +1639,7 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalAboutRoute: PortalAboutRoute,
   PortalAffiliateRoute: PortalAffiliateRoute,
   PortalChatRoute: PortalChatRoute,
+  PortalCanvasRoute: PortalCanvasRoute,
   PortalContactRoute: PortalContactRoute,
   PortalDashboardRoute: PortalDashboardRoute,
   PortalDocsRoute: PortalDocsRoute,
