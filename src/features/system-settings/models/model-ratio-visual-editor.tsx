@@ -136,6 +136,7 @@ const filterBySelectedValues = (
 
 const getModeLabel = (mode?: string) => {
   if (mode === 'per-second') return 'Per-second'
+  if (mode === 'per-image') return 'Per-image'
   if (mode === 'per-request') return 'Per-request'
   if (mode === 'tiered_expr') return 'Expression'
   return 'Per-token'
@@ -143,9 +144,17 @@ const getModeLabel = (mode?: string) => {
 
 const getModeVariant = (mode?: string): 'warning' | 'info' | 'success' => {
   if (mode === 'per-second') return 'warning'
+  if (mode === 'per-image') return 'warning'
   if (mode === 'per-request') return 'warning'
   if (mode === 'tiered_expr') return 'info'
   return 'success'
+}
+
+const getBillingUnitLabel = (mode?: string) => {
+  if (mode === 'per-second') return 'per second'
+  if (mode === 'per-image') return 'per image'
+  if (mode === 'per-request') return 'per request'
+  return 'Token-based'
 }
 
 const getExpressionSummary = (row: ModelRow, t: (key: string) => string) => {
@@ -165,6 +174,9 @@ const getPriceSummary = (row: ModelRow, t: (key: string) => string) => {
   }
   if (row.billingMode === 'per-second') {
     return row.price ? `$${row.price} / ${t('second')}` : t('Unset price')
+  }
+  if (row.billingMode === 'per-image') {
+    return row.price ? `$${row.price} / ${t('image')}` : t('Unset price')
   }
 
   const inputPrice = ratioToPrice(row.ratio)
@@ -195,6 +207,9 @@ const getPriceDetail = (row: ModelRow, t: (key: string) => string) => {
   }
   if (row.billingMode === 'per-second') {
     return t('Fixed second price')
+  }
+  if (row.billingMode === 'per-image') {
+    return t('Fixed image price')
   }
 
   const inputPrice = ratioToPrice(row.ratio)
@@ -398,6 +413,8 @@ export const ModelRatioVisualEditor = memo(
             price !== ''
               ? billingUnitMap[name] === 'second'
                 ? 'per-second'
+                : billingUnitMap[name] === 'image'
+                  ? 'per-image'
                 : 'per-request'
               : 'per-token',
           billingUnit: normalizeBillingUnit(billingUnitMap[name]),
@@ -435,6 +452,7 @@ export const ModelRatioVisualEditor = memo(
             const mode =
               model.billingMode === 'per-request' ||
               model.billingMode === 'per-second' ||
+              model.billingMode === 'per-image' ||
               model.billingMode === 'tiered_expr'
                 ? model.billingMode
                 : 'per-token'
@@ -446,8 +464,13 @@ export const ModelRatioVisualEditor = memo(
             'per-request': 0,
             tiered_expr: 0,
             'per-second': 0,
+            'per-image': 0,
           } as Record<
-            'per-token' | 'per-request' | 'per-second' | 'tiered_expr',
+            | 'per-token'
+            | 'per-request'
+            | 'per-second'
+            | 'per-image'
+            | 'tiered_expr',
             number
           >
         ),
@@ -471,6 +494,8 @@ export const ModelRatioVisualEditor = memo(
               ? 'tiered_expr'
               : model.billingMode === 'per-second'
                 ? 'per-second'
+                : model.billingMode === 'per-image'
+                  ? 'per-image'
               : model.price && model.price !== ''
                 ? 'per-request'
                 : 'per-token',
@@ -681,6 +706,30 @@ export const ModelRatioVisualEditor = memo(
           meta: { label: t('Mode') },
         },
         {
+          id: 'billingUnit',
+          accessorFn: (row) => getBillingUnitLabel(row.billingMode),
+          header: ({ column }) => (
+            <DataTableColumnHeader
+              column={column}
+              title={t('Billing unit')}
+            />
+          ),
+          cell: ({ row }) => (
+            <StatusBadge
+              label={t(getBillingUnitLabel(row.original.billingMode))}
+              variant={
+                row.original.billingMode === 'per-token' ? 'success' : 'info'
+              }
+              copyable={false}
+            />
+          ),
+          sortingFn: (rowA, rowB) =>
+            getBillingUnitLabel(rowA.original.billingMode).localeCompare(
+              getBillingUnitLabel(rowB.original.billingMode)
+            ),
+          meta: { label: t('Billing unit') },
+        },
+        {
           id: 'priceSummary',
           header: ({ column }) => (
             <DataTableColumnHeader column={column} title={t('Price summary')} />
@@ -855,6 +904,8 @@ export const ModelRatioVisualEditor = memo(
             setIfPresent(priceMap, name, data.price)
             if (data.billingMode === 'per-second') {
               billingUnitMap[name] = 'second'
+            } else if (data.billingMode === 'per-image') {
+              billingUnitMap[name] = 'image'
             } else if (data.billingMode === 'per-request') {
               billingUnitMap[name] = 'request'
             }
@@ -971,6 +1022,11 @@ export const ModelRatioVisualEditor = memo(
                       label: 'Per-second',
                       value: 'per-second',
                       count: modeCounts['per-second'],
+                    },
+                    {
+                      label: 'Per-image',
+                      value: 'per-image',
+                      count: modeCounts['per-image'],
                     },
                     {
                       label: 'Expression',

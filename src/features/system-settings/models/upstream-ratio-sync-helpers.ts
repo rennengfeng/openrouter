@@ -20,8 +20,8 @@ import type { RatioType } from '../types'
 import { RATIO_TYPE_OPTIONS } from './constants'
 
 export type RatioDifferenceEntry = {
-  current: number | string | Record<string, unknown> | null
-  upstreams: Record<string, number | string | Record<string, unknown> | 'same'>
+  current: number | string | null
+  upstreams: Record<string, number | string | 'same'>
   confidence: Record<string, boolean>
 }
 
@@ -34,7 +34,7 @@ export type ModelRow = {
 
 export type ResolutionsMap = Record<
   string,
-  Record<string, number | string | Record<string, unknown>>
+  Record<string, number | string>
 >
 
 export const RATIO_SYNC_FIELDS: RatioType[] = [
@@ -53,7 +53,6 @@ export const SYNC_FIELD_ORDER: RatioType[] = [
   'billing_mode',
   'billing_unit',
   'billing_expr',
-  'dashscope_pricing',
 ]
 
 export const NUMERIC_SYNC_FIELDS = new Set<string>([

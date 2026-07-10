@@ -55,7 +55,7 @@ import {
 } from './upstream-ratio-sync-helpers'
 import { UpstreamRatioSyncTable } from './upstream-ratio-sync-table'
 
-type SyncValue = number | string | Record<string, unknown>
+type SyncValue = number | string
 
 // ---------------------------------------------------------------------------
 // Types
@@ -74,7 +74,6 @@ type UpstreamRatioSyncProps = {
     'billing_setting.billing_mode': string
     'billing_setting.billing_unit': string
     'billing_setting.billing_expr': string
-    'dashscope_pricing.models': string
   }
 }
 
@@ -93,7 +92,6 @@ function getDefaultEndpointForChannel(channel: UpstreamChannel): string {
 }
 
 function getBillingCategory(ratioType: string): 'price' | 'ratio' | 'tiered' {
-  if (ratioType === 'dashscope_pricing') return 'tiered'
   if (ratioType === 'model_price' || ratioType === 'billing_unit')
     return 'price'
   if (ratioType === 'billing_mode' || ratioType === 'billing_expr')
@@ -106,7 +104,6 @@ function optionKeyBySyncField(ratioType: string): string {
     billing_mode: 'billing_setting.billing_mode',
     billing_unit: 'billing_setting.billing_unit',
     billing_expr: 'billing_setting.billing_expr',
-    dashscope_pricing: 'dashscope_pricing.models',
   }
   if (explicit[ratioType]) return explicit[ratioType]
   return ratioType
@@ -368,9 +365,6 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
       'billing_setting.billing_expr': parseJsonRecord<string>(
         modelRatios['billing_setting.billing_expr']
       ),
-      'dashscope_pricing.models': parseJsonRecord<unknown>(
-        modelRatios['dashscope_pricing.models']
-      ),
     }
   }, [modelRatios])
 
@@ -414,9 +408,6 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
         'billing_setting.billing_expr': {
           ...currentRatios['billing_setting.billing_expr'],
         },
-        'dashscope_pricing.models': {
-          ...currentRatios['dashscope_pricing.models'],
-        },
       }
 
       Object.entries(resolutions).forEach(([model, ratios]) => {
@@ -445,7 +436,7 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
             finalRatios[optionKey] = {}
           }
           finalRatios[optionKey][model] =
-            NUMERIC_SYNC_FIELDS.has(ratioType) && typeof value !== 'object'
+            NUMERIC_SYNC_FIELDS.has(ratioType)
               ? Number(value)
               : value
         })
@@ -475,9 +466,6 @@ export function UpstreamRatioSync({ modelRatios }: UpstreamRatioSyncProps) {
     if (!upMap) return 'Unknown'
     const entry = Object.entries(upMap).find(([, v]) => {
       if (v === value) return true
-      if (typeof v === 'object' && typeof value === 'object' && v && value) {
-        return JSON.stringify(v) === JSON.stringify(value)
-      }
       return false
     })
     return entry ? entry[0] : 'Unknown'

@@ -339,25 +339,6 @@ export const ModelRatioForm = memo(function ModelRatioForm({
 
             <FormField
               control={form.control}
-              name='BillingUnit'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('Billing unit')}</FormLabel>
-                  <FormControl>
-                    <Textarea rows={5} {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    {t(
-                      'JSON map of model to billing unit, such as request or second.'
-                    )}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name='BillingExpr'
               render={({ field }) => (
                 <FormItem>

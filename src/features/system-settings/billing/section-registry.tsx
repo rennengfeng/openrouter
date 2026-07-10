@@ -114,13 +114,7 @@ const BILLING_SECTIONS = [
         modelDefaults={getModelDefaults(settings)}
         groupDefaults={getGroupDefaults(settings)}
         toolPricesDefault={settings['tool_price_setting.prices']}
-        dashScopePricingDefault={settings['dashscope_pricing.models']}
-        visibleTabs={[
-          'models',
-          'tool-prices',
-          'dashscope-pricing',
-          'upstream-sync',
-        ]}
+        visibleTabs={['models', 'tool-prices', 'upstream-sync']}
       />
     ),
   },
@@ -135,7 +129,6 @@ const BILLING_SECTIONS = [
         modelDefaults={getModelDefaults(settings)}
         groupDefaults={getGroupDefaults(settings)}
         toolPricesDefault={settings['tool_price_setting.prices']}
-        dashScopePricingDefault={settings['dashscope_pricing.models']}
         visibleTabs={['groups']}
       />
     ),

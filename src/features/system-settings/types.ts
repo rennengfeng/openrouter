@@ -155,7 +155,6 @@ export type ModelSettings = {
   'claude.thinking_adapter_budget_tokens_percentage': number
   'grok.violation_deduction_enabled': boolean
   'grok.violation_deduction_amount': number
-  'dashscope_pricing.models': string
   ModelPrice: string
   ModelRatio: string
   CacheRatio: string
@@ -168,7 +167,6 @@ export type ModelSettings = {
   'billing_setting.billing_mode': string
   'billing_setting.billing_unit': string
   'billing_setting.billing_expr': string
-  'dashscope_pricing.models': string
   'tool_price_setting.prices': string
   TopupGroupRatio: string
   GroupRatio: string
@@ -355,11 +353,10 @@ export type RatioType =
   | 'billing_mode'
   | 'billing_unit'
   | 'billing_expr'
-  | 'dashscope_pricing'
 
 export type RatioDifference = {
-  current: number | string | Record<string, unknown> | null
-  upstreams: Record<string, number | string | Record<string, unknown> | 'same'>
+  current: number | string | null
+  upstreams: Record<string, number | string | 'same'>
   confidence: Record<string, boolean>
 }
 

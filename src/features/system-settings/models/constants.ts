@@ -69,7 +69,6 @@ export const RATIO_TYPE_OPTIONS = [
   { label: 'Fixed price', value: 'model_price' },
   { label: 'Billing unit', value: 'billing_unit' },
   { label: 'Expression billing', value: 'billing_expr' },
-  { label: 'DashScope Pricing', value: 'dashscope_pricing' },
 ] as const
 
 export const CHANNEL_STATUS_CONFIG = {

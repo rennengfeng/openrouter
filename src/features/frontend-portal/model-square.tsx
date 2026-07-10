@@ -56,7 +56,7 @@ function formatPrice(
         ? Number(model.official_model_price ?? model.model_price ?? 0)
         : Number(model.model_price ?? 0)
       const r = mode === 'site' ? ratio : 1
-      return `${formatCurrencyFromUSD(modelPrice * r, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })} / ${t('portal.page.models.perCall')}`
+      return `${formatCurrencyFromUSD(modelPrice * r, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })} / ${fixedBillingUnitLabel(model, t)}`
     }
     return '-'
   }
@@ -88,9 +88,9 @@ function formatPrice(
 }
 
 function fixedBillingUnitLabel(model: FrontendModel, t: (key: string) => string): string {
-  if (model.billing_unit === 'image') return t('image')
-  if (model.billing_unit === 'second') return t('second')
-  return t('portal.page.models.perCall')
+  if (model.billing_unit === 'image') return t('per image')
+  if (model.billing_unit === 'second') return t('per second')
+  return t('per request')
 }
 
 function formatFixedPrice(model: FrontendModel, mode: PriceMode, ratio: number): string {

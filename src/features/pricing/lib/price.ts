@@ -129,7 +129,14 @@ export function getFixedBillingUnit(model: PricingModel): BillingUnit {
 }
 
 export function getFixedBillingUnitLabelKey(model: PricingModel): string {
-  return getFixedBillingUnit(model)
+  switch (getFixedBillingUnit(model)) {
+    case 'second':
+      return 'per second'
+    case 'image':
+      return 'per image'
+    default:
+      return 'per request'
+  }
 }
 
 export function getFixedBillingTypeLabelKey(model: PricingModel): string {

@@ -92,7 +92,12 @@ type ModelPricingFormValues = z.infer<
   ReturnType<typeof createModelPricingSchema>
 >
 
-type PricingMode = 'per-token' | 'per-request' | 'per-second' | 'tiered_expr'
+type PricingMode =
+  | 'per-token'
+  | 'per-request'
+  | 'per-second'
+  | 'per-image'
+  | 'tiered_expr'
 type BillingUnit = 'request' | 'second' | 'image'
 type LaneKey =
   | 'completion'
@@ -285,6 +290,7 @@ function createInitialLaneState(data?: ModelRatioData | null) {
 
 function getModeLabel(mode: PricingMode) {
   if (mode === 'per-second') return 'Per-second'
+  if (mode === 'per-image') return 'Per-image'
   if (mode === 'per-request') return 'Per-request'
   if (mode === 'tiered_expr') return 'Expression'
   return 'Per-token'
@@ -294,9 +300,16 @@ function getModeBadgeVariant(
   mode: PricingMode
 ): 'default' | 'secondary' | 'outline' {
   if (mode === 'per-second') return 'secondary'
+  if (mode === 'per-image') return 'secondary'
   if (mode === 'per-request') return 'secondary'
   if (mode === 'tiered_expr') return 'default'
   return 'outline'
+}
+
+function getBillingUnitForMode(mode: PricingMode): BillingUnit {
+  if (mode === 'per-second') return 'second'
+  if (mode === 'per-image') return 'image'
+  return 'request'
 }
 
 function buildPreviewRows(
@@ -324,12 +337,17 @@ function buildPreviewRows(
     ]
   }
 
-  if (mode === 'per-request' || mode === 'per-second') {
+  if (
+    mode === 'per-request' ||
+    mode === 'per-second' ||
+    mode === 'per-image'
+  ) {
+    const unit = getBillingUnitForMode(mode)
     return [
       {
         key: 'mode',
         label: 'BillingUnit',
-        value: mode === 'per-second' ? 'second' : 'request',
+        value: unit,
       },
       {
         key: 'price',
@@ -486,6 +504,8 @@ export function ModelPricingEditorPanel({
           ? 'tiered_expr'
           : editData.price && editData.billingUnit === 'second'
             ? 'per-second'
+            : editData.price && editData.billingUnit === 'image'
+              ? 'per-image'
             : editData.price
             ? 'per-request'
             : 'per-token'
@@ -737,9 +757,7 @@ export function ModelPricingEditorPanel({
       billingUnit:
         pricingMode === 'tiered_expr'
           ? 'request'
-          : pricingMode === 'per-second'
-            ? 'second'
-            : 'request',
+          : getBillingUnitForMode(pricingMode),
       price: values.price || '',
       ratio: values.ratio || '',
       cacheRatio: values.cacheRatio || '',
@@ -828,7 +846,7 @@ export function ModelPricingEditorPanel({
               />
 
               <Tabs value={pricingMode} onValueChange={handleModeChange}>
-                <TabsList className='grid w-full grid-cols-4'>
+                <TabsList className='grid w-full grid-cols-5'>
                   <TabsTrigger value='per-token'>{t('Per-token')}</TabsTrigger>
                   <TabsTrigger value='per-request'>
                     {t('Per-request')}
@@ -836,6 +854,7 @@ export function ModelPricingEditorPanel({
                   <TabsTrigger value='per-second'>
                     {t('Per-second')}
                   </TabsTrigger>
+                  <TabsTrigger value='per-image'>{t('Per-image')}</TabsTrigger>
                   <TabsTrigger value='tiered_expr'>
                     {t('Expression')}
                   </TabsTrigger>
@@ -960,6 +979,43 @@ export function ModelPricingEditorPanel({
                   />
                 </TabsContent>
 
+                <TabsContent value='per-image' className='flex flex-col gap-5'>
+                  <FormField
+                    control={form.control}
+                    name='price'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Image price')}</FormLabel>
+                        <FormControl>
+                          <InputGroup>
+                            <InputGroupAddon>$</InputGroupAddon>
+                            <InputGroupInput
+                              inputMode='decimal'
+                              placeholder='0.01'
+                              {...field}
+                              onChange={(event) => {
+                                const value = event.target.value
+                                if (numericDraftRegex.test(value)) {
+                                  field.onChange(value)
+                                }
+                              }}
+                            />
+                            <InputGroupAddon align='inline-end'>
+                              {t('per image')}
+                            </InputGroupAddon>
+                          </InputGroup>
+                        </FormControl>
+                        <FormDescription>
+                          {t(
+                            'Cost in USD per generated image. The backend multiplies this price by request image count.'
+                          )}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+
                 <TabsContent
                   value='tiered_expr'
                   className='flex flex-col gap-5'
@@ -968,7 +1024,7 @@ export function ModelPricingEditorPanel({
                     <FieldLabel>{t('Billing unit')}</FieldLabel>
                     <FieldDescription>
                       {t(
-                        'Expression pricing keeps the native token billing unit. Use DashScope Pricing for image or video per-unit billing.'
+                        'Expression pricing keeps the native token billing unit. Use fixed pricing for image or video per-unit billing.'
                       )}
                     </FieldDescription>
                   </Field>
