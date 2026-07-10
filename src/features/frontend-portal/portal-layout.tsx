@@ -30,6 +30,8 @@ import { NoticeCodeExamples } from './components/notice-code-examples'
 import { NoticeUrlCards } from './components/notice-url-cards'
 import { useChatPresets } from '@/features/chat/hooks/use-chat-presets'
 import { isCanvasPreset } from './canvas-link'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { useTheme } from '@/context/theme-provider'
 import {
   BarChart3,
   Bell,
@@ -121,6 +123,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
   const brand = useBrand()
   const location = useLocation()
   const navigate = useNavigate()
+  const { resolvedTheme } = useTheme()
   const { chatPresets } = useChatPresets()
   const visibleNavItems = useMemo(
     () =>
@@ -169,10 +172,57 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
     navigate({ to: '/sign-in' })
   }
 
+  const isDark = resolvedTheme === 'dark'
+  const shellStyle = isDark
+    ? {
+        colorScheme: 'dark',
+        '--background': '#0b0b1a',
+        '--foreground': 'oklch(0.95 0 0)',
+        '--card': 'rgba(255,255,255,0.02)',
+        '--card-foreground': 'oklch(0.95 0 0)',
+        '--popover': '#12122a',
+        '--popover-foreground': 'oklch(0.95 0 0)',
+        '--border': 'rgba(255,255,255,0.08)',
+        '--input': 'rgba(255,255,255,0.06)',
+        '--primary': '#8b5cf6',
+        '--primary-foreground': '#ffffff',
+        '--secondary': 'rgba(255,255,255,0.06)',
+        '--secondary-foreground': 'oklch(0.95 0 0)',
+        '--muted': 'rgba(255,255,255,0.04)',
+        '--muted-foreground': 'rgba(255,255,255,0.5)',
+        '--accent': 'rgba(139,92,246,0.15)',
+        '--accent-foreground': '#c4b5fd',
+        '--destructive': '#ef4444',
+        '--ring': '#8b5cf6',
+        '--sidebar-active': 'linear-gradient(to right, rgba(124,58,237,0.8), rgba(79,70,229,0.8))',
+      } as React.CSSProperties
+    : {
+        colorScheme: 'light',
+        '--background': '#ffffff',
+        '--foreground': '#1a1a2e',
+        '--card': '#ffffff',
+        '--card-foreground': '#1a1a2e',
+        '--popover': '#ffffff',
+        '--popover-foreground': '#1a1a2e',
+        '--border': '#e5e7eb',
+        '--input': '#f3f4f6',
+        '--primary': '#0ea5e9',
+        '--primary-foreground': '#ffffff',
+        '--secondary': '#f3f4f6',
+        '--secondary-foreground': '#374151',
+        '--muted': '#f9fafb',
+        '--muted-foreground': '#6b7280',
+        '--accent': '#f0f9ff',
+        '--accent-foreground': '#0284c7',
+        '--destructive': '#ef4444',
+        '--ring': '#0ea5e9',
+        '--sidebar-active': 'linear-gradient(to right, rgba(56,189,248,0.95), rgba(14,165,233,0.95))',
+      } as React.CSSProperties
+
   return (
-    <div className="flex h-svh flex-col bg-white text-gray-900" style={{ colorScheme: 'light', '--background': '#ffffff', '--foreground': '#1a1a2e', '--card': '#ffffff', '--card-foreground': '#1a1a2e', '--popover': '#ffffff', '--popover-foreground': '#1a1a2e', '--border': '#e5e7eb', '--input': '#f3f4f6', '--primary': '#0ea5e9', '--primary-foreground': '#ffffff', '--secondary': '#f3f4f6', '--secondary-foreground': '#374151', '--muted': '#f9fafb', '--muted-foreground': '#6b7280', '--accent': '#f0f9ff', '--accent-foreground': '#0284c7', '--destructive': '#ef4444', '--ring': '#0ea5e9', '--sidebar-active': 'linear-gradient(to right, rgba(56,189,248,0.95), rgba(14,165,233,0.95))' } as React.CSSProperties}>
+    <div className="flex h-svh flex-col bg-background text-foreground" style={shellStyle}>
       {/* Top bar */}
-      <header className="z-30 flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-3">
+      <header className="z-30 flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-6 py-3">
         <div className="flex items-center gap-4">
           <Link
             to="/"
@@ -209,7 +259,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={() => { setNoticeOpen(true); setNoticeDismissed(true) }}
-            className="relative rounded-md p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+            className="relative rounded-md p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
             title={t('Announcements')}
           >
             <Bell className="h-4.5 w-4.5" />
@@ -217,13 +267,14 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
             )}
           </button>
-          <div className="flex items-center gap-0.5 rounded-md border border-gray-200 p-0.5" title={t('portal.lang.toggle')}>
+          <ThemeSwitch />
+          <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5" title={t('portal.lang.toggle')}>
             {[{ c: 'zh', l: '中' }, { c: 'en', l: 'EN' }, { c: 'ru', l: 'RU' }].map((o) => (
               <button
                 key={o.c}
                 type="button"
                 onClick={() => changeLang(o.c)}
-                className={`rounded px-2 py-1 text-xs font-medium transition ${currentLang === o.c ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                className={`rounded px-2 py-1 text-xs font-medium transition ${currentLang === o.c ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
               >
                 {o.l}
               </button>
@@ -271,14 +322,14 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
         {/* Sidebar */}
         <aside
           className={cn(
-            'shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50/50 px-3 py-4 transition-[width] duration-200',
+            'shrink-0 overflow-y-auto border-r border-border bg-muted/40 px-3 py-4 transition-[width] duration-200',
             collapsed ? 'w-[60px]' : 'w-[200px]'
           )}
         >
           <button
             type="button"
             onClick={() => setCollapsed((v) => !v)}
-            className="mb-4 flex h-9 w-full items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition"
+            className="mb-4 flex h-9 w-full items-center justify-center rounded-lg bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition"
             title={collapsed ? t('Expand') : t('Collapse')}
           >
             {collapsed ? (
@@ -301,8 +352,8 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                   ? 'justify-center px-2 py-2.5'
                   : 'px-3 py-2.5',
                 active
-                  ? 'bg-sky-600 text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )
               if (item.external) {
                 return (
@@ -312,7 +363,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                     className={cls}
                     title={label}
                   >
-                    <Icon className={cn('h-[18px] w-[18px] shrink-0', active ? 'text-gray-900' : 'text-gray-400')} />
+                    <Icon className={cn('h-[18px] w-[18px] shrink-0', active ? 'text-primary-foreground' : 'text-muted-foreground')} />
                     {!collapsed ? <span>{label}</span> : null}
                   </a>
                 )
@@ -327,7 +378,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                   <Icon
                     className={cn(
                       'h-[18px] w-[18px] shrink-0',
-                      active ? 'text-gray-900' : 'text-gray-400'
+                      active ? 'text-primary-foreground' : 'text-muted-foreground'
                     )}
                   />
                   {!collapsed ? <span>{label}</span> : null}
@@ -338,42 +389,42 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main content */}
-        <main className="min-w-0 flex-1 overflow-y-auto bg-white p-6">{children}</main>
+        <main className="min-w-0 flex-1 overflow-y-auto bg-background p-6">{children}</main>
       </div>
 
       {/* Notice Modal */}
       {noticeOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setNoticeOpen(false)}>
           <div
-            className="relative w-full max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl"
+            className="relative w-full max-w-4xl rounded-2xl border border-border bg-background p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <Bell className="h-5 w-5 text-sky-600" />
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <Bell className="h-5 w-5 text-primary" />
                 {t('portal.notice.title')}
               </h2>
               <button
                 type="button"
                 onClick={() => setNoticeOpen(false)}
-                className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
             {/* Tabs */}
-            <div className="mb-4 flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+            <div className="mb-4 flex rounded-lg border border-border bg-muted p-0.5">
               <button
                 type="button"
                 onClick={() => setNoticeTab('notice')}
-                className={cn('flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition', noticeTab === 'notice' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-600')}
+                className={cn('flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition', noticeTab === 'notice' ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground')}
               >
                 <Bell className="h-3.5 w-3.5" />{t('portal.notice.tab.notice')}
               </button>
               <button
                 type="button"
                 onClick={() => setNoticeTab('timeline')}
-                className={cn('flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition', noticeTab === 'timeline' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-600')}
+                className={cn('flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition', noticeTab === 'timeline' ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground')}
               >
                 <Megaphone className="h-3.5 w-3.5" />{t('portal.notice.tab.timeline')}
               </button>
@@ -409,21 +460,21 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">{t('portal.notice.empty')}</p>
+                <p className="text-sm text-muted-foreground">{t('portal.notice.empty')}</p>
               )
             ) : (
               <div className="max-h-[400px] space-y-3 overflow-y-auto">
                 {announcements.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t('portal.notice.noTimeline')}</p>
+                  <p className="text-sm text-muted-foreground">{t('portal.notice.noTimeline')}</p>
                 ) : (
                   announcements.slice(0, 20).map((item, i) => (
-                    <div key={i} className="border-b border-gray-200 pb-3 last:border-0">
+                    <div key={i} className="border-b border-border pb-3 last:border-0">
                       <div className="flex items-start gap-2">
                         <span className={cn('mt-1.5 h-2 w-2 shrink-0 rounded-full', item.type === 'error' ? 'bg-rose-400' : item.type === 'warning' ? 'bg-amber-400' : 'bg-emerald-400')} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm text-gray-700">{pickLang(item.content, i18n.language)}</p>
+                          <p className="text-sm text-foreground">{pickLang(item.content, i18n.language)}</p>
                           {item.publishDate && (
-                            <p className="mt-1 text-xs text-gray-400">{new Date(item.publishDate).toLocaleString()}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{new Date(item.publishDate).toLocaleString()}</p>
                           )}
                         </div>
                       </div>
@@ -437,14 +488,14 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => { setNoticeOpen(false); setNoticeDismissed(true) }}
-                className="rounded-lg px-3 py-1.5 text-xs text-gray-500 transition hover:bg-gray-100 hover:text-gray-600"
+                className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
               >
                 {t('portal.notice.dismissToday')}
               </button>
               <button
                 type="button"
                 onClick={() => setNoticeOpen(false)}
-                className="rounded-lg bg-sky-600 px-4 py-1.5 text-xs font-medium text-gray-900 transition hover:bg-sky-700"
+                className="rounded-lg bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground transition hover:opacity-90"
               >
                 {t('portal.notice.close')}
               </button>
