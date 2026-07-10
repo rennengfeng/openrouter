@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Loader2 } from 'lucide-react'
+import { ExternalLink, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useActiveChatKey } from '@/features/chat/hooks/use-active-chat-key'
 import { useChatPresets } from '@/features/chat/hooks/use-chat-presets'
@@ -69,14 +69,54 @@ export function InfiniteCanvas() {
   }
 
   return (
-    <div className="h-full min-h-[640px] overflow-hidden rounded-lg border bg-background">
-      <iframe
-        title={t('portal.canvas')}
-        src={canvasUrl}
-        className="h-full w-full border-0"
-        allow="clipboard-read; clipboard-write; fullscreen"
-        referrerPolicy="no-referrer"
-      />
+    <div className="space-y-4">
+      <div className="overflow-hidden rounded-2xl border border-border/60 bg-background/80 shadow-sm backdrop-blur">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary">
+              <Sparkles className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">{t('portal.canvas')}</p>
+              <p className="text-xs text-muted-foreground">{canvasTemplate}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <a
+              href={canvasUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className={cn(
+                'inline-flex h-9 items-center gap-2 rounded-md border px-3 text-xs font-medium transition',
+                'border-border bg-background text-foreground hover:bg-muted'
+              )}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              {t('Open in new tab')}
+            </a>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className={cn(
+                'inline-flex h-9 items-center gap-2 rounded-md border px-3 text-xs font-medium transition',
+                'border-border bg-background text-foreground hover:bg-muted'
+              )}
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              {t('Refresh')}
+            </button>
+          </div>
+        </div>
+        <div className="h-[calc(100vh-13rem)] min-h-[720px] overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))]">
+          <iframe
+            title={t('portal.canvas')}
+            src={canvasUrl}
+            className="h-full w-full border-0"
+            allow="clipboard-read; clipboard-write; fullscreen"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      </div>
     </div>
   )
 }

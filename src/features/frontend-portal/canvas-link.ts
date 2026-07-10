@@ -5,6 +5,8 @@ export function isCanvasPreset(preset: ChatPreset): boolean {
   return (
     text.includes('canvas.best') ||
     text.includes('infinite-canvas') ||
+    text.includes('canvas ') ||
+    text.includes('canvas.') ||
     text.includes('/canvas') ||
     text.includes('无限画布') ||
     text.includes('холст')

@@ -220,7 +220,14 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
       } as React.CSSProperties
 
   return (
-    <div className="flex h-svh flex-col bg-background text-foreground" style={shellStyle}>
+    <div
+      className={cn(
+        'flex h-svh flex-col bg-background text-foreground',
+        isDark && 'portal-theme-dark'
+      )}
+      data-portal-theme={isDark ? 'dark' : 'light'}
+      style={shellStyle}
+    >
       {/* Top bar */}
       <header className="z-30 flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-6 py-3">
         <div className="flex items-center gap-4">
