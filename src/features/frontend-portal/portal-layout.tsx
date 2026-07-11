@@ -123,6 +123,7 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
   const brand = useBrand()
   const location = useLocation()
   const navigate = useNavigate()
+  const isCanvasRoute = location.pathname === '/portal/canvas'
   const { resolvedTheme } = useTheme()
   const { chatPresets } = useChatPresets()
   const visibleNavItems = useMemo(
@@ -396,7 +397,14 @@ export function PortalLayout({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main content */}
-        <main className="min-w-0 flex-1 overflow-y-auto bg-background p-6">{children}</main>
+        <main
+          className={cn(
+            'min-w-0 flex-1 bg-background',
+            isCanvasRoute ? 'overflow-hidden p-0' : 'overflow-y-auto p-6'
+          )}
+        >
+          {children}
+        </main>
       </div>
 
       {/* Notice Modal */}

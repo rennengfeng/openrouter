@@ -406,7 +406,7 @@ export function PortalLogs() {
                       <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
                   <XAxis dataKey="date" stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} />
                   <Tooltip
