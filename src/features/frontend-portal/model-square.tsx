@@ -13,6 +13,13 @@ import { ModelModalityBadge } from './model-modality-badge'
 import { ModelModalities } from './model-modalities'
 import type { FrontendModel } from './types'
 import { Link } from '@tanstack/react-router'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 type PriceMode = 'site' | 'official'
 
@@ -257,16 +264,28 @@ export function ModelSquare() {
             </button>
           )
         })}
-        <select
-          value={vendorFilter}
-          onChange={(e) => setVendorFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-sky-400 focus:outline-none"
-        >
-          <option value="all">{t('portal.page.models.allVendors')}</option>
-          {vendors.map((v) => (
-            <option key={v.id} value={v.name}>{v.name}</option>
-          ))}
-        </select>
+        <Select value={vendorFilter} onValueChange={setVendorFilter}>
+          <SelectTrigger
+            size="default"
+            className="h-10 min-w-44 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 hover:bg-gray-50 focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/[0.08]"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent
+            align="end"
+            alignItemWithTrigger={false}
+            className="z-[120] max-h-72 min-w-44 border border-gray-200 bg-white text-gray-700 shadow-xl dark:border-white/10 dark:bg-[#171728] dark:text-white"
+          >
+            <SelectItem value="all">
+              {t('portal.page.models.allVendors')}
+            </SelectItem>
+            {vendors.map((v) => (
+              <SelectItem key={v.id} value={v.name}>
+                {v.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Card Grid */}
