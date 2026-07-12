@@ -167,6 +167,8 @@ export function ModelSquare() {
     }
     return map
   }, [payload?.vendors])
+  const vendorFilterLabel =
+    vendorFilter === 'all' ? t('portal.page.models.allVendors') : vendorFilter
 
   // 只展示存在于当前模型集合中的类型
   const availableCategories = useMemo(() => {
@@ -269,7 +271,7 @@ export function ModelSquare() {
             size="default"
             className="h-10 min-w-44 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 hover:bg-gray-50 focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/[0.08]"
           >
-            <SelectValue />
+            <SelectValue>{vendorFilterLabel}</SelectValue>
           </SelectTrigger>
           <SelectContent
             align="end"
