@@ -131,25 +131,6 @@ function isFixedUnitModel(model: FrontendModel): boolean {
   return model.quota_type === 1 || model.billing_unit === 'image' || model.billing_unit === 'second'
 }
 
-function priceParts(
-  model: FrontendModel,
-  mode: PriceMode,
-  ratio: number,
-  symbol: '$' | '¥',
-  t: (key: string) => string
-): string[] {
-  if (isFixedUnitModel(model)) {
-    return [`${formatFixedPrice(model, mode, ratio, symbol)} / ${fixedBillingUnitLabel(model, t)}`]
-  }
-
-  const cacheRead = formatPrice(model, 'cache_read', mode, ratio, t, symbol)
-  return [
-    `${formatPrice(model, 'input', mode, ratio, t, symbol)} ${t('input')}`,
-    `${formatPrice(model, 'output', mode, ratio, t, symbol)} ${t('output')}`,
-    ...(cacheRead !== '-' ? [`${cacheRead} ${t('cache read')}`] : []),
-  ]
-}
-
 type TierPriceField = {
   field: 'inputPrice' | 'outputPrice' | 'cacheReadPrice' | 'cacheCreatePrice'
   labelKey: string
@@ -169,20 +150,73 @@ function getDynamicTiers(model: FrontendModel): ParsedTier[] {
   return parseTiersFromExpr(billingExpr)
 }
 
-function dynamicTierPriceParts(
+type CardPriceColumn = {
+  key: string
+  labelKey: string
+  official: string
+  site: string
+  tone?: 'green' | 'amber'
+}
+
+function cardPriceColumns(
+  model: FrontendModel,
   tier: ParsedTier | undefined,
-  mode: PriceMode,
   ratio: number,
-  symbol: '$' | '¥',
   t: (key: string) => string
-): string[] {
-  if (!tier) return []
-  const r = mode === 'site' ? ratio : 1
-  return TIER_PRICE_FIELDS.flatMap((item) => {
-    const value = Number(tier[item.field] ?? 0)
-    if (!Number.isFinite(value) || value <= 0) return []
-    return [`${formatCurrencyAmount(value * r, symbol)} ${t(item.labelKey)}`]
+): CardPriceColumn[] {
+  if (isFixedUnitModel(model)) {
+    const unit = fixedBillingUnitLabel(model, t)
+    return [
+      {
+        key: 'price',
+        labelKey: 'Price',
+        official: formatFixedPrice(model, 'official', ratio, '$'),
+        site: formatFixedPrice(model, 'site', ratio, '¥'),
+      },
+      {
+        key: 'unit',
+        labelKey: 'Billing Type',
+        official: unit,
+        site: unit,
+      },
+    ]
+  }
+
+  if (tier) {
+    return TIER_PRICE_FIELDS.flatMap((item) => {
+      const value = Number(tier[item.field] ?? 0)
+      if (!Number.isFinite(value) || value <= 0) return []
+      return [{
+        key: item.field,
+        labelKey: item.labelKey,
+        official: formatCurrencyAmount(value, '$'),
+        site: formatCurrencyAmount(value * ratio, '¥'),
+        tone: item.tone,
+      }]
+    })
+  }
+
+  const fields: Array<{
+    key: 'input' | 'output' | 'cache_read' | 'cache_create'
+    labelKey: string
+    tone?: 'green' | 'amber'
+  }> = [
+    { key: 'input', labelKey: 'Input' },
+    { key: 'output', labelKey: 'Output' },
+    { key: 'cache_read', labelKey: 'Cache Read', tone: 'green' },
+    { key: 'cache_create', labelKey: 'Cache Write', tone: 'amber' },
+  ]
+
+  return fields.flatMap((field) => {
+    const official = formatPrice(model, field.key, 'official', ratio, t, '$')
+    const site = formatPrice(model, field.key, 'site', ratio, t, '¥')
+    if (official === '-' && site === '-') return []
+    return [{ key: field.key, labelKey: field.labelKey, official, site, tone: field.tone }]
   })
+}
+
+function cardPriceGridColumns(count: number): string {
+  return `minmax(72px, 0.9fr) repeat(${Math.max(count, 1)}, minmax(58px, 1fr))`
 }
 
 function tierConditionLabel(value: number): string {
@@ -220,8 +254,8 @@ function tierConditionsSummary(
 }
 
 function tierGridColumns(count: number): string {
-  const priceCols = count > 0 ? `repeat(${count}, minmax(70px, 0.8fr))` : 'minmax(70px, 0.8fr)'
-  return `minmax(84px, 0.75fr) minmax(110px, 0.9fr) ${priceCols}`
+  const priceCols = count > 0 ? `repeat(${count}, 90px)` : '90px'
+  return `84px 126px ${priceCols}`
 }
 
 function rowKey(row: Pick<ModelRow, 'model' | 'group'>): string {
@@ -430,12 +464,7 @@ export function ModelSquare() {
             const activeTier =
               dynamicTiers.find((tier) => tier.label === tierSelection[key]) ??
               dynamicTiers[0]
-            const officialParts = activeTier
-              ? dynamicTierPriceParts(activeTier, 'official', ratio, '$', t)
-              : priceParts(model, 'official', ratio, '$', t)
-            const siteParts = activeTier
-              ? dynamicTierPriceParts(activeTier, 'site', ratio, '¥', t)
-              : priceParts(model, 'site', ratio, '¥', t)
+            const priceColumns = cardPriceColumns(model, activeTier, ratio, t)
 
             return (
               <div
@@ -501,26 +530,44 @@ export function ModelSquare() {
                   </div>
                 )}
 
-                {/* Row 3: Official + site pricing */}
-                <div className="space-y-1 text-xs text-gray-400">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="font-medium text-gray-500">{t('portal.page.models.officialPrice')}</span>
-                    {officialParts.map((part) => (
-                      <span key={`official-${part}`} className="contents">
-                        <span className="text-gray-200">|</span>
-                        <span>{part}</span>
-                      </span>
+                {/* Row 3: Price table */}
+                <div className="overflow-hidden rounded-md border border-gray-200 text-xs">
+                  <div
+                    className="grid items-center gap-px bg-gray-200 text-center font-semibold text-gray-600"
+                    style={{ gridTemplateColumns: cardPriceGridColumns(priceColumns.length) }}
+                  >
+                    <div className="bg-gray-50 px-2 py-1">{t('Price')}</div>
+                    {priceColumns.map((column) => (
+                      <div key={`head-${column.key}`} className="bg-gray-50 px-1.5 py-1 leading-tight">
+                        {t(column.labelKey)}
+                      </div>
                     ))}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="font-medium text-gray-600">{t('portal.page.models.sitePrice')}</span>
-                    {siteParts.map((part) => (
-                      <span key={`site-${part}`} className="contents">
-                        <span className="text-gray-200">|</span>
-                        <span>{part}</span>
-                      </span>
-                    ))}
-                  </div>
+                  {[
+                    { key: 'official', label: t('portal.page.models.officialPrice'), valueKey: 'official' as const },
+                    { key: 'site', label: t('portal.page.models.sitePrice'), valueKey: 'site' as const },
+                  ].map((row) => (
+                    <div
+                      key={row.key}
+                      className="grid items-center gap-px bg-gray-200 text-center text-gray-900"
+                      style={{ gridTemplateColumns: cardPriceGridColumns(priceColumns.length) }}
+                    >
+                      <div className="bg-white px-2 py-1 font-semibold">{row.label}</div>
+                      {priceColumns.map((column) => {
+                        const cls =
+                          column.tone === 'green'
+                            ? 'text-emerald-600'
+                            : column.tone === 'amber'
+                              ? 'text-amber-600'
+                              : 'text-gray-900'
+                        return (
+                          <div key={`${row.key}-${column.key}`} className={`bg-white px-1.5 py-1 font-medium ${cls}`}>
+                            {column[row.valueKey]}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ))}
                 </div>
 
                 {/* Row 4: Tags */}
@@ -552,7 +599,7 @@ export function ModelSquare() {
         <div className="fixed inset-0 z-50 flex" onClick={() => setSelectedModel(null)}>
           <div className="flex-1 bg-black/30" />
           <div
-            className="relative h-full w-full max-w-[980px] overflow-y-auto border-l border-gray-200 bg-white p-6 shadow-2xl"
+            className="relative h-full w-full max-w-[820px] overflow-y-auto border-l border-gray-200 bg-white p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -641,7 +688,7 @@ export function ModelSquare() {
                     </span>
                   </div>
                   <div className="overflow-x-auto">
-                    <div className="min-w-[560px] overflow-hidden rounded-lg border border-gray-200">
+                    <div className="w-max min-w-[600px] overflow-hidden rounded-lg border border-gray-200">
                       <div
                         className="grid gap-1.5 border-b border-gray-100 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-400"
                         style={{
