@@ -4540,6 +4540,15 @@
         "portal.page.home.card.recentTokensDesc": "Token đã dùng trong 30 ngày qua",
         "portal.page.logs.phrase.imgSize": "Kích thước",
         "portal.page.logs.phrase.imgQuality": "Chất lượng",
-        "portal.page.logs.phrase.imgCount": "Số lượng"
+        "portal.page.logs.phrase.imgCount": "Số lượng",
+        "portal.page.models.officialPrice": "Giá chính thức",
+        "portal.page.models.sitePrice": "Giá của trang",
+        "portal.tag.text": "Văn bản",
+        "portal.tag.image": "Hình ảnh",
+        "portal.tag.voice": "Giọng nói",
+        "portal.tag.video": "Video",
+        "portal.tag.visual": "Thị giác",
+        "portal.tag.tools": "Công cụ",
+        "portal.tag.files": "Tệp"
     }
 }

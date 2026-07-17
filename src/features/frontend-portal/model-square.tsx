@@ -3,10 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Search, MessageSquare, X, Copy, Type, Image as ImageIcon, AudioLines, Video, Eye, Wrench, FileText } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatCurrencyFromUSD } from '@/lib/currency'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { getFrontendModels } from './api'
-import { usePortalSettings } from './portal-settings'
 import { parseModelTags } from './model-tags'
 import { ModelBadges } from './model-badges'
 import { ModelModalityBadge } from './model-modality-badge'
@@ -22,6 +20,14 @@ import {
 } from '@/components/ui/select'
 
 type PriceMode = 'site' | 'official'
+
+function formatCurrencyAmount(value: number, symbol: '$' | '¥'): string {
+  if (!Number.isFinite(value)) return '-'
+  return `${symbol}${value.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  })}`
+}
 
 // 固定 5 个标签的多语言：管理员可写中文或英文，按界面语言显示；其它标签原样显示。
 // key 为小写，查找时对原始标签做 toLowerCase 兜底，兼容大小写。
@@ -55,7 +61,8 @@ function formatPrice(
   type: 'input' | 'output' | 'cache_create' | 'cache_read',
   mode: PriceMode,
   ratio: number,
-  t: (key: string) => string
+  t: (key: string) => string,
+  symbol: '$' | '¥'
 ): string {
   if (model.quota_type === 1) {
     if (type === 'input') {
@@ -63,7 +70,7 @@ function formatPrice(
         ? Number(model.official_model_price ?? model.model_price ?? 0)
         : Number(model.model_price ?? 0)
       const r = mode === 'site' ? ratio : 1
-      return `${formatCurrencyFromUSD(modelPrice * r, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })} / ${fixedBillingUnitLabel(model, t)}`
+      return `${formatCurrencyAmount(modelPrice * r, symbol)} / ${fixedBillingUnitLabel(model, t)}`
     }
     return '-'
   }
@@ -75,21 +82,21 @@ function formatPrice(
   const base = modelRatio * 2 * r
 
   if (type === 'input') {
-    return formatCurrencyFromUSD(base, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })
+    return formatCurrencyAmount(base, symbol)
   }
   if (type === 'output') {
     const multiplier = Number(model.completion_ratio || 1)
-    return formatCurrencyFromUSD(base * multiplier, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })
+    return formatCurrencyAmount(base * multiplier, symbol)
   }
   if (type === 'cache_create') {
     const createRatio = model.create_cache_ratio
     if (createRatio == null) return '-'
-    return formatCurrencyFromUSD(base * Number(createRatio), { digitsLarge: 4, digitsSmall: 4, abbreviate: false })
+    return formatCurrencyAmount(base * Number(createRatio), symbol)
   }
   if (type === 'cache_read') {
     const cacheRatio = model.cache_ratio
     if (cacheRatio == null) return '-'
-    return formatCurrencyFromUSD(base * Number(cacheRatio), { digitsLarge: 4, digitsSmall: 4, abbreviate: false })
+    return formatCurrencyAmount(base * Number(cacheRatio), symbol)
   }
   return '-'
 }
@@ -100,16 +107,35 @@ function fixedBillingUnitLabel(model: FrontendModel, t: (key: string) => string)
   return t('per request')
 }
 
-function formatFixedPrice(model: FrontendModel, mode: PriceMode, ratio: number): string {
+function formatFixedPrice(model: FrontendModel, mode: PriceMode, ratio: number, symbol: '$' | '¥'): string {
   const modelPrice = mode === 'official'
     ? Number(model.official_model_price ?? model.model_price ?? 0)
     : Number(model.model_price ?? 0)
   const r = mode === 'site' ? ratio : 1
-  return formatCurrencyFromUSD(modelPrice * r, { digitsLarge: 4, digitsSmall: 4, abbreviate: false })
+  return formatCurrencyAmount(modelPrice * r, symbol)
 }
 
 function isFixedUnitModel(model: FrontendModel): boolean {
   return model.quota_type === 1 || model.billing_unit === 'image' || model.billing_unit === 'second'
+}
+
+function priceParts(
+  model: FrontendModel,
+  mode: PriceMode,
+  ratio: number,
+  symbol: '$' | '¥',
+  t: (key: string) => string
+): string[] {
+  if (isFixedUnitModel(model)) {
+    return [`${formatFixedPrice(model, mode, ratio, symbol)} / ${fixedBillingUnitLabel(model, t)}`]
+  }
+
+  const cacheRead = formatPrice(model, 'cache_read', mode, ratio, t, symbol)
+  return [
+    `${formatPrice(model, 'input', mode, ratio, t, symbol)} ${t('input')}`,
+    `${formatPrice(model, 'output', mode, ratio, t, symbol)} ${t('output')}`,
+    ...(cacheRead !== '-' ? [`${cacheRead} ${t('cache read')}`] : []),
+  ]
 }
 
 export function ModelSquare() {
@@ -136,10 +162,6 @@ export function ModelSquare() {
     const key = TAG_I18N_KEY[tag] ?? TAG_I18N_KEY[tag.trim().toLowerCase()]
     return key ? t(key) : tag
   }
-  // Price calibration is driven by the portal setting (site vs official) so the
-  // card list and the detail panel always show the same price basis.
-  const { portal } = usePortalSettings()
-  const priceMode: PriceMode = portal.model_square?.default_price_mode ?? 'site'
   const [searchValue, setSearchValue] = useState('')
   const [vendorFilter, setVendorFilter] = useState('all')
   const [tagFilter, setTagFilter] = useState('all')
@@ -339,25 +361,26 @@ export function ModelSquare() {
                   {pickDesc(model.description) || t('No description available')}
                 </p>
 
-                {/* Row 3: Provider + Pricing (single line, OpenRouter style) */}
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
-                  <span>by <span className="text-gray-600">{model.vendor_name || 'Unknown'}</span></span>
-                  <span className="text-gray-200">|</span>
-                  {isFixedUnitModel(model) ? (
-                    <span>{formatFixedPrice(model, priceMode, ratio)} / {fixedBillingUnitLabel(model, t)}</span>
-                  ) : (
-                    <>
-                      <span>{formatPrice(model, 'input', priceMode, ratio, t)} {t('input')}</span>
-                      <span className="text-gray-200">|</span>
-                      <span>{formatPrice(model, 'output', priceMode, ratio, t)} {t('output')}</span>
-                      {formatPrice(model, 'cache_read', priceMode, ratio, t) !== '-' && (
-                        <>
-                          <span className="text-gray-200">|</span>
-                          <span>{formatPrice(model, 'cache_read', priceMode, ratio, t)} {t('cache read')}</span>
-                        </>
-                      )}
-                    </>
-                  )}
+                {/* Row 3: Official + site pricing */}
+                <div className="space-y-1 text-xs text-gray-400">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-medium text-gray-500">{t('portal.page.models.officialPrice')}</span>
+                    {priceParts(model, 'official', ratio, '$', t).map((part) => (
+                      <span key={`official-${part}`} className="contents">
+                        <span className="text-gray-200">|</span>
+                        <span>{part}</span>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-medium text-gray-600">{t('portal.page.models.sitePrice')}</span>
+                    {priceParts(model, 'site', ratio, '¥', t).map((part) => (
+                      <span key={`site-${part}`} className="contents">
+                        <span className="text-gray-200">|</span>
+                        <span>{part}</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Row 4: Tags */}
@@ -483,29 +506,29 @@ export function ModelSquare() {
                       {isFixedUnitModel(selectedModel.model) ? (
                         <div className="text-xs">
                           <span className="font-semibold text-gray-900">
-                            {formatFixedPrice(selectedModel.model, priceMode, selectedModel.ratio)}
+                            {formatFixedPrice(selectedModel.model, 'site', selectedModel.ratio, '¥')}
                           </span>
                           <span className="text-gray-400"> / {fixedBillingUnitLabel(selectedModel.model, t)}</span>
                         </div>
                       ) : (
                         <div className="space-y-1">
                           <div className="text-xs">
-                            <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', priceMode, selectedModel.ratio, t)}</span>
+                            <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', 'site', selectedModel.ratio, t, '¥')}</span>
                             <span className="text-gray-400"> / 1M Tokens</span>
                           </div>
                           <div className="text-xs">
-                            <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', priceMode, selectedModel.ratio, t)}</span>
+                            <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', 'site', selectedModel.ratio, t, '¥')}</span>
                             <span className="text-gray-400"> / 1M Tokens</span>
                           </div>
-                          {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio, t) !== '-' && (
+                          {formatPrice(selectedModel.model, 'cache_read', 'site', selectedModel.ratio, t, '¥') !== '-' && (
                             <div className="text-xs">
-                              <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', priceMode, selectedModel.ratio, t)}</span>
+                              <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', 'site', selectedModel.ratio, t, '¥')}</span>
                               <span className="text-gray-400"> / 1M Tokens</span>
                             </div>
                           )}
-                          {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio, t) !== '-' && (
+                          {formatPrice(selectedModel.model, 'cache_create', 'site', selectedModel.ratio, t, '¥') !== '-' && (
                             <div className="text-xs">
-                              <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', priceMode, selectedModel.ratio, t)}</span>
+                              <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', 'site', selectedModel.ratio, t, '¥')}</span>
                               <span className="text-gray-400"> / 1M Tokens</span>
                             </div>
                           )}

@@ -4540,6 +4540,15 @@
         "portal.page.home.card.recentTokensDesc": "Tokens utilisés ces 30 derniers jours",
         "portal.page.logs.phrase.imgSize": "Taille",
         "portal.page.logs.phrase.imgQuality": "Qualité",
-        "portal.page.logs.phrase.imgCount": "Quantité"
+        "portal.page.logs.phrase.imgCount": "Quantité",
+        "portal.page.models.officialPrice": "Prix officiel",
+        "portal.page.models.sitePrice": "Prix du site",
+        "portal.tag.text": "Texte",
+        "portal.tag.image": "Image",
+        "portal.tag.voice": "Voix",
+        "portal.tag.video": "Vidéo",
+        "portal.tag.visual": "Visuel",
+        "portal.tag.tools": "Outils",
+        "portal.tag.files": "Fichiers"
     }
 }
