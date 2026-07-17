@@ -68,7 +68,7 @@ type BadgeDef = {
 
 /** 可识别的预设角标 —— 增删预设只改这里。 */
 const BADGE_DEFS: BadgeDef[] = [
-  { match: ['new', '新', '🆕'], variant: 'red', i18nKey: 'New' },
+  { match: ['new', 'nwe', '新', '🆕'], variant: 'red', i18nKey: 'New' },
   { match: ['hot', '热', '火', '🔥'], variant: 'orange', icon: '🔥' },
   { match: ['turbo', 'fast', '极速', '⚡', '⚡️'], variant: 'amber', icon: '⚡' },
   { match: ['recommend', 'pick', '推荐'], variant: 'violet', icon: '⭐' },

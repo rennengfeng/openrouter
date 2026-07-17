@@ -12,6 +12,12 @@ import { ModelModalities } from './model-modalities'
 import type { FrontendModel } from './types'
 import { Link } from '@tanstack/react-router'
 import {
+  parseTiersFromExpr,
+  splitBillingExprAndRequestRules,
+  type ParsedTier,
+  type TierCondition,
+} from '@/features/pricing/lib/billing-expr'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -20,6 +26,12 @@ import {
 } from '@/components/ui/select'
 
 type PriceMode = 'site' | 'official'
+
+type ModelRow = {
+  model: FrontendModel
+  group: string
+  ratio: number
+}
 
 function formatCurrencyAmount(value: number, symbol: '$' | '¥'): string {
   if (!Number.isFinite(value)) return '-'
@@ -138,6 +150,79 @@ function priceParts(
   ]
 }
 
+type TierPriceField = {
+  field: 'inputPrice' | 'outputPrice' | 'cacheReadPrice' | 'cacheCreatePrice'
+  labelKey: string
+  tone?: 'green' | 'amber'
+}
+
+const TIER_PRICE_FIELDS: TierPriceField[] = [
+  { field: 'inputPrice', labelKey: 'Input' },
+  { field: 'outputPrice', labelKey: 'Output' },
+  { field: 'cacheReadPrice', labelKey: 'Cache Read', tone: 'green' },
+  { field: 'cacheCreatePrice', labelKey: 'Cache Write', tone: 'amber' },
+]
+
+function getDynamicTiers(model: FrontendModel): ParsedTier[] {
+  if (model.billing_mode !== 'tiered_expr' || !model.billing_expr) return []
+  const { billingExpr } = splitBillingExprAndRequestRules(model.billing_expr)
+  return parseTiersFromExpr(billingExpr)
+}
+
+function dynamicTierPriceParts(
+  tier: ParsedTier | undefined,
+  mode: PriceMode,
+  ratio: number,
+  symbol: '$' | '¥',
+  t: (key: string) => string
+): string[] {
+  if (!tier) return []
+  const r = mode === 'site' ? ratio : 1
+  return TIER_PRICE_FIELDS.flatMap((item) => {
+    const value = Number(tier[item.field] ?? 0)
+    if (!Number.isFinite(value) || value <= 0) return []
+    return [`${formatCurrencyAmount(value * r, symbol)} ${t(item.labelKey)}`]
+  })
+}
+
+function tierConditionLabel(value: number): string {
+  if (!Number.isFinite(value)) return String(value)
+  if (value >= 1_000_000) {
+    const n = value / 1_000_000
+    return `${Number.isInteger(n) ? n : n.toFixed(1)}M`
+  }
+  if (value >= 1000) {
+    const n = value / 1000
+    return `${Number.isInteger(n) ? n : n.toFixed(1)}K`
+  }
+  return String(value)
+}
+
+function tierConditionsSummary(
+  conditions: TierCondition[],
+  t: (key: string) => string
+): string {
+  if (!conditions.length) return t('Default')
+  const varLabel: Record<TierCondition['var'], string> = {
+    p: t('Input'),
+    c: t('Output'),
+    len: t('Length'),
+  }
+  const opLabel: Record<TierCondition['op'], string> = {
+    '<': '<',
+    '<=': '≤',
+    '>': '>',
+    '>=': '≥',
+  }
+  return conditions
+    .map((c) => `${varLabel[c.var]} ${opLabel[c.op] ?? c.op} ${tierConditionLabel(c.value)}`)
+    .join(' && ')
+}
+
+function rowKey(row: Pick<ModelRow, 'model' | 'group'>): string {
+  return `${row.model.model_name}-${row.group}`
+}
+
 export function ModelSquare() {
   const { t, i18n } = useTranslation()
   const uiLang = i18n.language?.startsWith('ru') ? 'ru' : i18n.language?.startsWith('zh') ? 'zh' : 'en'
@@ -165,7 +250,8 @@ export function ModelSquare() {
   const [searchValue, setSearchValue] = useState('')
   const [vendorFilter, setVendorFilter] = useState('all')
   const [tagFilter, setTagFilter] = useState('all')
-  const [selectedModel, setSelectedModel] = useState<{ model: FrontendModel; group: string; ratio: number } | null>(null)
+  const [tierSelection, setTierSelection] = useState<Record<string, string>>({})
+  const [selectedModel, setSelectedModel] = useState<ModelRow | null>(null)
 
   const { data: payload, isLoading } = useQuery({
     queryKey: ['portal-frontend-models'],
@@ -244,6 +330,18 @@ export function ModelSquare() {
     })
   }, [models, searchValue, vendorFilter, tagFilter, topLevelGroupRatio, uiLang])
 
+  const selectedKey = selectedModel ? rowKey(selectedModel) : ''
+  const selectedDynamicTiers = selectedModel ? getDynamicTiers(selectedModel.model) : []
+  const selectedActiveTier =
+    selectedDynamicTiers.find((tier) => tier.label === tierSelection[selectedKey]) ??
+    selectedDynamicTiers[0]
+  const selectedTierFields = TIER_PRICE_FIELDS.filter((field) =>
+    selectedDynamicTiers.some((tier) => {
+      const value = Number(tier[field.field] ?? 0)
+      return Number.isFinite(value) && value > 0
+    })
+  )
+
   return (
     <div className="space-y-5">
       {/* Header (centered) */}
@@ -320,12 +418,23 @@ export function ModelSquare() {
       ) : rows.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((row) => {
-            const { model, group, ratio } = row
+            const { model, ratio } = row
             const parsed = parseModelTags(model.tags)
+            const key = rowKey(row)
+            const dynamicTiers = getDynamicTiers(model)
+            const activeTier =
+              dynamicTiers.find((tier) => tier.label === tierSelection[key]) ??
+              dynamicTiers[0]
+            const officialParts = activeTier
+              ? dynamicTierPriceParts(activeTier, 'official', ratio, '$', t)
+              : priceParts(model, 'official', ratio, '$', t)
+            const siteParts = activeTier
+              ? dynamicTierPriceParts(activeTier, 'site', ratio, '¥', t)
+              : priceParts(model, 'site', ratio, '¥', t)
 
             return (
               <div
-                key={`${model.model_name}-${group}`}
+                key={key}
                 onClick={() => setSelectedModel(row)}
                 className="group relative cursor-pointer rounded-xl border border-gray-200 bg-white p-5 transition hover:border-sky-400/30 hover:shadow-sm"
               >
@@ -361,11 +470,37 @@ export function ModelSquare() {
                   {pickDesc(model.description) || t('No description available')}
                 </p>
 
+                {dynamicTiers.length > 1 && (
+                  <div className="mb-3 flex flex-wrap gap-1.5">
+                    {dynamicTiers.map((tier) => {
+                      const active = activeTier?.label === tier.label
+                      return (
+                        <button
+                          key={tier.label}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setTierSelection((prev) => ({ ...prev, [key]: tier.label }))
+                          }}
+                          className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
+                            active
+                              ? 'border-sky-400 bg-sky-50 text-sky-700'
+                              : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                          }`}
+                          title={tierConditionsSummary(tier.conditions, t)}
+                        >
+                          {tier.label || t('Default')}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
                 {/* Row 3: Official + site pricing */}
                 <div className="space-y-1 text-xs text-gray-400">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="font-medium text-gray-500">{t('portal.page.models.officialPrice')}</span>
-                    {priceParts(model, 'official', ratio, '$', t).map((part) => (
+                    {officialParts.map((part) => (
                       <span key={`official-${part}`} className="contents">
                         <span className="text-gray-200">|</span>
                         <span>{part}</span>
@@ -374,7 +509,7 @@ export function ModelSquare() {
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="font-medium text-gray-600">{t('portal.page.models.sitePrice')}</span>
-                    {priceParts(model, 'site', ratio, '¥', t).map((part) => (
+                    {siteParts.map((part) => (
                       <span key={`site-${part}`} className="contents">
                         <span className="text-gray-200">|</span>
                         <span>{part}</span>
@@ -490,54 +625,139 @@ export function ModelSquare() {
                 <h3 className="text-sm font-semibold text-gray-900">{t('Pricing')}</h3>
               </div>
 
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 text-xs text-gray-400">
-                    <th className="pb-2 text-left font-medium">{t('Billing Type')}</th>
-                    <th className="pb-2 text-right font-medium">{t('Price')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-gray-50">
-                    <td className="py-2">
-                      <span className="rounded-md bg-sky-50 px-2 py-0.5 text-xs text-sky-600">{t('Token-based')}</span>
-                    </td>
-                    <td className="py-2 text-right">
-                      {isFixedUnitModel(selectedModel.model) ? (
-                        <div className="text-xs">
-                          <span className="font-semibold text-gray-900">
-                            {formatFixedPrice(selectedModel.model, 'site', selectedModel.ratio, '¥')}
-                          </span>
-                          <span className="text-gray-400"> / {fixedBillingUnitLabel(selectedModel.model, t)}</span>
-                        </div>
-                      ) : (
-                        <div className="space-y-1">
+              {selectedDynamicTiers.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-md bg-sky-50 px-2 py-0.5 text-sky-600">
+                      {t('Dynamic Pricing')}
+                    </span>
+                    <span className="text-gray-400">
+                      {t('portal.page.models.sitePrice')} · {t('Per 1M tokens')}
+                    </span>
+                  </div>
+                  {selectedDynamicTiers.length > 1 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedDynamicTiers.map((tier) => {
+                        const active = selectedActiveTier?.label === tier.label
+                        return (
+                          <button
+                            key={`detail-tier-${tier.label}`}
+                            type="button"
+                            onClick={() => {
+                              setTierSelection((prev) => ({ ...prev, [selectedKey]: tier.label }))
+                            }}
+                            className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
+                              active
+                                ? 'border-sky-400 bg-sky-50 text-sky-700'
+                                : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                            }`}
+                          >
+                            {tier.label || t('Default')}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[520px] text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-100 text-xs text-gray-400">
+                          <th className="pb-2 text-left font-medium">{t('Tier')}</th>
+                          <th className="pb-2 text-left font-medium">{t('Conditions')}</th>
+                          {selectedTierFields.map((field) => (
+                            <th key={field.field} className="pb-2 text-right font-medium">
+                              {t(field.labelKey)}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedDynamicTiers.map((tier) => {
+                          const active = selectedActiveTier?.label === tier.label
+                          return (
+                            <tr
+                              key={`detail-tier-row-${tier.label}`}
+                              className={`border-b border-gray-100 ${active ? 'bg-sky-50/70' : ''}`}
+                            >
+                              <td className="py-3 align-top">
+                                <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                                  {tier.label || t('Default')}
+                                </span>
+                              </td>
+                              <td className="py-3 pr-3 align-top text-xs text-gray-500">
+                                {tierConditionsSummary(tier.conditions, t)}
+                              </td>
+                              {selectedTierFields.map((field) => {
+                                const value = Number(tier[field.field] ?? 0)
+                                const cls =
+                                  field.tone === 'green'
+                                    ? 'text-emerald-600'
+                                    : field.tone === 'amber'
+                                      ? 'text-amber-600'
+                                      : 'text-gray-900'
+                                return (
+                                  <td key={field.field} className={`py-3 text-right align-top font-mono text-xs font-semibold ${cls}`}>
+                                    {value > 0 ? formatCurrencyAmount(value * selectedModel.ratio, '¥') : '-'}
+                                  </td>
+                                )
+                              })}
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-xs text-gray-400">
+                      <th className="pb-2 text-left font-medium">{t('Billing Type')}</th>
+                      <th className="pb-2 text-right font-medium">{t('Price')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-gray-50">
+                      <td className="py-2">
+                        <span className="rounded-md bg-sky-50 px-2 py-0.5 text-xs text-sky-600">{t('Token-based')}</span>
+                      </td>
+                      <td className="py-2 text-right">
+                        {isFixedUnitModel(selectedModel.model) ? (
                           <div className="text-xs">
-                            <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', 'site', selectedModel.ratio, t, '¥')}</span>
-                            <span className="text-gray-400"> / 1M Tokens</span>
+                            <span className="font-semibold text-gray-900">
+                              {formatFixedPrice(selectedModel.model, 'site', selectedModel.ratio, '¥')}
+                            </span>
+                            <span className="text-gray-400"> / {fixedBillingUnitLabel(selectedModel.model, t)}</span>
                           </div>
-                          <div className="text-xs">
-                            <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', 'site', selectedModel.ratio, t, '¥')}</span>
-                            <span className="text-gray-400"> / 1M Tokens</span>
+                        ) : (
+                          <div className="space-y-1">
+                            <div className="text-xs">
+                              <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', 'site', selectedModel.ratio, t, '¥')}</span>
+                              <span className="text-gray-400"> / {t('Per 1M tokens')}</span>
+                            </div>
+                            <div className="text-xs">
+                              <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', 'site', selectedModel.ratio, t, '¥')}</span>
+                              <span className="text-gray-400"> / {t('Per 1M tokens')}</span>
+                            </div>
+                            {formatPrice(selectedModel.model, 'cache_read', 'site', selectedModel.ratio, t, '¥') !== '-' && (
+                              <div className="text-xs">
+                                <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', 'site', selectedModel.ratio, t, '¥')}</span>
+                                <span className="text-gray-400"> / {t('Per 1M tokens')}</span>
+                              </div>
+                            )}
+                            {formatPrice(selectedModel.model, 'cache_create', 'site', selectedModel.ratio, t, '¥') !== '-' && (
+                              <div className="text-xs">
+                                <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', 'site', selectedModel.ratio, t, '¥')}</span>
+                                <span className="text-gray-400"> / {t('Per 1M tokens')}</span>
+                              </div>
+                            )}
                           </div>
-                          {formatPrice(selectedModel.model, 'cache_read', 'site', selectedModel.ratio, t, '¥') !== '-' && (
-                            <div className="text-xs">
-                              <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', 'site', selectedModel.ratio, t, '¥')}</span>
-                              <span className="text-gray-400"> / 1M Tokens</span>
-                            </div>
-                          )}
-                          {formatPrice(selectedModel.model, 'cache_create', 'site', selectedModel.ratio, t, '¥') !== '-' && (
-                            <div className="text-xs">
-                              <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', 'site', selectedModel.ratio, t, '¥')}</span>
-                              <span className="text-gray-400"> / 1M Tokens</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                        )}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              )}
             </div>
 
             {/* Actions */}
