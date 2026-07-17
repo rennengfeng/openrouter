@@ -219,6 +219,11 @@ function tierConditionsSummary(
     .join(' && ')
 }
 
+function tierGridColumns(count: number): string {
+  const priceCols = count > 0 ? `repeat(${count}, minmax(70px, 0.8fr))` : 'minmax(70px, 0.8fr)'
+  return `minmax(84px, 0.75fr) minmax(110px, 0.9fr) ${priceCols}`
+}
+
 function rowKey(row: Pick<ModelRow, 'model' | 'group'>): string {
   return `${row.model.model_name}-${row.group}`
 }
@@ -547,7 +552,7 @@ export function ModelSquare() {
         <div className="fixed inset-0 z-50 flex" onClick={() => setSelectedModel(null)}>
           <div className="flex-1 bg-black/30" />
           <div
-            className="relative h-full w-full max-w-lg overflow-y-auto border-l border-gray-200 bg-white p-6 shadow-2xl"
+            className="relative h-full w-full max-w-[980px] overflow-y-auto border-l border-gray-200 bg-white p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -626,7 +631,7 @@ export function ModelSquare() {
               </div>
 
               {selectedDynamicTiers.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="rounded-md bg-sky-50 px-2 py-0.5 text-sky-600">
                       {t('Dynamic Pricing')}
@@ -635,58 +640,41 @@ export function ModelSquare() {
                       {t('portal.page.models.sitePrice')} · {t('Per 1M tokens')}
                     </span>
                   </div>
-                  {selectedDynamicTiers.length > 1 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedDynamicTiers.map((tier) => {
-                        const active = selectedActiveTier?.label === tier.label
-                        return (
-                          <button
-                            key={`detail-tier-${tier.label}`}
-                            type="button"
-                            onClick={() => {
-                              setTierSelection((prev) => ({ ...prev, [selectedKey]: tier.label }))
-                            }}
-                            className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
-                              active
-                                ? 'border-sky-400 bg-sky-50 text-sky-700'
-                                : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-                            }`}
-                          >
-                            {tier.label || t('Default')}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[520px] text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-100 text-xs text-gray-400">
-                          <th className="pb-2 text-left font-medium">{t('Tier')}</th>
-                          <th className="pb-2 text-left font-medium">{t('Conditions')}</th>
-                          {selectedTierFields.map((field) => (
-                            <th key={field.field} className="pb-2 text-right font-medium">
-                              {t(field.labelKey)}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <div className="min-w-[560px] overflow-hidden rounded-lg border border-gray-200">
+                      <div
+                        className="grid gap-1.5 border-b border-gray-100 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-400"
+                        style={{
+                          gridTemplateColumns: tierGridColumns(selectedTierFields.length),
+                        }}
+                      >
+                        <div>{t('Tier')}</div>
+                        <div>{t('Conditions')}</div>
+                        {selectedTierFields.map((field) => (
+                          <div key={field.field} className="text-right">
+                            {t(field.labelKey)}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="divide-y divide-gray-100">
                         {selectedDynamicTiers.map((tier) => {
                           const active = selectedActiveTier?.label === tier.label
                           return (
-                            <tr
+                            <div
                               key={`detail-tier-row-${tier.label}`}
-                              className={`border-b border-gray-100 ${active ? 'bg-sky-50/70' : ''}`}
+                              className={`grid gap-1.5 px-3 py-3 ${active ? 'bg-sky-50/70' : 'bg-white'}`}
+                              style={{
+                                gridTemplateColumns: tierGridColumns(selectedTierFields.length),
+                              }}
                             >
-                              <td className="py-3 align-top">
+                              <div className="pt-0.5">
                                 <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
                                   {tier.label || t('Default')}
                                 </span>
-                              </td>
-                              <td className="py-3 pr-3 align-top text-xs text-gray-500">
+                              </div>
+                              <div className="text-xs leading-5 text-gray-500">
                                 {tierConditionsSummary(tier.conditions, t)}
-                              </td>
+                              </div>
                               {selectedTierFields.map((field) => {
                                 const value = Number(tier[field.field] ?? 0)
                                 const cls =
@@ -696,16 +684,16 @@ export function ModelSquare() {
                                       ? 'text-amber-600'
                                       : 'text-gray-900'
                                 return (
-                                  <td key={field.field} className={`py-3 text-right align-top font-mono text-xs font-semibold ${cls}`}>
+                                  <div key={field.field} className={`text-right font-mono text-xs font-semibold ${cls}`}>
                                     {value > 0 ? formatCurrencyAmount(value * selectedModel.ratio, '¥') : '-'}
-                                  </td>
+                                  </div>
                                 )
                               })}
-                            </tr>
+                            </div>
                           )
                         })}
-                      </tbody>
-                    </table>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : (
