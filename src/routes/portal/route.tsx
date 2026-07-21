@@ -17,7 +17,7 @@ export const Route = createFileRoute('/portal')({
     const { auth } = useAuthStore.getState()
 
     // 尝试用 cookie 恢复登录态
-    if (!auth.user) {
+    if (!auth.user || !auth.accessToken) {
       try {
         const res = await getSelf()
         if (res?.success && res.data) {
@@ -28,10 +28,10 @@ export const Route = createFileRoute('/portal')({
       }
     }
 
-    const user = useAuthStore.getState().auth.user
+    const { user, accessToken } = useAuthStore.getState().auth
 
     // 未登录
-    if (!user) {
+    if (!user || !accessToken) {
       if (isPublic) return // 公开模型广场
       useAuthStore.getState().auth.reset()
       throw redirect({ to: '/sign-in', search: { redirect: location.href } })
