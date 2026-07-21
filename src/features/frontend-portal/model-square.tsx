@@ -170,29 +170,23 @@ function cardPriceColumns(
       {
         key: 'price',
         labelKey: 'Price',
-        official: formatFixedPrice(model, 'official', ratio, '$'),
-        site: formatFixedPrice(model, 'site', ratio, '¥'),
-      },
-      {
-        key: 'unit',
-        labelKey: 'Billing Type',
-        official: unit,
-        site: unit,
+        official: `${formatFixedPrice(model, 'official', ratio, '$')} / ${unit}`,
+        site: `${formatFixedPrice(model, 'site', ratio, '¥')} / ${unit}`,
       },
     ]
   }
 
   if (tier) {
-    return TIER_PRICE_FIELDS.flatMap((item) => {
+    return TIER_PRICE_FIELDS.map((item) => {
       const value = Number(tier[item.field] ?? 0)
-      if (!Number.isFinite(value) || value <= 0) return []
-      return [{
+      const hasValue = Number.isFinite(value) && value > 0
+      return {
         key: item.field,
         labelKey: item.labelKey,
-        official: formatCurrencyAmount(value, '$'),
-        site: formatCurrencyAmount(value * ratio, '¥'),
+        official: hasValue ? `${formatCurrencyAmount(value, '$')}/M` : '-',
+        site: hasValue ? `${formatCurrencyAmount(value * ratio, '¥')}/M` : '-',
         tone: item.tone,
-      }]
+      }
     })
   }
 
@@ -207,16 +201,17 @@ function cardPriceColumns(
     { key: 'cache_create', labelKey: 'Cache Write', tone: 'amber' },
   ]
 
-  return fields.flatMap((field) => {
+  return fields.map((field) => {
     const official = formatPrice(model, field.key, 'official', ratio, t, '$')
     const site = formatPrice(model, field.key, 'site', ratio, t, '¥')
-    if (official === '-' && site === '-') return []
-    return [{ key: field.key, labelKey: field.labelKey, official, site, tone: field.tone }]
+    return {
+      key: field.key,
+      labelKey: field.labelKey,
+      official: official === '-' ? '-' : `${official}/M`,
+      site: site === '-' ? '-' : `${site}/M`,
+      tone: field.tone,
+    }
   })
-}
-
-function cardPriceGridColumns(count: number): string {
-  return `minmax(72px, 0.9fr) repeat(${Math.max(count, 1)}, minmax(58px, 1fr))`
 }
 
 function tierConditionLabel(value: number): string {
@@ -504,6 +499,7 @@ export function ModelSquare() {
                   {pickDesc(model.description) || t('No description available')}
                 </p>
 
+                {/* Row 3: Dynamic pricing tabs */}
                 {dynamicTiers.length > 1 && (
                   <div className="mb-3 flex flex-wrap gap-1.5">
                     {dynamicTiers.map((tier) => {
@@ -530,47 +526,41 @@ export function ModelSquare() {
                   </div>
                 )}
 
-                {/* Row 3: Price table */}
-                <div className="overflow-hidden rounded-md border border-gray-200 text-xs">
-                  <div
-                    className="grid items-center gap-px bg-gray-200 text-center font-semibold text-gray-600"
-                    style={{ gridTemplateColumns: cardPriceGridColumns(priceColumns.length) }}
-                  >
-                    <div className="bg-gray-50 px-2 py-1">{t('Price')}</div>
-                    {priceColumns.map((column) => (
-                      <div key={`head-${column.key}`} className="bg-gray-50 px-1.5 py-1 leading-tight">
-                        {t(column.labelKey)}
-                      </div>
-                    ))}
-                  </div>
-                  {[
-                    { key: 'official', label: t('portal.page.models.officialPrice'), valueKey: 'official' as const },
-                    { key: 'site', label: t('portal.page.models.sitePrice'), valueKey: 'site' as const },
-                  ].map((row) => (
-                    <div
-                      key={row.key}
-                      className="grid items-center gap-px bg-gray-200 text-center text-gray-900"
-                      style={{ gridTemplateColumns: cardPriceGridColumns(priceColumns.length) }}
-                    >
-                      <div className="bg-white px-2 py-1 font-semibold">{row.label}</div>
-                      {priceColumns.map((column) => {
-                        const cls =
-                          column.tone === 'green'
-                            ? 'text-emerald-600'
-                            : column.tone === 'amber'
-                              ? 'text-amber-600'
-                              : 'text-gray-900'
-                        return (
-                          <div key={`${row.key}-${column.key}`} className={`bg-white px-1.5 py-1 font-medium ${cls}`}>
-                            {column[row.valueKey]}
+                {/* Row 4: Price cards */}
+                <div className="mx-1 text-xs">
+                  <div className={`grid gap-2 ${priceColumns.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                    {priceColumns.map((column) => {
+                      const cls =
+                        column.tone === 'green'
+                          ? 'border-emerald-200/70 bg-emerald-50/80 text-emerald-700'
+                          : column.tone === 'amber'
+                            ? 'border-amber-200/70 bg-amber-50/80 text-amber-700'
+                            : 'border-gray-200 bg-gray-50 text-gray-900'
+                      const official =
+                        column.official === '-'
+                          ? '-'
+                          : `${t('portal.page.models.officialPrice')}: ${column.official}`
+                      return (
+                        <div
+                          key={column.key}
+                          className={`rounded-lg border p-2.5 shadow-sm ${cls}`}
+                        >
+                          <div className="text-[11px] font-medium uppercase text-current/60">
+                            {t(column.labelKey)}
                           </div>
-                        )
-                      })}
-                    </div>
-                  ))}
+                          <div className="mt-1 break-words text-lg font-semibold leading-tight text-current">
+                            {column.site}
+                          </div>
+                          <div className="mt-1 truncate text-[11px] text-gray-400 line-through">
+                            {official}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
 
-                {/* Row 4: Tags */}
+                {/* Row 5: Tags */}
                 {(() => {
                   const cardTags = parsed.visibleTags
                   if (cardTags.length === 0) return null
