@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useForm, type SubmitErrorHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
@@ -29,7 +29,8 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { getUserModels } from '@/lib/api'
+import { useStatus } from '@/hooks/use-status'
+import { getUserModels, getUserGroups } from '@/lib/api'
 import { getCurrencyDisplay, getCurrencyLabel } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -66,11 +67,15 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants'
 import {
   getApiKeyFormSchema,
   type ApiKeyFormValues,
-  API_KEY_FORM_DEFAULT_VALUES,
+  getApiKeyFormDefaultValues,
   transformFormDataToPayload,
   transformApiKeyToFormDefaults,
 } from '../lib'
 import { type ApiKey } from '../types'
+import {
+  ApiKeyGroupCombobox,
+  type ApiKeyGroupOption,
+} from './api-key-group-combobox'
 import { useApiKeys } from './api-keys-provider'
 import { LIGHT_THEME_STYLE } from '@/lib/force-light'
 
@@ -98,7 +103,9 @@ function ApiKeyFormSection(props: ApiKeyFormSectionProps) {
           <Icon className='size-4 sm:size-5' />
         </div>
         <div className='min-w-0'>
-          <h3 className='text-sm leading-none font-medium text-gray-900'>{props.title}</h3>
+          <h3 className='text-sm leading-none font-medium text-gray-900'>
+            {props.title}
+          </h3>
           <p className='mt-0.5 text-xs text-gray-500 sm:mt-1'>
             {props.description}
           </p>
@@ -118,36 +125,75 @@ export function ApiKeysMutateDrawer({
   const { t } = useTranslation()
   const isUpdate = !!currentRow
   const { triggerRefresh } = useApiKeys()
+  const { status } = useStatus()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const defaultUseAutoGroup = status?.default_use_auto_group === true
 
   // Fetch models
   const { data: modelsData } = useQuery({
     queryKey: ['user-models'],
     queryFn: getUserModels,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    enabled: open,
+    staleTime: 0,
+  })
+
+  // Fetch groups
+  const { data: groupsData } = useQuery({
+    queryKey: ['user-groups'],
+    queryFn: getUserGroups,
+    enabled: open,
+    staleTime: 0,
   })
 
   const models = modelsData?.data || []
+  const groupsRaw = groupsData?.data || {}
+  const groups: ApiKeyGroupOption[] = Object.entries(groupsRaw).map(
+    ([key, info]) => ({
+      value: key,
+      label: key,
+      desc: info.desc || key,
+      ratio: info.ratio,
+    })
+  )
+  const backendHasAuto = groups.some((g) => g.value === 'auto')
   const schema = getApiKeyFormSchema(t)
 
   const form = useForm<ApiKeyFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: API_KEY_FORM_DEFAULT_VALUES,
+    defaultValues: getApiKeyFormDefaultValues(defaultUseAutoGroup),
   })
 
   // Load existing data when updating
   useEffect(() => {
     if (open && isUpdate && currentRow) {
-      getApiKey(currentRow.id).then((result) => {
+      void getApiKey(currentRow.id).then((result) => {
         if (result.success && result.data) {
           form.reset(transformApiKeyToFormDefaults(result.data))
         }
       })
     } else if (open && !isUpdate) {
-      form.reset(API_KEY_FORM_DEFAULT_VALUES)
+      form.reset(
+        getApiKeyFormDefaultValues(defaultUseAutoGroup && backendHasAuto)
+      )
     }
-  }, [open, isUpdate, currentRow, form])
+  }, [open, isUpdate, currentRow, form, defaultUseAutoGroup, backendHasAuto])
+
+  // Correct group after groups load: if the form value is not in available groups, fall back
+  useEffect(() => {
+    if (groups.length === 0) return
+    const currentGroup = form.getValues('group')
+    if (currentGroup && !groups.some((g) => g.value === currentGroup)) {
+      const fallback =
+        groups.find((g) => g.value === 'default')?.value ??
+        groups[0]?.value ??
+        ''
+      form.setValue('group', fallback)
+      if (currentGroup === 'auto') {
+        form.setValue('cross_group_retry', false)
+      }
+    }
+  }, [groups, form])
 
   const onSubmit = async (data: ApiKeyFormValues) => {
     setIsSubmitting(true)
@@ -229,6 +275,7 @@ export function ApiKeysMutateDrawer({
   const quotaPlaceholder = tokensOnly
     ? t('Enter quota in tokens')
     : t('Enter quota in {{currency}}', { currency: currencyLabel })
+  const selectedGroup = form.watch('group')
   const unlimitedQuota = form.watch('unlimited_quota')
 
   return (
@@ -243,7 +290,16 @@ export function ApiKeysMutateDrawer({
     >
       <SheetContent
         side={side}
-        style={{ ...LIGHT_THEME_STYLE, '--primary': '#0ea5e9', '--primary-foreground': '#ffffff', '--accent': 'rgba(14,165,233,0.12)', '--accent-foreground': '#0284c7', '--ring': '#0ea5e9' } as React.CSSProperties}
+        style={
+          {
+            ...LIGHT_THEME_STYLE,
+            '--primary': '#0ea5e9',
+            '--primary-foreground': '#ffffff',
+            '--accent': 'rgba(14,165,233,0.12)',
+            '--accent-foreground': '#0284c7',
+            '--ring': '#0ea5e9',
+          } as CSSProperties
+        }
         className='drawer-light flex !h-dvh !w-screen max-w-none gap-0 overflow-hidden bg-white p-0 text-gray-900 sm:!w-full sm:!max-w-[620px]'
       >
         <SheetHeader className='border-b border-gray-200 bg-white px-4 py-3 text-start sm:px-5 sm:py-4'>
@@ -281,6 +337,52 @@ export function ApiKeysMutateDrawer({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name='group'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Group')}</FormLabel>
+                    <FormControl>
+                      <ApiKeyGroupCombobox
+                        options={groups}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder={t('Select a group')}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {selectedGroup === 'auto' && (
+                <FormField
+                  control={form.control}
+                  name='cross_group_retry'
+                  render={({ field }) => (
+                    <FormItem className='flex min-h-16 flex-row items-center justify-between gap-3 rounded-lg border px-3 py-2.5 sm:min-h-20 sm:gap-4 sm:px-4 sm:py-3'>
+                      <div className='space-y-0.5'>
+                        <FormLabel className='text-sm'>
+                          {t('Cross-group retry')}
+                        </FormLabel>
+                        <FormDescription className='text-xs'>
+                          {t(
+                            'When enabled, if channels in the current group fail, it will try channels in the next group in order.'
+                          )}
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={!!field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}

@@ -1,7 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Search, MessageSquare, X, Copy, Type, Image as ImageIcon, AudioLines, Video, Eye, Wrench, FileText } from 'lucide-react'
+import {
+  Search,
+  MessageSquare,
+  X,
+  Copy,
+  Type,
+  Image as ImageIcon,
+  AudioLines,
+  Video,
+  Eye,
+  Wrench,
+  FileText,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { getFrontendModels } from './api'
@@ -44,29 +56,70 @@ function formatCurrencyAmount(value: number, symbol: '$' | '¥'): string {
 // 固定 5 个标签的多语言：管理员可写中文或英文，按界面语言显示；其它标签原样显示。
 // key 为小写，查找时对原始标签做 toLowerCase 兜底，兼容大小写。
 const TAG_I18N_KEY: Record<string, string> = {
-  '文本推理': 'portal.tag.text', text: 'portal.tag.text',
-  '图像': 'portal.tag.image', image: 'portal.tag.image',
-  '音频': 'portal.tag.voice', voice: 'portal.tag.voice',
-  '视频': 'portal.tag.video', video: 'portal.tag.video',
-  '视觉': 'portal.tag.visual', visual: 'portal.tag.visual',
-  reasoning: 'portal.tag.text', '推理': 'portal.tag.text',
-  tools: 'portal.tag.tools', '工具': 'portal.tag.tools',
-  files: 'portal.tag.files', file: 'portal.tag.files', '文件': 'portal.tag.files',
+  文本推理: 'portal.tag.text',
+  text: 'portal.tag.text',
+  图像: 'portal.tag.image',
+  image: 'portal.tag.image',
+  音频: 'portal.tag.voice',
+  voice: 'portal.tag.voice',
+  视频: 'portal.tag.video',
+  video: 'portal.tag.video',
+  视觉: 'portal.tag.visual',
+  visual: 'portal.tag.visual',
+  reasoning: 'portal.tag.text',
+  推理: 'portal.tag.text',
+  tools: 'portal.tag.tools',
+  工具: 'portal.tag.tools',
+  files: 'portal.tag.files',
+  file: 'portal.tag.files',
+  文件: 'portal.tag.files',
   vision: 'portal.tag.visual',
 }
 
 // 筛选「类型」白名单：只这几类出现在筛选条（卡片标签不受影响）。aliases 小写匹配。
 const FILTER_CATEGORIES = [
-  { key: 'text', i18n: 'portal.tag.text', aliases: ['text', 'reasoning', '文本推理', '推理'] },
-  { key: 'image', i18n: 'portal.tag.image', aliases: ['image', '图像', '图片'] },
-  { key: 'voice', i18n: 'portal.tag.voice', aliases: ['voice', 'audio', '音频', '语音'] },
+  {
+    key: 'text',
+    i18n: 'portal.tag.text',
+    aliases: ['text', 'reasoning', '文本推理', '推理'],
+  },
+  {
+    key: 'image',
+    i18n: 'portal.tag.image',
+    aliases: ['image', '图像', '图片'],
+  },
+  {
+    key: 'voice',
+    i18n: 'portal.tag.voice',
+    aliases: ['voice', 'audio', '音频', '语音'],
+  },
   { key: 'video', i18n: 'portal.tag.video', aliases: ['video', '视频'] },
-  { key: 'visual', i18n: 'portal.tag.visual', aliases: ['visual', 'vision', '视觉'] },
-  { key: 'tools', i18n: 'portal.tag.tools', aliases: ['tools', '工具', '工具调用'] },
-  { key: 'file', i18n: 'portal.tag.files', aliases: ['file', 'files', '文件', '文档'] },
+  {
+    key: 'visual',
+    i18n: 'portal.tag.visual',
+    aliases: ['visual', 'vision', '视觉'],
+  },
+  {
+    key: 'tools',
+    i18n: 'portal.tag.tools',
+    aliases: ['tools', '工具', '工具调用'],
+  },
+  {
+    key: 'file',
+    i18n: 'portal.tag.files',
+    aliases: ['file', 'files', '文件', '文档'],
+  },
 ] as const
 
-const CAT_ICON = { text: Type, image: ImageIcon, voice: AudioLines, video: Video, visual: Eye, tools: Wrench, file: FileText } as const
+const CAT_ICON = {
+  text: Type,
+  image: ImageIcon,
+  voice: AudioLines,
+  video: Video,
+  visual: Eye,
+  tools: Wrench,
+  file: FileText,
+} as const
 
 function formatPrice(
   model: FrontendModel,
@@ -78,18 +131,20 @@ function formatPrice(
 ): string {
   if (model.quota_type === 1) {
     if (type === 'input') {
-      const modelPrice = mode === 'official'
-        ? Number(model.official_model_price ?? model.model_price ?? 0)
-        : Number(model.model_price ?? 0)
+      const modelPrice =
+        mode === 'official'
+          ? Number(model.official_model_price ?? model.model_price ?? 0)
+          : Number(model.model_price ?? 0)
       const r = mode === 'site' ? ratio : 1
       return `${formatCurrencyAmount(modelPrice * r, symbol)} / ${fixedBillingUnitLabel(model, t)}`
     }
     return '-'
   }
 
-  const modelRatio = mode === 'official'
-    ? Number(model.official_model_ratio ?? model.model_ratio ?? 0)
-    : Number(model.model_ratio ?? 0)
+  const modelRatio =
+    mode === 'official'
+      ? Number(model.official_model_ratio ?? model.model_ratio ?? 0)
+      : Number(model.model_ratio ?? 0)
   const r = mode === 'site' ? ratio : 1
   const base = modelRatio * 2 * r
 
@@ -113,35 +168,50 @@ function formatPrice(
   return '-'
 }
 
-function fixedBillingUnitLabel(model: FrontendModel, t: (key: string) => string): string {
+function fixedBillingUnitLabel(
+  model: FrontendModel,
+  t: (key: string) => string
+): string {
   if (model.billing_unit === 'image') return t('per image')
   if (model.billing_unit === 'second') return t('per second')
   return t('per request')
 }
 
-function formatFixedPrice(model: FrontendModel, mode: PriceMode, ratio: number, symbol: '$' | '¥'): string {
-  const modelPrice = mode === 'official'
-    ? Number(model.official_model_price ?? model.model_price ?? 0)
-    : Number(model.model_price ?? 0)
+function formatFixedPrice(
+  model: FrontendModel,
+  mode: PriceMode,
+  ratio: number,
+  symbol: '$' | '¥'
+): string {
+  const modelPrice =
+    mode === 'official'
+      ? Number(model.official_model_price ?? model.model_price ?? 0)
+      : Number(model.model_price ?? 0)
   const r = mode === 'site' ? ratio : 1
   return formatCurrencyAmount(modelPrice * r, symbol)
 }
 
 function isFixedUnitModel(model: FrontendModel): boolean {
-  return model.quota_type === 1 || model.billing_unit === 'image' || model.billing_unit === 'second'
+  return (
+    model.quota_type === 1 ||
+    model.billing_unit === 'image' ||
+    model.billing_unit === 'second'
+  )
 }
 
 type TierPriceField = {
   field: 'inputPrice' | 'outputPrice' | 'cacheReadPrice' | 'cacheCreatePrice'
   labelKey: string
-  tone?: 'green' | 'amber'
+  tone: PriceTone
 }
 
+type PriceTone = 'input' | 'output' | 'cacheRead' | 'cacheWrite' | 'request'
+
 const TIER_PRICE_FIELDS: TierPriceField[] = [
-  { field: 'inputPrice', labelKey: 'Input' },
-  { field: 'outputPrice', labelKey: 'Output' },
-  { field: 'cacheReadPrice', labelKey: 'Cache Read', tone: 'green' },
-  { field: 'cacheCreatePrice', labelKey: 'Cache Write', tone: 'amber' },
+  { field: 'inputPrice', labelKey: 'Input', tone: 'input' },
+  { field: 'outputPrice', labelKey: 'Output', tone: 'output' },
+  { field: 'cacheReadPrice', labelKey: 'Cache Read', tone: 'cacheRead' },
+  { field: 'cacheCreatePrice', labelKey: 'Cache Write', tone: 'cacheWrite' },
 ]
 
 function getDynamicTiers(model: FrontendModel): ParsedTier[] {
@@ -155,7 +225,42 @@ type CardPriceColumn = {
   labelKey: string
   official: string
   site: string
-  tone?: 'green' | 'amber'
+  tone: PriceTone
+}
+
+function modelAtmosphereClass(modelName: string): string {
+  const seed = Array.from(modelName).reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0
+  )
+  const variants = [
+    'border-sky-200/80 bg-sky-50/35 shadow-[0_10px_30px_rgba(14,165,233,0.08)] hover:border-sky-300/80',
+    'border-fuchsia-200/80 bg-fuchsia-50/35 shadow-[0_10px_30px_rgba(217,70,239,0.08)] hover:border-fuchsia-300/80',
+    'border-amber-200/80 bg-amber-50/35 shadow-[0_10px_30px_rgba(245,158,11,0.08)] hover:border-amber-300/80',
+  ]
+  return variants[seed % variants.length]
+}
+
+function priceToneClass(tone: PriceTone): string {
+  const toneClass: Record<PriceTone, string> = {
+    input: 'border-sky-200 text-sky-700',
+    output: 'border-violet-200 text-violet-700',
+    cacheRead: 'border-emerald-200 text-emerald-700',
+    cacheWrite: 'border-amber-200 text-amber-700',
+    request: 'border-rose-200 text-rose-700',
+  }
+  return toneClass[tone]
+}
+
+function priceDetailToneClass(tone: PriceTone): string {
+  const toneClass: Record<PriceTone, string> = {
+    input: 'text-sky-600',
+    output: 'text-violet-600',
+    cacheRead: 'text-emerald-600',
+    cacheWrite: 'text-amber-600',
+    request: 'text-rose-600',
+  }
+  return toneClass[tone]
 }
 
 function cardPriceColumns(
@@ -172,6 +277,7 @@ function cardPriceColumns(
         labelKey: 'Price',
         official: `${formatFixedPrice(model, 'official', ratio, '$')} / ${unit}`,
         site: `${formatFixedPrice(model, 'site', ratio, '¥')} / ${unit}`,
+        tone: 'request',
       },
     ]
   }
@@ -193,12 +299,12 @@ function cardPriceColumns(
   const fields: Array<{
     key: 'input' | 'output' | 'cache_read' | 'cache_create'
     labelKey: string
-    tone?: 'green' | 'amber'
+    tone: PriceTone
   }> = [
-    { key: 'input', labelKey: 'Input' },
-    { key: 'output', labelKey: 'Output' },
-    { key: 'cache_read', labelKey: 'Cache Read', tone: 'green' },
-    { key: 'cache_create', labelKey: 'Cache Write', tone: 'amber' },
+    { key: 'input', labelKey: 'Input', tone: 'input' },
+    { key: 'output', labelKey: 'Output', tone: 'output' },
+    { key: 'cache_read', labelKey: 'Cache Read', tone: 'cacheRead' },
+    { key: 'cache_create', labelKey: 'Cache Write', tone: 'cacheWrite' },
   ]
 
   return fields.map((field) => {
@@ -244,7 +350,10 @@ function tierConditionsSummary(
     '>=': '≥',
   }
   return conditions
-    .map((c) => `${varLabel[c.var]} ${opLabel[c.op] ?? c.op} ${tierConditionLabel(c.value)}`)
+    .map(
+      (c) =>
+        `${varLabel[c.var]} ${opLabel[c.op] ?? c.op} ${tierConditionLabel(c.value)}`
+    )
     .join(' && ')
 }
 
@@ -259,7 +368,11 @@ function rowKey(row: Pick<ModelRow, 'model' | 'group'>): string {
 
 export function ModelSquare() {
   const { t, i18n } = useTranslation()
-  const uiLang = i18n.language?.startsWith('ru') ? 'ru' : i18n.language?.startsWith('zh') ? 'zh' : 'en'
+  const uiLang = i18n.language?.startsWith('ru')
+    ? 'ru'
+    : i18n.language?.startsWith('zh')
+      ? 'zh'
+      : 'en'
   // 描述支持三语：管理员可填 JSON {"zh":"...","en":"...","ru":"..."}，按当前语言显示；纯文本原样返回
   const pickDesc = (text?: string) => {
     if (!text) return ''
@@ -298,7 +411,9 @@ export function ModelSquare() {
 
   const vendors = useMemo(() => {
     const all = payload?.vendors ?? []
-    const vendorNamesWithModels = new Set(models.map((m) => m.vendor_name).filter(Boolean))
+    const vendorNamesWithModels = new Set(
+      models.map((m) => m.vendor_name).filter(Boolean)
+    )
     return all.filter((v) => vendorNamesWithModels.has(v.name))
   }, [payload?.vendors, models])
 
@@ -316,7 +431,9 @@ export function ModelSquare() {
   const availableCategories = useMemo(() => {
     const present = new Set<string>()
     for (const m of models) {
-      const tags = parseModelTags(m.tags).visibleTags.map((x) => x.toLowerCase())
+      const tags = parseModelTags(m.tags).visibleTags.map((x) =>
+        x.toLowerCase()
+      )
       for (const c of FILTER_CATEGORIES) {
         if (c.aliases.some((a) => tags.includes(a))) present.add(c.key)
       }
@@ -329,10 +446,11 @@ export function ModelSquare() {
     let filtered = models
     if (searchValue) {
       const q = searchValue.toLowerCase()
-      filtered = filtered.filter((m) =>
-        m.model_name.toLowerCase().includes(q) ||
-        (pickDesc(m.description) ?? '').toLowerCase().includes(q) ||
-        (m.vendor_name ?? '').toLowerCase().includes(q)
+      filtered = filtered.filter(
+        (m) =>
+          m.model_name.toLowerCase().includes(q) ||
+          (pickDesc(m.description) ?? '').toLowerCase().includes(q) ||
+          (m.vendor_name ?? '').toLowerCase().includes(q)
       )
     }
     if (vendorFilter !== 'all') {
@@ -342,7 +460,9 @@ export function ModelSquare() {
       const cat = FILTER_CATEGORIES.find((c) => c.key === tagFilter)
       if (cat) {
         filtered = filtered.filter((m) => {
-          const tags = parseModelTags(m.tags).visibleTags.map((x) => x.toLowerCase())
+          const tags = parseModelTags(m.tags).visibleTags.map((x) =>
+            x.toLowerCase()
+          )
           return cat.aliases.some((a) => tags.includes(a))
         })
       }
@@ -365,10 +485,13 @@ export function ModelSquare() {
   }, [models, searchValue, vendorFilter, tagFilter, topLevelGroupRatio, uiLang])
 
   const selectedKey = selectedModel ? rowKey(selectedModel) : ''
-  const selectedDynamicTiers = selectedModel ? getDynamicTiers(selectedModel.model) : []
+  const selectedDynamicTiers = selectedModel
+    ? getDynamicTiers(selectedModel.model)
+    : []
   const selectedActiveTier =
-    selectedDynamicTiers.find((tier) => tier.label === tierSelection[selectedKey]) ??
-    selectedDynamicTiers[0]
+    selectedDynamicTiers.find(
+      (tier) => tier.label === tierSelection[selectedKey]
+    ) ?? selectedDynamicTiers[0]
   const selectedTierFields = TIER_PRICE_FIELDS.filter((field) =>
     selectedDynamicTiers.some((tier) => {
       const value = Number(tier[field.field] ?? 0)
@@ -377,37 +500,42 @@ export function ModelSquare() {
   )
 
   return (
-    <div className="space-y-5">
+    <div className='space-y-5'>
       {/* Header (centered) */}
-      <div className="pt-2 text-center">
-        <h1 className="text-3xl font-bold text-gray-900">{t('portal.page.models.title')}</h1>
-        <p className="mt-2 text-sm text-gray-400">
+      <div className='pt-2 text-center'>
+        <h1 className='text-3xl font-bold text-gray-900'>
+          {t('portal.page.models.title')}
+        </h1>
+        <p className='mt-2 text-sm text-gray-400'>
           {t('portal.page.models.publicCount', { count: rows.length })}
         </p>
       </div>
 
       {/* Search (centered) */}
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <div className='mx-auto w-full max-w-3xl'>
+        <div className='relative'>
+          <Search className='absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400' />
           <input
-            type="text"
+            type='text'
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder={t('portal.page.models.searchPlaceholder')}
-            className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+            className='w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100'
           />
         </div>
       </div>
 
       {/* Filters: 标签点选(仅显示存在的标签) + 供应商下拉(仅显示存在的供应商) */}
-      <div className="flex flex-wrap items-center justify-center gap-2">
+      <div className='flex flex-wrap items-center justify-center gap-2'>
         {[{ key: 'all', i18n: '' }, ...availableCategories].map((cat) => {
-          const Icon = cat.key === 'all' ? null : CAT_ICON[cat.key as keyof typeof CAT_ICON]
+          const Icon =
+            cat.key === 'all'
+              ? null
+              : CAT_ICON[cat.key as keyof typeof CAT_ICON]
           return (
             <button
               key={cat.key}
-              type="button"
+              type='button'
               onClick={() => setTagFilter(cat.key)}
               className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
                 tagFilter === cat.key
@@ -415,24 +543,24 @@ export function ModelSquare() {
                   : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
-              {Icon && <Icon className="h-3.5 w-3.5" />}
+              {Icon && <Icon className='h-3.5 w-3.5' />}
               {cat.key === 'all' ? t('All Tags') : t(cat.i18n)}
             </button>
           )
         })}
         <Select value={vendorFilter} onValueChange={setVendorFilter}>
           <SelectTrigger
-            size="default"
-            className="h-10 min-w-44 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 hover:bg-gray-50 focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/[0.08]"
+            size='default'
+            className='h-10 min-w-44 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 hover:bg-gray-50 focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/[0.08]'
           >
             <SelectValue>{vendorFilterLabel}</SelectValue>
           </SelectTrigger>
           <SelectContent
-            align="end"
+            align='end'
             alignItemWithTrigger={false}
-            className="z-[120] max-h-72 min-w-44 border border-gray-200 bg-white text-gray-700 shadow-xl dark:border-white/10 dark:bg-[#171728] dark:text-white"
+            className='z-[120] max-h-72 min-w-44 border border-gray-200 bg-white text-gray-700 shadow-xl dark:border-white/10 dark:bg-[#171728] dark:text-white'
           >
-            <SelectItem value="all">
+            <SelectItem value='all'>
               {t('portal.page.models.allVendors')}
             </SelectItem>
             {vendors.map((v) => (
@@ -446,11 +574,13 @@ export function ModelSquare() {
 
       {/* Card Grid */}
       {isLoading ? (
-        <div className="py-12 text-center">
-          <p className="text-sm text-gray-500">{t('portal.page.models.loading')}</p>
+        <div className='py-12 text-center'>
+          <p className='text-sm text-gray-500'>
+            {t('portal.page.models.loading')}
+          </p>
         </div>
       ) : rows.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
           {rows.map((row) => {
             const { model, ratio } = row
             const parsed = parseModelTags(model.tags)
@@ -460,57 +590,73 @@ export function ModelSquare() {
               dynamicTiers.find((tier) => tier.label === tierSelection[key]) ??
               dynamicTiers[0]
             const priceColumns = cardPriceColumns(model, activeTier, ratio, t)
+            const atmosphereClass = modelAtmosphereClass(model.model_name)
 
             return (
               <div
                 key={key}
                 onClick={() => setSelectedModel(row)}
-                className="group relative cursor-pointer rounded-xl border border-gray-200 bg-white p-5 transition hover:border-sky-400/30 hover:shadow-sm"
+                className={`group relative cursor-pointer rounded-xl border p-5 transition ${atmosphereClass}`}
               >
                 <ModelBadges badges={parsed.badges} />
                 {/* Row 1: Icon + Name + Modality badge + Copy */}
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gray-50">
-                    {getLobeIcon(model.icon || vendorIconMap.get(model.vendor_name ?? ''), 18)}
+                <div className='mb-2 flex items-center gap-2'>
+                  <div className='flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gray-50'>
+                    {getLobeIcon(
+                      model.icon || vendorIconMap.get(model.vendor_name ?? ''),
+                      18
+                    )}
                   </div>
-                  <h3 className="text-base font-bold text-gray-900 line-clamp-1">{model.model_name}</h3>
+                  <h3 className='text-base font-bold text-gray-900 line-clamp-1'>
+                    {model.model_name}
+                  </h3>
                   {/* Modality badge - small icon with shadow like OpenRouter */}
-                  {parsed.inputModalities.length || parsed.outputModalities.length ? (
-                    <ModelModalities input={parsed.inputModalities} output={parsed.outputModalities} />
+                  {parsed.inputModalities.length ||
+                  parsed.outputModalities.length ? (
+                    <ModelModalities
+                      input={parsed.inputModalities}
+                      output={parsed.outputModalities}
+                    />
                   ) : (
-                    <ModelModalityBadge modelName={model.model_name} tags={model.tags} />
+                    <ModelModalityBadge
+                      modelName={model.model_name}
+                      tags={model.tags}
+                    />
                   )}
                   <button
-                    type="button"
+                    type='button'
                     onClick={(e) => {
                       e.stopPropagation()
                       navigator.clipboard.writeText(model.model_name)
                       toast.success(t('Copied'))
                     }}
-                    className="shrink-0 rounded p-1 text-gray-300 opacity-0 transition group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500"
+                    className='shrink-0 rounded p-1 text-gray-300 opacity-0 transition group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500'
                     title={t('Copy model name')}
                   >
-                    <Copy className="h-3.5 w-3.5" />
+                    <Copy className='h-3.5 w-3.5' />
                   </button>
                 </div>
 
                 {/* Row 2: Description */}
-                <p className="mb-3 text-xs leading-relaxed text-gray-500 line-clamp-2">
+                <p className='mb-3 text-xs leading-relaxed text-gray-500 line-clamp-2'>
                   {pickDesc(model.description) || t('No description available')}
                 </p>
 
                 {/* Row 3: Dynamic pricing tabs */}
                 {dynamicTiers.length > 1 && (
-                  <div className="mb-3 flex flex-wrap gap-1.5">
+                  <div className='mb-3 flex flex-wrap gap-1.5'>
                     {dynamicTiers.map((tier) => {
                       const active = activeTier?.label === tier.label
                       return (
                         <button
                           key={tier.label}
-                          type="button"
+                          type='button'
                           onClick={(e) => {
                             e.stopPropagation()
-                            setTierSelection((prev) => ({ ...prev, [key]: tier.label }))
+                            setTierSelection((prev) => ({
+                              ...prev,
+                              [key]: tier.label,
+                            }))
                           }}
                           className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
                             active
@@ -527,15 +673,12 @@ export function ModelSquare() {
                 )}
 
                 {/* Row 4: Price cards */}
-                <div className="mx-auto w-full text-xs">
-                  <div className={`grid w-full gap-1.5 ${priceColumns.length === 1 ? 'mx-auto max-w-48 grid-cols-1' : 'mx-auto max-w-96 grid-cols-2'}`}>
+                <div className='mx-auto w-full text-xs'>
+                  <div
+                    className={`grid w-full gap-1.5 ${priceColumns.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
+                  >
                     {priceColumns.map((column) => {
-                      const cls =
-                        column.tone === 'green'
-                          ? 'border-emerald-200/70 bg-emerald-50/80 text-emerald-700'
-                          : column.tone === 'amber'
-                            ? 'border-amber-200/70 bg-amber-50/80 text-amber-700'
-                            : 'border-gray-200 bg-gray-50 text-gray-900'
+                      const cls = priceToneClass(column.tone)
                       const official =
                         column.official === '-'
                           ? '-'
@@ -543,15 +686,15 @@ export function ModelSquare() {
                       return (
                         <div
                           key={column.key}
-                          className={`rounded-md border px-2 py-1.5 shadow-sm ${cls}`}
+                          className={`rounded-md border bg-transparent px-2 py-1.5 shadow-sm ${cls}`}
                         >
-                          <div className="text-[10px] font-medium uppercase leading-tight text-current/60">
+                          <div className='text-[10px] font-medium uppercase leading-tight text-current/60'>
                             {t(column.labelKey)}
                           </div>
-                          <div className="mt-0.5 break-words text-base font-semibold leading-tight text-current">
+                          <div className='mt-0.5 break-words text-sm font-semibold leading-tight text-current'>
                             {column.site}
                           </div>
-                          <div className="mt-0.5 truncate text-[10px] leading-tight text-gray-400 line-through">
+                          <div className='mt-0.5 truncate text-[10px] leading-tight text-gray-400 line-through'>
                             {official}
                           </div>
                         </div>
@@ -565,9 +708,12 @@ export function ModelSquare() {
                   const cardTags = parsed.visibleTags
                   if (cardTags.length === 0) return null
                   return (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
+                    <div className='mt-3 flex flex-wrap gap-1.5'>
                       {cardTags.map((tg) => (
-                        <span key={tg} className="rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
+                        <span
+                          key={tg}
+                          className='rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-600'
+                        >
                           {tagLabel(tg)}
                         </span>
                       ))}
@@ -579,56 +725,80 @@ export function ModelSquare() {
           })}
         </div>
       ) : (
-        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-200">
-          <p className="text-sm text-gray-400">{t('portal.page.models.noModelsFound')}</p>
+        <div className='flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-200'>
+          <p className='text-sm text-gray-400'>
+            {t('portal.page.models.noModelsFound')}
+          </p>
         </div>
       )}
 
       {/* Model Detail — Side Panel (newapi style) */}
       {selectedModel && (
-        <div className="fixed inset-0 z-50 flex" onClick={() => setSelectedModel(null)}>
-          <div className="flex-1 bg-black/30" />
+        <div
+          className='fixed inset-0 z-50 flex'
+          onClick={() => setSelectedModel(null)}
+        >
+          <div className='flex-1 bg-black/30' />
           <div
-            className="relative h-full w-full max-w-[820px] overflow-y-auto border-l border-gray-200 bg-white p-6 shadow-2xl"
+            className='relative h-full w-full max-w-[820px] overflow-y-auto border-l border-gray-200 bg-white p-6 shadow-2xl'
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              type="button"
+              type='button'
               onClick={() => setSelectedModel(null)}
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+              className='absolute right-4 top-4 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600'
             >
-              <X className="h-5 w-5" />
+              <X className='h-5 w-5' />
             </button>
 
             {/* Header */}
-            <div className="mb-6 flex items-start gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gray-50">
-                {getLobeIcon(selectedModel.model.icon || vendorIconMap.get(selectedModel.model.vendor_name ?? ''), 32)}
+            <div className='mb-6 flex items-start gap-4'>
+              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gray-50'>
+                {getLobeIcon(
+                  selectedModel.model.icon ||
+                    vendorIconMap.get(selectedModel.model.vendor_name ?? ''),
+                  32
+                )}
               </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-gray-900">{selectedModel.model.model_name}</h2>
-                <p className="mt-1 text-sm text-gray-500">{selectedModel.model.vendor_name}</p>
+              <div className='flex-1'>
+                <h2 className='text-xl font-bold text-gray-900'>
+                  {selectedModel.model.model_name}
+                </h2>
+                <p className='mt-1 text-sm text-gray-500'>
+                  {selectedModel.model.vendor_name}
+                </p>
               </div>
             </div>
 
             {/* Basic Info Section */}
-            <div className="mb-6 rounded-lg border border-gray-200 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-600">ℹ</span>
-                <h3 className="text-sm font-semibold text-gray-900">{t('Basic Info')}</h3>
+            <div className='mb-6 rounded-lg border border-gray-200 p-4'>
+              <div className='mb-3 flex items-center gap-2'>
+                <span className='flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-600'>
+                  ℹ
+                </span>
+                <h3 className='text-sm font-semibold text-gray-900'>
+                  {t('Basic Info')}
+                </h3>
               </div>
-              <p className="text-sm text-gray-500">
-                {pickDesc(selectedModel.model.description) || t('No model description available')}
+              <p className='text-sm text-gray-500'>
+                {pickDesc(selectedModel.model.description) ||
+                  t('No model description available')}
               </p>
             </div>
 
             {/* API Endpoint Section */}
-            <div className="mb-6 rounded-lg border border-gray-200 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-50 text-green-600">⚡</span>
-                <h3 className="text-sm font-semibold text-gray-900">{t('API Endpoint')}</h3>
+            <div className='mb-6 rounded-lg border border-gray-200 p-4'>
+              <div className='mb-3 flex items-center gap-2'>
+                <span className='flex h-6 w-6 items-center justify-center rounded-full bg-green-50 text-green-600'>
+                  ⚡
+                </span>
+                <h3 className='text-sm font-semibold text-gray-900'>
+                  {t('API Endpoint')}
+                </h3>
               </div>
-              <p className="mb-3 text-xs text-gray-400">{t('Supported endpoint types for this model')}</p>
+              <p className='mb-3 text-xs text-gray-400'>
+                {t('Supported endpoint types for this model')}
+              </p>
               {(() => {
                 const epMap = (payload?.supported_endpoint ?? {}) as Record<
                   string,
@@ -644,85 +814,102 @@ export function ModelSquare() {
                   return { type, path, method: info.method || 'POST' }
                 })
                 return eps.map((ep) => (
-                  <div key={ep.type} className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-green-400" />
-                      <span className="text-gray-700">
+                  <div
+                    key={ep.type}
+                    className='flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 text-sm'
+                  >
+                    <div className='flex items-center gap-2'>
+                      <span className='h-2 w-2 rounded-full bg-green-400' />
+                      <span className='text-gray-700'>
                         {ep.type}
                         {ep.path && (
-                          <span className="ml-2 font-mono text-gray-500">{ep.path}</span>
+                          <span className='ml-2 font-mono text-gray-500'>
+                            {ep.path}
+                          </span>
                         )}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-400">{ep.method}</span>
+                    <span className='text-xs text-gray-400'>{ep.method}</span>
                   </div>
                 ))
               })()}
             </div>
 
             {/* Pricing Section */}
-            <div className="mb-6 rounded-lg border border-gray-200 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-50 text-orange-600">💰</span>
-                <h3 className="text-sm font-semibold text-gray-900">{t('Pricing')}</h3>
+            <div className='mb-6 rounded-lg border border-gray-200 p-4'>
+              <div className='mb-3 flex items-center gap-2'>
+                <span className='flex h-6 w-6 items-center justify-center rounded-full bg-orange-50 text-orange-600'>
+                  💰
+                </span>
+                <h3 className='text-sm font-semibold text-gray-900'>
+                  {t('Pricing')}
+                </h3>
               </div>
 
               {selectedDynamicTiers.length > 0 ? (
-                <div className="space-y-2.5">
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="rounded-md bg-sky-50 px-2 py-0.5 text-sky-600">
+                <div className='space-y-2.5'>
+                  <div className='flex flex-wrap items-center gap-2 text-xs'>
+                    <span className='rounded-md bg-sky-50 px-2 py-0.5 text-sky-600'>
                       {t('Dynamic Pricing')}
                     </span>
-                    <span className="text-gray-400">
+                    <span className='text-gray-400'>
                       {t('portal.page.models.sitePrice')} · {t('Per 1M tokens')}
                     </span>
                   </div>
-                  <div className="overflow-x-auto">
-                    <div className="w-max min-w-[600px] overflow-hidden rounded-lg border border-gray-200">
+                  <div className='overflow-x-auto'>
+                    <div className='w-max min-w-[600px] overflow-hidden rounded-lg border border-gray-200'>
                       <div
-                        className="grid gap-1.5 border-b border-gray-100 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-400"
+                        className='grid gap-1.5 border-b border-gray-100 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-400'
                         style={{
-                          gridTemplateColumns: tierGridColumns(selectedTierFields.length),
+                          gridTemplateColumns: tierGridColumns(
+                            selectedTierFields.length
+                          ),
                         }}
                       >
                         <div>{t('Tier')}</div>
                         <div>{t('Conditions')}</div>
                         {selectedTierFields.map((field) => (
-                          <div key={field.field} className="text-right">
+                          <div key={field.field} className='text-right'>
                             {t(field.labelKey)}
                           </div>
                         ))}
                       </div>
-                      <div className="divide-y divide-gray-100">
+                      <div className='divide-y divide-gray-100'>
                         {selectedDynamicTiers.map((tier) => {
-                          const active = selectedActiveTier?.label === tier.label
+                          const active =
+                            selectedActiveTier?.label === tier.label
                           return (
                             <div
                               key={`detail-tier-row-${tier.label}`}
                               className={`grid gap-1.5 px-3 py-3 ${active ? 'bg-sky-50/70' : 'bg-white'}`}
                               style={{
-                                gridTemplateColumns: tierGridColumns(selectedTierFields.length),
+                                gridTemplateColumns: tierGridColumns(
+                                  selectedTierFields.length
+                                ),
                               }}
                             >
-                              <div className="pt-0.5">
-                                <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                              <div className='pt-0.5'>
+                                <span className='rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600'>
                                   {tier.label || t('Default')}
                                 </span>
                               </div>
-                              <div className="text-xs leading-5 text-gray-500">
+                              <div className='text-xs leading-5 text-gray-500'>
                                 {tierConditionsSummary(tier.conditions, t)}
                               </div>
                               {selectedTierFields.map((field) => {
                                 const value = Number(tier[field.field] ?? 0)
-                                const cls =
-                                  field.tone === 'green'
-                                    ? 'text-emerald-600'
-                                    : field.tone === 'amber'
-                                      ? 'text-amber-600'
-                                      : 'text-gray-900'
+                                const cls = priceDetailToneClass(field.tone)
                                 return (
-                                  <div key={field.field} className={`text-right font-mono text-xs font-semibold ${cls}`}>
-                                    {value > 0 ? formatCurrencyAmount(value * selectedModel.ratio, '¥') : '-'}
+                                  <div
+                                    key={field.field}
+                                    className={`text-right font-mono text-xs font-semibold ${cls}`}
+                                  >
+                                    {value > 0
+                                      ? formatCurrencyAmount(
+                                          value * selectedModel.ratio,
+                                          '¥'
+                                        )
+                                      : '-'}
                                   </div>
                                 )
                               })}
@@ -734,46 +921,126 @@ export function ModelSquare() {
                   </div>
                 </div>
               ) : (
-                <table className="w-full text-sm">
+                <table className='w-full text-sm'>
                   <thead>
-                    <tr className="border-b border-gray-100 text-xs text-gray-400">
-                      <th className="pb-2 text-left font-medium">{t('Billing Type')}</th>
-                      <th className="pb-2 text-right font-medium">{t('Price')}</th>
+                    <tr className='border-b border-gray-100 text-xs text-gray-400'>
+                      <th className='pb-2 text-left font-medium'>
+                        {t('Billing Type')}
+                      </th>
+                      <th className='pb-2 text-right font-medium'>
+                        {t('Price')}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-gray-50">
-                      <td className="py-2">
-                        <span className="rounded-md bg-sky-50 px-2 py-0.5 text-xs text-sky-600">{t('Token-based')}</span>
+                    <tr className='border-b border-gray-50'>
+                      <td className='py-2'>
+                        <span className='rounded-md bg-sky-50 px-2 py-0.5 text-xs text-sky-600'>
+                          {t('Token-based')}
+                        </span>
                       </td>
-                      <td className="py-2 text-right">
+                      <td className='py-2 text-right'>
                         {isFixedUnitModel(selectedModel.model) ? (
-                          <div className="text-xs">
-                            <span className="font-semibold text-gray-900">
-                              {formatFixedPrice(selectedModel.model, 'site', selectedModel.ratio, '¥')}
+                          <div className='text-xs'>
+                            <span className='font-semibold text-gray-900'>
+                              {formatFixedPrice(
+                                selectedModel.model,
+                                'site',
+                                selectedModel.ratio,
+                                '¥'
+                              )}
                             </span>
-                            <span className="text-gray-400"> / {fixedBillingUnitLabel(selectedModel.model, t)}</span>
+                            <span className='text-gray-400'>
+                              {' '}
+                              / {fixedBillingUnitLabel(selectedModel.model, t)}
+                            </span>
                           </div>
                         ) : (
-                          <div className="space-y-1">
-                            <div className="text-xs">
-                              <span className="font-semibold text-gray-900">{t('Input')} {formatPrice(selectedModel.model, 'input', 'site', selectedModel.ratio, t, '¥')}</span>
-                              <span className="text-gray-400"> / {t('Per 1M tokens')}</span>
+                          <div className='space-y-1'>
+                            <div className='text-xs'>
+                              <span className='font-semibold text-gray-900'>
+                                {t('Input')}{' '}
+                                {formatPrice(
+                                  selectedModel.model,
+                                  'input',
+                                  'site',
+                                  selectedModel.ratio,
+                                  t,
+                                  '¥'
+                                )}
+                              </span>
+                              <span className='text-gray-400'>
+                                {' '}
+                                / {t('Per 1M tokens')}
+                              </span>
                             </div>
-                            <div className="text-xs">
-                              <span className="font-semibold text-gray-900">{t('Output')} {formatPrice(selectedModel.model, 'output', 'site', selectedModel.ratio, t, '¥')}</span>
-                              <span className="text-gray-400"> / {t('Per 1M tokens')}</span>
+                            <div className='text-xs'>
+                              <span className='font-semibold text-gray-900'>
+                                {t('Output')}{' '}
+                                {formatPrice(
+                                  selectedModel.model,
+                                  'output',
+                                  'site',
+                                  selectedModel.ratio,
+                                  t,
+                                  '¥'
+                                )}
+                              </span>
+                              <span className='text-gray-400'>
+                                {' '}
+                                / {t('Per 1M tokens')}
+                              </span>
                             </div>
-                            {formatPrice(selectedModel.model, 'cache_read', 'site', selectedModel.ratio, t, '¥') !== '-' && (
-                              <div className="text-xs">
-                                <span className="font-semibold text-green-600">{t('Cache Read')} {formatPrice(selectedModel.model, 'cache_read', 'site', selectedModel.ratio, t, '¥')}</span>
-                                <span className="text-gray-400"> / {t('Per 1M tokens')}</span>
+                            {formatPrice(
+                              selectedModel.model,
+                              'cache_read',
+                              'site',
+                              selectedModel.ratio,
+                              t,
+                              '¥'
+                            ) !== '-' && (
+                              <div className='text-xs'>
+                                <span className='font-semibold text-green-600'>
+                                  {t('Cache Read')}{' '}
+                                  {formatPrice(
+                                    selectedModel.model,
+                                    'cache_read',
+                                    'site',
+                                    selectedModel.ratio,
+                                    t,
+                                    '¥'
+                                  )}
+                                </span>
+                                <span className='text-gray-400'>
+                                  {' '}
+                                  / {t('Per 1M tokens')}
+                                </span>
                               </div>
                             )}
-                            {formatPrice(selectedModel.model, 'cache_create', 'site', selectedModel.ratio, t, '¥') !== '-' && (
-                              <div className="text-xs">
-                                <span className="font-semibold text-amber-600">{t('Cache Create')} {formatPrice(selectedModel.model, 'cache_create', 'site', selectedModel.ratio, t, '¥')}</span>
-                                <span className="text-gray-400"> / {t('Per 1M tokens')}</span>
+                            {formatPrice(
+                              selectedModel.model,
+                              'cache_create',
+                              'site',
+                              selectedModel.ratio,
+                              t,
+                              '¥'
+                            ) !== '-' && (
+                              <div className='text-xs'>
+                                <span className='font-semibold text-amber-600'>
+                                  {t('Cache Create')}{' '}
+                                  {formatPrice(
+                                    selectedModel.model,
+                                    'cache_create',
+                                    'site',
+                                    selectedModel.ratio,
+                                    t,
+                                    '¥'
+                                  )}
+                                </span>
+                                <span className='text-gray-400'>
+                                  {' '}
+                                  / {t('Per 1M tokens')}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -786,12 +1053,12 @@ export function ModelSquare() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className='flex gap-3'>
               <Link
-                to="/portal/chat"
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-500"
+                to='/portal/chat'
+                className='flex flex-1 items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-500'
               >
-                <MessageSquare className="h-4 w-4" />
+                <MessageSquare className='h-4 w-4' />
                 {t('Online Experience')}
               </Link>
             </div>
